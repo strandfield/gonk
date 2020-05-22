@@ -1,0 +1,3 @@
+[submodule "dependencies/libscript"]
+	path = dependencies/libscript
+	url = https://github.com/bandicode/libscript.git
