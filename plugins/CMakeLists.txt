@@ -1,2 +1,2 @@
 
-message("There are no plugins yet")
+add_subdirectory(std-regex)

@@ -4,6 +4,8 @@
 
 #include "gonk/gonk.h"
 
+#include "gonk/modules.h"
+
 #include <script/class.h>
 #include <script/classbuilder.h>
 #include <script/context.h>
@@ -15,6 +17,7 @@
 
 #include <script/interpreter/executioncontext.h>
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QtGlobal>
 
@@ -71,6 +74,8 @@ Gonk::Gonk(int & argc, char **argv)
 
   m_engine.rootNamespace().newFunction("print", callbacks::print_string)
     .params(script::Type::cref(script::Type::String)).create();
+
+  m_module_manager.reset(new gonk::ModuleManager(&m_engine));
 }
 
 Gonk::~Gonk()
@@ -101,9 +106,17 @@ int Gonk::exec()
     return 0;
   }
 
+  m_module_manager->addImportPath("./modules");
+  m_module_manager->fetchModules();
+
   if (argv(1) == "--interactive")
   {
     return interactiveSession();
+  }
+  else if (argv(1) == "--list-modules")
+  {
+    listModules();
+    return 0;
   }
   else
   {
@@ -114,6 +127,11 @@ int Gonk::exec()
 Gonk& Gonk::Instance()
 {
   return *m_instance;
+}
+
+gonk::ModuleManager& Gonk::moduleManager() const
+{
+  return *m_module_manager;
 }
 
 int Gonk::interactiveSession()
@@ -142,6 +160,24 @@ int Gonk::interactiveSession()
   }
 
   return 0;
+}
+
+void list_modules(script::Module m, std::string prefix)
+{
+  std::cout << prefix << m.name() << "\n";
+
+  for (const auto& smod : m.submodules())
+  {
+    list_modules(smod, prefix + m.name() + ".");
+  }
+}
+
+void Gonk::listModules()
+{
+  for (const auto& m : scriptEngine()->modules())
+  {
+    list_modules(m, "");
+  }
 }
 
 void Gonk::eval(std::string cmd)

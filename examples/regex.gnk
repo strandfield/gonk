@@ -1,0 +1,9 @@
+
+import std.regex;
+
+print("Hello World!");
+
+std::regex r("Hello .*");
+
+print(std::regex_match("Hello World!", r));
+
