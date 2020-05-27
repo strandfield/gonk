@@ -21,8 +21,16 @@
 #include <QDebug>
 #include <QtGlobal>
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+
+#ifdef _WIN32
+#include <windows.h>    //GetModuleFileNameW
+#else
+#include <limits.h>
+#include <unistd.h>     //readlink
+#endif
 
 Gonk* Gonk::m_instance = nullptr;
 
@@ -54,6 +62,35 @@ script::Value print_string(script::FunctionCall *c)
 }
 
 } // namespace callbacks
+
+
+// from https://stackoverflow.com/questions/1528298/get-path-of-executable
+static std::filesystem::path getexepath()
+{
+#ifdef _WIN32
+  wchar_t path[MAX_PATH] = { 0 };
+  GetModuleFileNameW(NULL, path, MAX_PATH);
+  return path;
+#else
+  char result[PATH_MAX];
+  ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+  return std::string(result, (count > 0) ? count : 0);
+#endif
+}
+
+static std::string executable_dir()
+{
+  std::string path = getexepath().string();
+  for (char& c : path)
+  {
+    if (c == '\\')
+      c = '/';
+  }
+
+  size_t offset = path.find_last_of('/');
+  path.erase(path.begin() + offset + 1, path.end());
+  return path;
+}
 
 Gonk::Gonk(int & argc, char **argv)
   : m_argc(argc),
@@ -106,7 +143,7 @@ int Gonk::exec()
     return 0;
   }
 
-  m_module_manager->addImportPath("./modules");
+  m_module_manager->addImportPath(executable_dir() + "/modules");
   m_module_manager->fetchModules();
 
   if (argv(1) == "--interactive")
