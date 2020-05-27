@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
 project(gonk)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
@@ -33,6 +33,11 @@ target_include_directories(libgonk PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(libgonk Qt5::Core)
 target_link_libraries(libgonk libscript)
 target_compile_definitions(libgonk PRIVATE -DGONK_COMPILE_LIBRARY)
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    message("GCC compiler: linking to stdc++fs")
+    target_link_libraries(libgonk stdc++fs)
+endif()
 
 add_executable(gonk 
                "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
