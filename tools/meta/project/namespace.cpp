@@ -12,6 +12,11 @@ Namespace::Namespace(const QString & n, Qt::CheckState c)
 
 }
 
+void Namespace::appendChild(NodeRef n)
+{
+  elements.append(n);
+}
+
 void Namespace::fillJson(QJsonObject & obj) const
 {
   Node::fillJson(obj);

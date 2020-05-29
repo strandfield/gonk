@@ -4,11 +4,14 @@
 
 #include "controller.h"
 
-#include <QFileInfo>
+#include "project-loader.h"
 
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
+
+#include <QFile>
+#include <QFileInfo>
 
 #include <QDebug>
 
@@ -90,4 +93,16 @@ bool Controller::createSqlDatabase(const QFileInfo& sql_file)
 QSqlDatabase& Controller::database() const
 {
   return *m_database;
+}
+
+void Controller::loadProject()
+{
+  ProjectLoader loader{ database() };
+  loader.load();
+  m_project = loader.project;
+}
+
+ProjectRef Controller::project() const
+{
+  return m_project;
 }

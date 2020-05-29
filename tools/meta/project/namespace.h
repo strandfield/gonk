@@ -10,6 +10,7 @@
 class Namespace : public Node
 {
 public:
+  int namespace_id = -1;
   QList<NodeRef> elements;
   QString rename;
 
@@ -20,6 +21,8 @@ public:
   QString typeName() const override { return "namespace"; }
   static const NodeType staticTypeCode = NodeType::Namespace;
   NodeType typeCode() const override { return staticTypeCode; }
+
+  void appendChild(NodeRef n) override;
 
   void fillJson(QJsonObject & obj) const override;
   static QSharedPointer<Node> fromJson(const QJsonObject & val);

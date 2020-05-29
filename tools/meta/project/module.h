@@ -10,6 +10,7 @@
 class Module : public Node
 {
 public:
+  int module_id = -1;
   QList<NodeRef> elements;
 
 public:
@@ -22,6 +23,8 @@ public:
 
   void fillJson(QJsonObject & obj) const override;
   static QSharedPointer<Node> fromJson(const QJsonObject & obj);
+
+  void appendChild(NodeRef child) override;
 
   template<typename T>
   QSharedPointer<T> get(const QString & name)

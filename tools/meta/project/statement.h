@@ -19,6 +19,8 @@ public:
 
   void fillJson(QJsonObject & obj) const override;
   static QSharedPointer<Node> fromJson(const QJsonObject & val);
+
+  int statement_id = -1;
 };
 typedef QSharedPointer<Statement> StatementRef;
 

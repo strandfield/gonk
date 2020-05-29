@@ -8,6 +8,12 @@
 #include <QSharedPointer>
 
 #include "project/module.h"
+#include "project/class.h"
+#include "project/enum.h"
+#include "project/file.h"
+#include "project/function.h"
+#include "project/namespace.h"
+#include "project/statement.h"
 #include "project/type.h"
 
 class Project
@@ -23,6 +29,15 @@ public:
 public:
   QList<ModuleRef> modules;
   Types types;
+  std::map<int, ModuleRef> modules_map;
+  std::map<int, FileRef> files;
+  std::map<int, FunctionRef> functions;
+  std::map<int, NamespaceRef> namespaces;
+  std::map<int, ClassRef> classes;
+  std::map<int, EnumRef> enums;
+  std::map<int, EnumeratorRef> enumerators;
+  std::map<int, StatementRef> statements;
+  std::map<int, NodeRef> entities;
 
   QJsonObject toJson() const;
   static QSharedPointer<Project> fromJson(const QJsonObject & obj);

@@ -9,6 +9,8 @@
 
 #include <memory>
 
+#include "project.h"
+
 class QFileInfo;
 
 class QSqlDatabase;
@@ -23,6 +25,9 @@ public:
   bool createSqlDatabase(const QFileInfo& sql_file);
   QSqlDatabase& database() const;
 
+  void loadProject();
+  ProjectRef project() const;
+
   static Controller& Instance();
 
 protected Q_SLOTS:
@@ -31,6 +36,7 @@ private:
   static Controller* m_singleton;
   std::unique_ptr<QSqlDatabase> m_database;
   QString m_database_path;
+  ProjectRef m_project;
 };
 
 #endif // METAGONK_CONTROLLER_H

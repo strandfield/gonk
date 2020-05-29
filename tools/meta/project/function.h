@@ -31,6 +31,7 @@ public:
   };
 
 public:
+  int function_id = -1;
   QString rename;
   QString returnType;
   QStringList parameters;

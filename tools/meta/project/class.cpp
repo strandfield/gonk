@@ -27,6 +27,11 @@ QString Class::display() const
   return ret;
 }
 
+void Class::appendChild(NodeRef n)
+{
+  elements.append(n);
+}
+
 void Class::fillJson(QJsonObject & obj) const
 {
   Node::fillJson(obj);

@@ -10,6 +10,7 @@
 class File : public Namespace
 {
 public:
+  int file_id = -1;
   QStringList hincludes;
   QStringList cppincludes;
 

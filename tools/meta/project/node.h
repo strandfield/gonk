@@ -70,6 +70,8 @@ public:
   virtual QString typeName() const = 0;
   virtual NodeType typeCode() const = 0;
 
+  virtual void appendChild(QSharedPointer<Node> n);
+
   typedef QSharedPointer<Node>(*JsonDeserializer)(const QJsonObject &);
   static QMap<QString, JsonDeserializer> staticFactory;
   static void registerDeserializer(const QString & name, JsonDeserializer func);
@@ -78,6 +80,8 @@ public:
 
   static int compare(const Node & a, const Node & b);
 
+  int entity_id = -1;
+  int order = -1;
   QString name;
   Qt::CheckState checkState;
   std::string condition;

@@ -10,6 +10,7 @@
 class Enumerator : public Node
 {
 public:
+  int enumerator_id = -1;
   QString rename;
 
 public:
@@ -30,6 +31,7 @@ typedef QSharedPointer<Enumerator> EnumeratorRef;
 class Enum : public Node
 {
 public:
+  int enum_id = -1;
   QList<EnumeratorRef> enumerators;
   bool isCppEnumClass;
   bool isEnumClass;

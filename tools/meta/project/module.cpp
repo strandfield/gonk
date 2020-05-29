@@ -36,6 +36,11 @@ QSharedPointer<Node> Module::fromJson(const QJsonObject & obj)
   return ret;
 }
 
+void Module::appendChild(NodeRef child)
+{
+  elements.push_back(child);
+}
+
 //yaml::Value Module::toYaml() const
 //{
 //  yaml::Array elems;

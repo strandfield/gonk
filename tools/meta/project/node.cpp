@@ -114,6 +114,11 @@ QSharedPointer<Node> Node::fromJson(const QJsonObject & obj)
   return staticFactory.value(obj.value("type").toString(), nullptr)(obj);
 }
 
+void Node::appendChild(QSharedPointer<Node> n)
+{
+  throw std::runtime_error{ "Node does not support child insertion" };
+}
+
 void Node::registerDeserializer(const QString & name, JsonDeserializer func)
 {
   staticFactory[name] = func;

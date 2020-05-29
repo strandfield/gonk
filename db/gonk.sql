@@ -84,4 +84,10 @@ CREATE TABLE IF NOT EXISTS "types" (
 	"is_enum"	INTEGER DEFAULT 0,
 	"is_class"	INTEGER DEFAULT 0
 );
+INSERT INTO "types" VALUES (1,'bool','Int',NULL,0,0);
+INSERT INTO "types" VALUES (2,'char','Char',NULL,0,0);
+INSERT INTO "types" VALUES (3,'int','Int',NULL,0,0);
+INSERT INTO "types" VALUES (4,'float','Float',NULL,0,0);
+INSERT INTO "types" VALUES (5,'double','Double',NULL,0,0);
+INSERT INTO "types" VALUES (6,'std::string','String',NULL,0,1);
 COMMIT;

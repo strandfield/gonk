@@ -73,7 +73,12 @@ void MainWindow::openProject()
     {
       QMessageBox::warning(nullptr, QObject::tr("Cannot create database"),
         m_controller->database().lastError().text(), QMessageBox::Ok);
+
+      return;
     }
+
+    m_controller->loadProject();
+    mProject = m_controller->project();
   }
   else
   {
@@ -81,17 +86,17 @@ void MainWindow::openProject()
     return;
   }
 
-  //mProject = Project::load(path);
-  //if (mProject == nullptr)
-  //{
-  //  QMessageBox::information(this, "Open project", "Failed to open project", QMessageBox::Ok);
-  //  return;
-  //}
+  if (mProject)
+  {
+    mSettings->setValue("lastproject", path);
 
-  //mSettings->setValue("lastproject", path);
-
-  //mTypeTreeWidget->setProject(mProject);
-  //mModuleTreeWidget->setProject(mProject);
+    mTypeTreeWidget->setProject(mProject);
+    mModuleTreeWidget->setProject(mProject);
+  }
+  else
+  {
+    QMessageBox::information(this, "Open project", "Failed to open project", QMessageBox::Ok); return;
+  }
 }
 
 void MainWindow::saveProject()

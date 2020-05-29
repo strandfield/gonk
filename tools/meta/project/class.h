@@ -10,6 +10,7 @@
 class Class : public Node
 {
 public:
+  int class_id = -1;
   QList<NodeRef> elements;
   QString base;
   bool isFinal;
@@ -23,6 +24,8 @@ public:
   NodeType typeCode() const override { return staticTypeCode; }
 
   QString display() const override;
+
+  void appendChild(NodeRef n) override;
 
   void fillJson(QJsonObject & obj) const override;
   static QSharedPointer<Node> fromJson(const QJsonObject & val);
