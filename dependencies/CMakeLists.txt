@@ -33,3 +33,9 @@ if (WIN32)
   set_target_properties(libscript PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
   set_target_properties(libscript PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
+
+##################################################################
+###### cxxast
+##################################################################
+
+add_subdirectory(cxxast)
