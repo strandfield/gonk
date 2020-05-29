@@ -1,9 +1,10 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "mainwindow.h"
 
+#include "controller.h"
 #include "generator.h"
 
 #include "dialogs/newtypedialog.h"
@@ -20,8 +21,15 @@
 #include <QSettings>
 #include <QTabWidget>
 
+#include <QSqlDatabase>
+#include <QSqlError>
+
+#include <QDebug>
+
 MainWindow::MainWindow()
 {
+  m_controller = new Controller(this);
+
   mSettings = new QSettings("settings.ini", QSettings::IniFormat, this);
 
   if (mSettings->contains("lastproject"))
@@ -55,21 +63,37 @@ MainWindow::MainWindow()
 
 void MainWindow::openProject()
 {
-  QString path = QFileDialog::getOpenFileName(this, "Open project", QString(), QString("Meta project (*.json *.yaml)"));
+  QString path = QFileDialog::getOpenFileName(this, "Open project", QString(), QString("metagonk database (*.db, *.sql)"));
   if (path.isEmpty())
     return;
 
-  mProject = Project::load(path);
-  if (mProject == nullptr)
+  QFileInfo fileinfo{ path };
+
+  if (fileinfo.suffix() == "sql")
+  {
+    if (!m_controller->createSqlDatabase(fileinfo))
+    {
+      QMessageBox::warning(nullptr, QObject::tr("Cannot create database"),
+        m_controller->database().lastError().text(), QMessageBox::Ok);
+    }
+  }
+  else
   {
     QMessageBox::information(this, "Open project", "Failed to open project", QMessageBox::Ok);
     return;
   }
 
-  mSettings->setValue("lastproject", path);
+  //mProject = Project::load(path);
+  //if (mProject == nullptr)
+  //{
+  //  QMessageBox::information(this, "Open project", "Failed to open project", QMessageBox::Ok);
+  //  return;
+  //}
 
-  mTypeTreeWidget->setProject(mProject);
-  mModuleTreeWidget->setProject(mProject);
+  //mSettings->setValue("lastproject", path);
+
+  //mTypeTreeWidget->setProject(mProject);
+  //mModuleTreeWidget->setProject(mProject);
 }
 
 void MainWindow::saveProject()

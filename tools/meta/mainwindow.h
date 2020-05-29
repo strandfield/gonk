@@ -1,17 +1,20 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_MAINWINDOW_H
-#define YASL_META_MAINWINDOW_H
+#ifndef METAGONK_MAINWINDOW_H
+#define METAGONK_MAINWINDOW_H
 
 #include <QMainWindow>
 
 #include "project.h"
 
+class Controller;
+
 class ModuleTreeWidget;
 class TypeTreeWidget;
 
+class QFileInfo;
 class QSettings;
 class QTabWidget;
 
@@ -34,6 +37,7 @@ protected:
   void closeEvent(QCloseEvent *e);
 
 private:
+  Controller *m_controller;
   ProjectRef mProject;
   QSettings *mSettings;
 
@@ -42,4 +46,4 @@ private:
   ModuleTreeWidget *mModuleTreeWidget;
 };
 
-#endif // YASL_META_MAINWINDOW_H
+#endif // METAGONK_MAINWINDOW_H
