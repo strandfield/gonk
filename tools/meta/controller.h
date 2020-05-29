@@ -22,7 +22,8 @@ public:
   explicit Controller(QObject* parent = nullptr);
   ~Controller();
 
-  bool createSqlDatabase(const QFileInfo& sql_file);
+  bool createSqlDatabase(const QFileInfo& sql_file, const QString& savepath);
+  bool loadDatabase(const QFileInfo& db_file);
   QSqlDatabase& database() const;
 
   void loadProject();

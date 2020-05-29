@@ -49,18 +49,18 @@ public:
   }
 };
 
-bool Controller::createSqlDatabase(const QFileInfo& sql_file)
+bool Controller::createSqlDatabase(const QFileInfo& sql_file, const QString& savepath)
 {
-  if (QFile::exists("test.db"))
-    QFile::remove("test.db");
+  if (QFile::exists(savepath))
+    QFile::remove(savepath);
 
   m_database.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE")));
-  database().setDatabaseName("test.db");
+  database().setDatabaseName(savepath);
 
   if (!database().open())
     return false;
 
-  m_database_path = "test.db";
+  m_database_path = savepath;
 
   QByteArray db_content;
 
@@ -88,6 +88,14 @@ bool Controller::createSqlDatabase(const QFileInfo& sql_file)
   }
 
   return true;
+}
+
+bool Controller::loadDatabase(const QFileInfo& db_file)
+{
+  m_database.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE")));
+  database().setDatabaseName(db_file.absoluteFilePath());
+
+  return database().open();
 }
 
 QSqlDatabase& Controller::database() const

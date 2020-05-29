@@ -61,7 +61,7 @@ MainWindow::MainWindow()
 
 void MainWindow::openProject()
 {
-  QString path = QFileDialog::getOpenFileName(this, "Open project", QString(), QString("metagonk database (*.db, *.sql)"));
+  QString path = QFileDialog::getOpenFileName(this, "Open project", QString(), QString("metagonk database (*.db; *.sql)"));
   if (path.isEmpty())
     return;
 
@@ -69,9 +69,27 @@ void MainWindow::openProject()
 
   if (fileinfo.suffix() == "sql")
   {
-    if (!m_controller->createSqlDatabase(fileinfo))
+    QString savepath = QFileDialog::getSaveFileName(this, "Save database", QString(), QString("metagonk database (*.db)"));
+
+    if (savepath.isEmpty())
+      return;
+
+    if (!m_controller->createSqlDatabase(fileinfo, savepath))
     {
       QMessageBox::warning(nullptr, QObject::tr("Cannot create database"),
+        m_controller->database().lastError().text(), QMessageBox::Ok);
+
+      return;
+    }
+
+    m_controller->loadProject();
+    mProject = m_controller->project();
+  }
+  else if (fileinfo.suffix() == "db")
+  {
+    if (!m_controller->loadDatabase(fileinfo))
+    {
+      QMessageBox::warning(nullptr, QObject::tr("Cannot open database"),
         m_controller->database().lastError().text(), QMessageBox::Ok);
 
       return;
