@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "gen/sourcefile.h"
@@ -11,8 +11,7 @@
 
 #include <QDebug>
 
-SourceFile::SourceFile(const QMap<QString, QtVersion> & incsver)
-  : includesVersion(incsver)
+SourceFile::SourceFile()
 {
 
 }
@@ -32,7 +31,7 @@ void SourceFile::write()
   out << endl;
 
   if (!header.isEmpty())
-    HeaderFile::writeInclude(out, header, includesVersion);
+    HeaderFile::writeInclude(out, header);
 
   out << endl;
 

@@ -1,14 +1,13 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_HEADERFILE_H
-#define YASL_META_HEADERFILE_H
+#ifndef METAGONK_HEADERFILE_H
+#define METAGONK_HEADERFILE_H
 
 #include <QFileInfo>
 #include <QMap>
 
-#include "qtversion.h"
 #include "project/type.h"
 
 class QTextStream;
@@ -35,23 +34,19 @@ public:
 
   QMap<QString, Type> types;
 
-  QMap<QString, QtVersion> includesVersion;
-
 public:
-  HeaderFile(const QMap<QString, QtVersion> & incsver);
+  HeaderFile();
 
   void write();
 
   static void writeCopyrightMessage(QTextStream & out);
-  static void writeInclude(QTextStream & out, const QString & inc, const QMap<QString, QtVersion> & versions);
+  static void writeInclude(QTextStream & out, const QString & inc);
 
   static QByteArray readall(const QString & filepath);
   static void validate(const QFileInfo & finfo);
-
-  static QString versionCheck(QtVersion v);
 
 protected:
   QStringList generateBindingDefinitions();
 };
 
-#endif // YASL_META_HEADERFILE_H
+#endif // METAGONK_HEADERFILE_H

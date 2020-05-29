@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "project/node.h"
@@ -86,23 +86,6 @@ void writeCheckState(QJsonObject & obj, Qt::CheckState cs)
     obj["checked"] = static_cast<int>(cs);
 }
 
-QtVersion readQtVersion(const QJsonObject & obj)
-{
-  if (!obj.contains("version"))
-    return {};
-
-  QString version = obj.value("version").toString();
-  return QtVersion::fromString(version);
-}
-
-void writeQtVersion(QJsonObject & obj, QtVersion v)
-{
-  if (v.isNull())
-    return;
-
-  obj["version"] = v.toString();
-}
-
 } // namespace json
 
 Node::Node(const QString & n, Qt::CheckState c)
@@ -117,7 +100,6 @@ void Node::fillJson(QJsonObject & obj) const
   obj["name"] = this->name;
   json::writeCheckState(obj, this->checkState);
   obj["type"] = typeName();
-  json::writeQtVersion(obj, this->version);
 }
 
 QJsonObject Node::toJson() const

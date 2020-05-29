@@ -2,8 +2,8 @@
 // This file is part of the Yasl project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_CLASS_NODE_EDITOR_H
-#define YASL_META_CLASS_NODE_EDITOR_H
+#ifndef METAGONK_CLASS_NODE_EDITOR_H
+#define METAGONK_CLASS_NODE_EDITOR_H
 
 #include "abstractnodeeditor.h"
 
@@ -25,10 +25,10 @@ public:
   inline ClassRef getClass() const { return qSharedPointerCast<Class>(getNode()); }
 
 private:
-  QLineEdit *mVersion;
+  QLineEdit *mCondition;
   QLineEdit *mName;
   QCheckBox *mFinal;
   QLineEdit *mBase;
 };
 
-#endif // YASL_META_CLASS_NODE_EDITOR_H
+#endif // METAGONK_CLASS_NODE_EDITOR_H

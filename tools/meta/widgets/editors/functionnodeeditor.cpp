@@ -55,7 +55,6 @@ void FunctionNodeEditor::write()
 {
   auto mFunction = getFunction();
 
-  mFunction->version = QtVersion::fromString(mVersion->text());
   mFunction->bindingMethod = static_cast<Function::BindingMethod>(mBindingMethod->currentIndex() + Function::FirstBindingMethod);
   mFunction->returnType = mReturnType->text();
   mFunction->name = mName->text();
@@ -86,7 +85,6 @@ void FunctionNodeEditor::read(FunctionRef fun)
 {
   setNode(fun);
 
-  mVersion->setText(fun->version.toString());
   mBindingMethod->setCurrentIndex(fun->bindingMethod - Function::FirstBindingMethod);
   mReturnType->setText(fun->returnType);
   mName->setText(fun->name + (fun->rename.isEmpty() ? QString() : (QString("->") + fun->rename)));

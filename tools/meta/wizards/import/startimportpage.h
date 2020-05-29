@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_STARTIMPORTPAGE_H
-#define YASL_META_STARTIMPORTPAGE_H
+#ifndef METAGONK_STARTIMPORTPAGE_H
+#define METAGONK_STARTIMPORTPAGE_H
 
 #include <QWizardPage>
 
@@ -33,4 +33,4 @@ private:
   PropertiesGroupBox *mPropertiesGroupBox;
 };
 
-#endif // YASL_META_STARTIMPORTPAGE_H
+#endif // METAGONK_STARTIMPORTPAGE_H

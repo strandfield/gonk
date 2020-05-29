@@ -15,7 +15,6 @@ class CppParser
 {
 private:
   QStringList mIncludeDirectories;
-  QtVersion mVersion;
   ProjectRef mProject;
   ModuleRef mActiveModule;
   cxx::parsers::LibClangParser m_parser;
@@ -26,9 +25,6 @@ public:
   void addIncludeDirectory(const QString & str);
   inline void setIncludeDirectories(const QStringList & incdirs) { mIncludeDirectories = incdirs; }
   inline const QStringList & includeDirectories() const { return mIncludeDirectories; }
-
-  inline void setVersion(const QtVersion & v) { mVersion = v; }
-  inline const QtVersion & version() const { return mVersion; }
 
   inline const ProjectRef & project() const { return mProject; }
   inline const ModuleRef & activeModule() const { return mActiveModule; }

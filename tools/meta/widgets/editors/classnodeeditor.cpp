@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "classnodeeditor.h"
@@ -14,9 +14,9 @@ ClassNodeEditor::ClassNodeEditor(const ClassRef & cla, QWidget *p)
 {
   QFontMetrics fm{ font() };
 
-  mVersion = new QLineEdit;
-  mVersion->setPlaceholderText("version");
-  mVersion->setFixedWidth(fm.width("version") + 8);
+  mCondition = new QLineEdit;
+  mCondition->setPlaceholderText("condition");
+  mCondition->setFixedWidth(fm.width("condition") + 8);
 
   mName = new QLineEdit();
   mName->setPlaceholderText("name");
@@ -30,7 +30,7 @@ ClassNodeEditor::ClassNodeEditor(const ClassRef & cla, QWidget *p)
 
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mVersion);
+  layout->addWidget(mCondition);
   layout->addWidget(mName);
   layout->addWidget(mFinal);
   layout->addWidget(mBase);
@@ -44,7 +44,7 @@ void ClassNodeEditor::write()
 {
   auto cla = getClass();
 
-  cla->version = QtVersion::fromString(mVersion->text());
+  cla->condition = mCondition->text().toStdString();
   cla->name = mName->text();
   cla->isFinal = mFinal->isChecked();
   cla->base = mBase->text();
@@ -54,7 +54,7 @@ void ClassNodeEditor::read(ClassRef cla)
 {
   setNode(cla);
 
-  mVersion->setText(cla->version.toString());
+  mCondition->setText(QString::fromStdString(cla->condition));
   mName->setText(cla->name);
   mFinal->setChecked(cla->isFinal);
   mBase->setText(cla->base);

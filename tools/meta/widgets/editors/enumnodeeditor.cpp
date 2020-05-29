@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "enumnodeeditor.h"
@@ -14,9 +14,9 @@ EnumNodeEditor::EnumNodeEditor(const EnumRef & enm, QWidget *p)
 {
   QFontMetrics fm{ font() };
 
-  mVersion = new QLineEdit;
-  mVersion->setPlaceholderText("version");
-  mVersion->setFixedWidth(fm.width("version") + 8);
+  mCondition = new QLineEdit;
+  mCondition->setPlaceholderText("condition");
+  mCondition->setFixedWidth(fm.width("condition") + 8);
 
   mName = new QLineEdit();
   mName->setPlaceholderText("name");
@@ -27,7 +27,7 @@ EnumNodeEditor::EnumNodeEditor(const EnumRef & enm, QWidget *p)
 
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mVersion);
+  layout->addWidget(mCondition);
   layout->addWidget(mName);
   layout->addWidget(mToEnumClass);
   layout->addWidget(mFromEnumClass);
@@ -41,7 +41,7 @@ void EnumNodeEditor::write()
 {
   auto enm = getEnum();
 
-  enm->version = QtVersion::fromString(mVersion->text());
+  enm->condition = mCondition->text().toStdString();
   enm->name = mName->text();
   enm->isEnumClass = mToEnumClass->isChecked();
   enm->isCppEnumClass = mFromEnumClass->isChecked();
@@ -51,7 +51,7 @@ void EnumNodeEditor::read(EnumRef enm)
 {
   setNode(enm);
 
-  mVersion->setText(enm->version.toString());
+  mCondition->setText(QString::fromStdString(enm->condition));
   mName->setText(enm->name);
   mToEnumClass->setChecked(enm->isEnumClass);
   mFromEnumClass->setChecked(enm->isCppEnumClass);

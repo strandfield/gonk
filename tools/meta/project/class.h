@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_CLASS_H
-#define YASL_META_CLASS_H
+#ifndef METAGONK_CLASS_H
+#define METAGONK_CLASS_H
 
 #include "project/node.h"
 
@@ -28,16 +28,15 @@ public:
   static QSharedPointer<Node> fromJson(const QJsonObject & val);
 
   template<typename T>
-  QSharedPointer<T> add(const QString & name, QtVersion v = QtVersion{})
+  QSharedPointer<T> add(const QString & name)
   {
     auto ret = QSharedPointer<T>::create(name);
-    ret->version = v;
     elements.append(ret);
     return ret;
   }
 
   template<typename T>
-  QSharedPointer<T> get(const QString & name, QtVersion v = QtVersion{})
+  QSharedPointer<T> get(const QString & name)
   {
     for (const auto & e : elements)
     {
@@ -46,7 +45,6 @@ public:
     }
 
     auto ret = QSharedPointer<T>::create(name);
-    ret->version = v;
     elements.append(ret);
     return ret;
   }
@@ -68,4 +66,4 @@ public:
 typedef QSharedPointer<Class> ClassRef;
 
 
-#endif // YASL_META_CLASS_H
+#endif // METAGONK_CLASS_H

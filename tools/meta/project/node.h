@@ -1,16 +1,14 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_NODE_H
-#define YASL_META_NODE_H
+#ifndef METAGONK_NODE_H
+#define METAGONK_NODE_H
 
 #include <QJsonObject>
 #include <QMap>
 #include <QSharedPointer>
 #include <QStack>
-
-#include "qtversion.h"
 
 namespace yaml
 {
@@ -22,8 +20,6 @@ QString checkStateField(Qt::CheckState cs);
 Qt::CheckState checkstate(const QString & str);
 void writeCheckstate(yaml::Object & obj, Qt::CheckState cs);
 Qt::CheckState readCheckState(const yaml::Object & obj);
-QtVersion readQtVersion(const yaml::Object & obj);
-void writeQtVersion(yaml::Object & obj, QtVersion v);
 int firstFieldIndex(const QString & str);
 QString extractName(QString str);
 } // namespace yaml
@@ -32,8 +28,6 @@ namespace json
 {
 Qt::CheckState readCheckState(const QJsonObject & obj);
 void writeCheckState(QJsonObject & obj, Qt::CheckState cs);
-QtVersion readQtVersion(const QJsonObject & obj);
-void writeQtVersion(QJsonObject & obj, QtVersion v);
 } //  namespace json
 
 enum class NodeType
@@ -86,7 +80,7 @@ public:
 
   QString name;
   Qt::CheckState checkState;
-  QtVersion version;
+  std::string condition;
 
 protected:
   virtual int compareTo(const Node & other) const;
@@ -101,7 +95,6 @@ class NodeValue
 public:
   NodeRef value;
 
-  NodeValue();
   NodeValue(const NodeRef & val) : value(val) { }
   NodeValue(const NodeValue & ) = default;
 
@@ -116,4 +109,4 @@ inline bool neq(const NodeRef & lhs, const NodeRef & rhs)
 
 void sort(QList<NodeRef> & list);
 
-#endif // YASL_META_NODE_H
+#endif // METAGONK_NODE_H

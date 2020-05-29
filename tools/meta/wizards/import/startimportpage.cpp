@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "wizards/import/startimportpage.h"
@@ -69,16 +69,13 @@ public:
     auto *l = new QFormLayout(this);
 
     mModuleNameLineEdit = new QLineEdit();
-    mVersionLineEdit = new QLineEdit();
     
     l->addRow("Module name: ", mModuleNameLineEdit);
-    l->addRow("Version: ", mVersionLineEdit);
   }
 
 
 public:
   QLineEdit *mModuleNameLineEdit;
-  QLineEdit *mVersionLineEdit;
 };
 
 
@@ -118,7 +115,6 @@ bool StartImportPage::validatePage()
 
   fields.includeDirectories = mIncludeDirsGroupBox->getIncludeDirectories();
   fields.moduleName = mPropertiesGroupBox->mModuleNameLineEdit->text();
-  fields.version = QtVersion::fromString(mPropertiesGroupBox->mVersionLineEdit->text());
 
   return isComplete();
 }

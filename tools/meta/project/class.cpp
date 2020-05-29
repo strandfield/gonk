@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "project/class.h"
@@ -21,8 +21,8 @@ QString Class::display() const
   if (!base.isEmpty())
     ret += " : " + base;
 
-  if (!version.isNull())
-    ret += " [" + version.toString() + "]";
+  if (!condition.empty())
+    ret += " [" + QString::fromStdString(condition) + "]";
 
   return ret;
 }
@@ -47,7 +47,6 @@ void Class::fillJson(QJsonObject & obj) const
 QSharedPointer<Node> Class::fromJson(const QJsonObject & obj)
 {
   auto ret = ClassRef::create(obj.value("name").toString(), json::readCheckState(obj));
-  ret->version = json::readQtVersion(obj);
 
   QJsonArray elements = obj.value("elements").toArray();
   ret->elements.reserve(elements.size());

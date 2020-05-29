@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_IMPORTPAGE_H
-#define YASL_META_IMPORTPAGE_H
+#ifndef METAGONK_IMPORTPAGE_H
+#define METAGONK_IMPORTPAGE_H
 
 #include <QWizardPage>
 
@@ -26,4 +26,4 @@ private:
   ModuleTreeWidget *selectionTreeWidget;
 };
 
-#endif // YASL_META_IMPORTPAGE_H
+#endif // METAGONK_IMPORTPAGE_H

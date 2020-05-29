@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_ENUM_NODE_EDITOR_H
-#define YASL_META_ENUM_NODE_EDITOR_H
+#ifndef METAGONK_ENUM_NODE_EDITOR_H
+#define METAGONK_ENUM_NODE_EDITOR_H
 
 #include "abstractnodeeditor.h"
 
@@ -25,10 +25,10 @@ public:
   inline EnumRef getEnum() const { return qSharedPointerCast<Enum>(getNode()); }
 
 private:
-  QLineEdit *mVersion;
+  QLineEdit *mCondition;
   QLineEdit *mName;
   QCheckBox *mToEnumClass;
   QCheckBox *mFromEnumClass;
 };
 
-#endif // YASL_META_ENUM_NODE_EDITOR_H
+#endif // METAGONK_ENUM_NODE_EDITOR_H

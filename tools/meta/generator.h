@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_GENERATOR_H
-#define YASL_META_GENERATOR_H
+#ifndef METAGONK_GENERATOR_H
+#define METAGONK_GENERATOR_H
 
 #include "project.h"
 #include "project/class.h"
@@ -140,8 +140,8 @@ private:
   QString currentHeaderDirectory();
   QString currentSourceDirectory();
 
-  void recordGeneratedEnum(const QString & name, QtVersion version);
-  void recordGeneratedClass(const QString & name, QtVersion version);
+  void recordGeneratedEnum(const QString & name, std::string condition);
+  void recordGeneratedClass(const QString & name, std::string condition);
   void generateInjectedTypeList();
 
 private:
@@ -171,4 +171,4 @@ private:
   std::function<bool(const QString &)> mProgressCallback;
 };
 
-#endif // YASL_META_GENERATOR_H
+#endif // METAGONK_GENERATOR_H

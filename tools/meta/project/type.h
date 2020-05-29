@@ -1,14 +1,12 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_TYPE_H
-#define YASL_META_TYPE_H
+#ifndef METAGONK_TYPE_H
+#define METAGONK_TYPE_H
 
 #include <QJsonObject>
 #include <QString>
-
-#include "qtversion.h"
 
 class Type
 {
@@ -20,7 +18,7 @@ public:
   QString tag;
   QString links;
   QString metatype;
-  QtVersion version;
+  std::string condition;
 
 public:
   Type() = default;
@@ -37,4 +35,4 @@ public:
   static Type fromJson(const QJsonObject & obj);
 };
 
-#endif // YASL_META_TYPE_H
+#endif // METAGONK_TYPE_H

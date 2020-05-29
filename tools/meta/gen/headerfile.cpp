@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "gen/headerfile.h"
@@ -30,8 +30,7 @@ QStringList Includes::get() const
   return result;
 }
 
-HeaderFile::HeaderFile(const QMap<QString, QtVersion> & incsver)
-  : includesVersion(incsver)
+HeaderFile::HeaderFile()
 {
   bindingIncludes.insert("yasl/common/types.h");
 }
@@ -43,22 +42,22 @@ void HeaderFile::writeCopyrightMessage(QTextStream & out)
   out << "// For conditions of distribution and use, see copyright notice in LICENSE" << endl;
 }
 
-void HeaderFile::writeInclude(QTextStream & out, const QString & inc, const QMap<QString, QtVersion> & versions)
+void HeaderFile::writeInclude(QTextStream & out, const QString & inc)
 {
   if (inc.startsWith("<"))
   {
     QString file = inc.mid(1);
     file.chop(1);
 
-    QtVersion v = versions.value(file, QtVersion{});
+    //QtVersion v = versions.value(file, QtVersion{});
 
-    if (!v.isNull())
-      out << "#if " << versionCheck(v) << endl;
+    //if (!v.isNull())
+    //  out << "#if " << versionCheck(v) << endl;
 
     out << "#include " << inc << endl;
 
-    if (!v.isNull())
-      out << "#endif" << endl;
+    //if (!v.isNull())
+    //  out << "#endif" << endl;
   }
   else if (inc.startsWith("\""))
   {
@@ -101,11 +100,6 @@ void HeaderFile::validate(const QFileInfo & finfo)
   QFile::rename(finfo.absoluteFilePath() + "gen", finfo.absoluteFilePath());
 }
 
-QString HeaderFile::versionCheck(QtVersion v)
-{
-  return QString("(QT_VERSION >= QT_VERSION_CHECK(%1, %2, %3))").arg(int(v.major)).arg(int(v.minor)).arg(int(v.patch));
-}
-
 void HeaderFile::write()
 {
   QFile f{ this->file.absoluteFilePath() + "gen" };
@@ -129,11 +123,11 @@ void HeaderFile::write()
   QStringList bindings = generateBindingDefinitions();
 
   for (const auto & inc : bindingIncludes.get())
-    writeInclude(out, inc, includesVersion);
+    writeInclude(out, inc);
   out << endl;
 
   for (const auto inc : generalIncludes.get())
-    writeInclude(out, inc, includesVersion);
+    writeInclude(out, inc);
   if(!generalIncludes.isEmpty())
     out << endl;
 
@@ -158,8 +152,8 @@ QStringList HeaderFile::generateBindingDefinitions()
   out << "namespace script {";
   for (const auto & t : types)
   {
-    if (!t.version.isNull())
-      out << QString("#if %1").arg(versionCheck(t.version));
+    if (!t.condition.empty())
+      out << QString("#if %1").arg(QString::fromStdString(t.condition));
 
     out << ("template<> struct make_type_helper<" + t.name + "> { inline static script::Type get() { return script::Type::" + t.id + "; } };");
 
@@ -181,7 +175,7 @@ QStringList HeaderFile::generateBindingDefinitions()
       }
     }
 
-    if (!t.version.isNull())
+    if (!t.condition.empty())
       out << QString("#endif");
   }
   out << "} // namespace script";

@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_FUNCTION_H
-#define YASL_META_FUNCTION_H
+#ifndef METAGONK_FUNCTION_H
+#define METAGONK_FUNCTION_H
 
 #include "project/node.h"
 
@@ -183,4 +183,4 @@ Function::BindingMethod readBindingMethod(const QJsonObject & obj);
 void writeBindingMethod(QJsonObject &obj, Function::BindingMethod bm);
 }
 
-#endif // YASL_META_FUNCTION_H
+#endif // METAGONK_FUNCTION_H

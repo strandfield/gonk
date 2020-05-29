@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "project/function.h"
@@ -43,7 +43,6 @@ void Function::fillJson(QJsonObject & obj) const
 QSharedPointer<Node> Function::fromJson(const QJsonObject & obj)
 {
   auto ret = FunctionRef::create(obj.value("name").toString(), json::readCheckState(obj));
-  ret->version = json::readQtVersion(obj);
 
   ret->rename = obj.value("rename").toString();
 
@@ -91,9 +90,6 @@ QString Function::yamlDescription() const
 
   if (!rename.isEmpty())
     elems << yaml::createField("rename", rename);
-
-  if (!version.isNull())
-    elems << yaml::createField("v", version.toString());
 
   if (checkState != Qt::Checked)
     elems << "[unchecked]";
@@ -159,9 +155,6 @@ QString Function::display() const
     result += " = delete";
 
   result += ";";
-
-  if (!version.isNull())
-    result += " [" + version.toString() + "]";
 
   if (!rename.isEmpty())
     result += " [" + rename + "]";
@@ -246,7 +239,6 @@ void Constructor::fillJson(QJsonObject & obj) const
 QSharedPointer<Node> Constructor::fromJson(const QJsonObject & obj)
 {
   auto ret = ConstructorRef::create(obj.value("name").toString(), json::readCheckState(obj));
-  ret->version = json::readQtVersion(obj);
 
   ret->parameters = obj.value("signature").toString().split(';', QString::SkipEmptyParts);
   ret->returnType = QString();
@@ -310,9 +302,6 @@ QString Constructor::display() const
 
   result += ";";
 
-  if (!version.isNull())
-    result += " [" + version.toString() + "]";
-
   return result;
 }
 
@@ -339,7 +328,6 @@ void Destructor::fillJson(QJsonObject & obj) const
 QSharedPointer<Node> Destructor::fromJson(const QJsonObject & obj)
 {
   auto ret = DestructorRef::create(obj.value("name").toString(), json::readCheckState(obj));
-  ret->version = json::readQtVersion(obj);
 
   ret->isDeleted = obj.value("deleted").toBool();
 

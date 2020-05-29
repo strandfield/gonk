@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_NAMESPACE_H
-#define YASL_META_NAMESPACE_H
+#ifndef METAGONK_NAMESPACE_H
+#define METAGONK_NAMESPACE_H
 
 #include "project/node.h"
 
@@ -25,16 +25,15 @@ public:
   static QSharedPointer<Node> fromJson(const QJsonObject & val);
 
   template<typename T>
-  QSharedPointer<T> add(const QString & name, const QtVersion & v = QtVersion{})
+  QSharedPointer<T> add(const QString & name)
   {
     auto ret = QSharedPointer<T>::create(name);
-    ret->version = v;
     elements.append(ret);
     return ret;
   }
 
   template<typename T>
-  QSharedPointer<T> get(const QString & name, const QtVersion v = QtVersion{})
+  QSharedPointer<T> get(const QString & name)
   {
     for (const auto & e : elements)
     {
@@ -43,7 +42,6 @@ public:
     }
 
     auto ret = QSharedPointer<T>::create(name);
-    ret->version = v;
     elements.append(ret);
     return ret;
   }
@@ -71,4 +69,4 @@ public:
 typedef QSharedPointer<Namespace> NamespaceRef;
 
 
-#endif // YASL_META_NAMESPACE_H
+#endif // METAGONK_NAMESPACE_H

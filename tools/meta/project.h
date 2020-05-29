@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_PROJECT_H
-#define YASL_META_PROJECT_H
+#ifndef METAGONK_PROJECT_H
+#define METAGONK_PROJECT_H
 
 #include <QSharedPointer>
 
@@ -22,7 +22,6 @@ public:
 
 public:
   QList<ModuleRef> modules;
-  QMap<QString, QtVersion> includes;
   Types types;
 
   QJsonObject toJson() const;
@@ -62,4 +61,4 @@ typedef QSharedPointer<Project> ProjectRef;
 
 Q_DECLARE_METATYPE(QSharedPointer<Project>);
 
-#endif // YASL_METAPROJECT_H
+#endif // METAGONK_PROJECT_H

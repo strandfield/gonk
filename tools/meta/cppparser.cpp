@@ -23,7 +23,6 @@
 #include <QQueue>
 
 static QString gCurrentFile = QString{};
-static QtVersion gCurrentVersion = QtVersion{};
 
 CppParser::CppParser(const ProjectRef & pro)
   : mProject(pro)
