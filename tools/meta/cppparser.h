@@ -1,15 +1,15 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_CPPPARSER_H
-#define YASL_META_CPPPARSER_H
-
-#ifdef YASL_META_HAS_LIBCLANG
+#ifndef METAGONK_CPPPARSER_H
+#define METAGONK_CPPPARSER_H
 
 #include "project.h"
 
 #include "project/module.h"
+
+#include <cxx/parsers/parser.h>
 
 class CppParser
 {
@@ -18,6 +18,8 @@ private:
   QtVersion mVersion;
   ProjectRef mProject;
   ModuleRef mActiveModule;
+  cxx::parsers::LibClangParser m_parser;
+
 public:
   CppParser(const ProjectRef & pro);
 
@@ -34,6 +36,4 @@ public:
   void parse(const QString & file, const ModuleRef & mo);
 };
 
-#endif // YASL_META_HAS_LIBCLANG
-
-#endif // YASL_META_CPPPARSER_H
+#endif // METAGONK_CPPPARSER_H
