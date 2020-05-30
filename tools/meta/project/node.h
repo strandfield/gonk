@@ -113,4 +113,22 @@ inline bool neq(const NodeRef & lhs, const NodeRef & rhs)
 
 void sort(QList<NodeRef> & list);
 
+struct RAIINodeGuard
+{
+  NodeRef& target;
+  NodeRef value;
+
+  explicit RAIINodeGuard(NodeRef& node)
+    : target(node),
+    value(node)
+  {
+
+  }
+
+  ~RAIINodeGuard()
+  {
+    target = value;
+  }
+};
+
 #endif // METAGONK_NODE_H

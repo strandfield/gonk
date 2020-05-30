@@ -45,7 +45,6 @@ public:
 
   void save(const QString & filename);
 
-  void importSymbols(const QSharedPointer<Project> symbols);
   void removeUncheckedSymbols();
   void fetchTypes();
 

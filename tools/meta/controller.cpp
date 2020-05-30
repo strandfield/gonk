@@ -5,6 +5,7 @@
 #include "controller.h"
 
 #include "project-loader.h"
+#include "project-merger.h"
 
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -20,13 +21,15 @@ Controller* Controller::m_singleton = nullptr;
 Controller::Controller(QObject* parent)
   : QObject(parent)
 {
-
+  m_singleton = this;
 }
 
 Controller::~Controller()
 {
   if (m_database)
     m_database->close();
+
+  m_singleton = nullptr;
 }
 
 Controller& Controller::Instance()
@@ -113,4 +116,10 @@ void Controller::loadProject()
 ProjectRef Controller::project() const
 {
   return m_project;
+}
+
+void Controller::importSymbols(ProjectRef other)
+{
+  ProjectMerger merger{ database(), m_project, other };
+  merger.merge();
 }

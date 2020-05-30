@@ -28,6 +28,7 @@ public:
 
   void loadProject();
   ProjectRef project() const;
+  void importSymbols(ProjectRef other);
 
   static Controller& Instance();
 

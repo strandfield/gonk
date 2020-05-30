@@ -77,6 +77,14 @@ QString Enum::display() const
   return ret;
 }
 
+void Enum::appendChild(NodeRef n)
+{
+  if (!n->is<Enumerator>())
+    throw std::runtime_error{ "Enum::appendChild() : child must be an Enumerator" };
+
+  this->enumerators.push_back(qSharedPointerCast<Enumerator>(n));
+}
+
 void Enum::fillJson(QJsonObject & obj) const
 {
   Node::fillJson(obj);

@@ -4,6 +4,7 @@
 
 #include "wizards/import/importpage.h"
 
+#include "controller.h"
 #include "cppparser.h"
 
 #include "widgets/moduletreewidget.h"
@@ -72,7 +73,7 @@ bool ImportPage::validatePage()
   fields.importedSymbols->fetchTypes();
 
   ProjectRef pro = ImportWizard::get(wizard())->project();
-  pro->importSymbols(fields.importedSymbols);
+  Controller::Instance().importSymbols(fields.importedSymbols);
 
   return true;
 }

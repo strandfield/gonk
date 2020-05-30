@@ -35,24 +35,6 @@ void CppParser::addIncludeDirectory(const QString & str)
   mIncludeDirectories.append(str);
 }
 
-struct RAIINodeGuard
-{
-  NodeRef& target;
-  NodeRef value;
-
-  explicit RAIINodeGuard(NodeRef& node)
-    : target(node),
-    value(node)
-  {
-
-  }
-
-  ~RAIINodeGuard()
-  {
-    target = value;
-  }
-};
-
 struct FileVisitor
 {
   ProjectRef project;

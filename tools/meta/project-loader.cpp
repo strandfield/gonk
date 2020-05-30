@@ -268,22 +268,36 @@ void ProjectLoader::loadEnumerators()
 {
   setState("loading enumerators");
 
-  for (const std::pair<int, EnumRef>& entries : project->enums)
+  //for (const std::pair<int, EnumRef>& entries : project->enums)
+  //{
+  //  EnumRef enm = entries.second;
+
+  //  QSqlQuery query = database.exec("SELECT id, name FROM enumerators WHERE enum_id = " + QString::number(entries.first));
+
+  //  int ID = 0;
+  //  int NAME = 1;
+
+  //  while (query.next())
+  //  {
+  //    auto enumerator = EnumeratorRef::create(query.value(NAME).toString());
+  //    enumerator->enumerator_id = query.value(ID).toInt();
+  //    enm->enumerators.append(enumerator);
+  //    project->enumerators[enumerator->enumerator_id] = enumerator;
+  //  }
+  //}
+
+  QSqlQuery query = database.exec("SELECT id, name FROM enumerators");
+
+  int ID = 0;
+  int NAME = 1;
+
+  while (query.next())
   {
-    EnumRef enm = entries.second;
+    auto enm = EnumeratorRef::create("");
+    enm->enumerator_id = query.value(ID).toInt();
+    enm->name = query.value(NAME).toString();
 
-    QSqlQuery query = database.exec("SELECT id, name FROM enumerators WHERE enum_id = " + QString::number(entries.first));
-
-    int ID = 0;
-    int NAME = 1;
-
-    while (query.next())
-    {
-      auto enumerator = EnumeratorRef::create(query.value(NAME).toString());
-      enumerator->enumerator_id = query.value(ID).toInt();
-      enm->enumerators.append(enumerator);
-      project->enumerators[enumerator->enumerator_id] = enumerator;
-    }
+    project->enumerators[enm->enumerator_id] = enm;
   }
 }
 
