@@ -22,7 +22,7 @@ public:
   void write() override;
   void read(NamespaceRef ns);
 
-  inline NamespaceRef getNamespace() const { return qSharedPointerCast<Namespace>(getNode()); }
+  inline NamespaceRef getNamespace() const { return std::static_pointer_cast<Namespace>(getNode()); }
 
 private:
   QLineEdit *mName;

@@ -13,32 +13,29 @@ Module::Module(const QString & n, Qt::CheckState c)
 
 }
 
-void Module::fillJson(QJsonObject & obj) const
-{
-  Node::fillJson(obj);
-
-  QJsonArray elems;
-  for (const auto & e : elements)
-    elems.append(e->toJson());
-
-  obj["elements"] = elems;
-}
-
-QSharedPointer<Node> Module::fromJson(const QJsonObject & obj)
-{
-  ModuleRef ret = ModuleRef::create(obj.value("name").toString(), json::readCheckState(obj));
-
-  QJsonArray elements = obj.value("elements").toArray();
-  ret->elements.reserve(elements.size());
-  for (const auto & item : elements)
-    ret->elements.push_back(Node::fromJson(item.toObject()));
-
-  return ret;
-}
-
 void Module::appendChild(NodeRef child)
 {
   elements.push_back(child);
+}
+
+size_t Module::childCount() const
+{
+  return elements.size();
+}
+
+std::shared_ptr<Node> Module::childAt(size_t index) const
+{
+  return elements.at(index);
+}
+
+void Module::removeChild(size_t index)
+{
+  elements.removeAt(index);
+}
+
+QList<std::shared_ptr<Node>> Module::children() const
+{
+  return elements;
 }
 
 //yaml::Value Module::toYaml() const

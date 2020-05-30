@@ -50,11 +50,6 @@ public:
   static const NodeType staticTypeCode = NodeType::Function;
   NodeType typeCode() const override { return staticTypeCode; }
 
-  void fillJson(QJsonObject & obj) const override;
-  static QSharedPointer<Node> fromJson(const QJsonObject & val);
-
-  QString yamlDescription() const;
-
   QString display() const override;
 
   int compareTo(const Node & o) const;
@@ -140,7 +135,7 @@ public:
     return AutoBinding;
   }
 };
-typedef QSharedPointer<Function> FunctionRef;
+typedef std::shared_ptr<Function> FunctionRef;
 
 
 struct Constructor : public Function
@@ -152,13 +147,10 @@ struct Constructor : public Function
   static const NodeType staticTypeCode = NodeType::Constructor;
   NodeType typeCode() const override { return staticTypeCode; }
 
-  void fillJson(QJsonObject & obj) const override;
-  static QSharedPointer<Node> fromJson(const QJsonObject & val);
-
   QString display() const override;
 
 };
-typedef QSharedPointer<Constructor> ConstructorRef;
+typedef std::shared_ptr<Constructor> ConstructorRef;
 
 struct Destructor : public Function
 {
@@ -169,19 +161,9 @@ struct Destructor : public Function
   static const NodeType staticTypeCode = NodeType::Destructor;
   NodeType typeCode() const override { return staticTypeCode; }
 
-  void fillJson(QJsonObject & obj) const override;
-  static QSharedPointer<Node> fromJson(const QJsonObject & val);
-
   QString display() const override;
 
 };
-typedef QSharedPointer<Destructor> DestructorRef;
-
-
-namespace json
-{
-Function::BindingMethod readBindingMethod(const QJsonObject & obj);
-void writeBindingMethod(QJsonObject &obj, Function::BindingMethod bm);
-}
+typedef std::shared_ptr<Destructor> DestructorRef;
 
 #endif // METAGONK_FUNCTION_H

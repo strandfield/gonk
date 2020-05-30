@@ -22,7 +22,7 @@ public:
   void write() override;
   void read(FunctionRef fun);
 
-  inline FunctionRef getFunction() const { return qSharedPointerCast<Function>(getNode()); }
+  inline FunctionRef getFunction() const { return std::static_pointer_cast<Function>(getNode()); }
 
 private:
   QLineEdit *mVersion;

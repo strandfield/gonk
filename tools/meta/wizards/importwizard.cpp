@@ -15,7 +15,7 @@ ImportWizard::ImportWizard(ProjectRef pro)
 {
   setWindowTitle("Import C++ symbols");
 
-  mFields.importedSymbols = ProjectRef::create();
+  mFields.importedSymbols = std::make_shared<Project>();
 
   this->pages.startProject = new StartImportPage();
   this->pages.selectInputs = new SelectInputsPage();

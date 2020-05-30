@@ -5,8 +5,6 @@
 #ifndef METAGONK_PROJECT_H
 #define METAGONK_PROJECT_H
 
-#include <QSharedPointer>
-
 #include "project/module.h"
 #include "project/class.h"
 #include "project/enum.h"
@@ -15,6 +13,8 @@
 #include "project/namespace.h"
 #include "project/statement.h"
 #include "project/type.h"
+
+#include <memory>
 
 class Project
 {
@@ -39,12 +39,6 @@ public:
   std::map<int, StatementRef> statements;
   std::map<int, NodeRef> entities;
 
-  QJsonObject toJson() const;
-  static QSharedPointer<Project> fromJson(const QJsonObject & obj);
-  static QSharedPointer<Project> load(const QString & filename);
-
-  void save(const QString & filename);
-
   void removeUncheckedSymbols();
   void fetchTypes();
 
@@ -53,15 +47,15 @@ public:
   Type & getType(const QString & name);
 
   template<typename T>
-  QSharedPointer<T> get(const QString & name)
+  std::shared_ptr<T> get(const QString & name)
   {
     for (const auto & e : modules)
     {
       if (e->is<T>() && e->name == name)
-        return QSharedPointer<T>{e};
+        return std::static_pointer_cast<T>(e);
     }
 
-    auto ret = QSharedPointer<T>::create(name);
+    auto ret = std::make_shared<T>(name);
     modules.append(ret);
     return ret;
   }
@@ -71,8 +65,6 @@ public:
   int fileCount() const;
 };
 
-typedef QSharedPointer<Project> ProjectRef;
-
-Q_DECLARE_METATYPE(QSharedPointer<Project>);
+typedef std::shared_ptr<Project> ProjectRef;
 
 #endif // METAGONK_PROJECT_H

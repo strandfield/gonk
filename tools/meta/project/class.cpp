@@ -32,87 +32,22 @@ void Class::appendChild(NodeRef n)
   elements.append(n);
 }
 
-void Class::fillJson(QJsonObject & obj) const
+size_t Class::childCount() const
 {
-  Node::fillJson(obj);
-
-  QJsonArray elems;
-  for (const auto & e : elements)
-    elems.append(e->toJson());
-
-  obj["elements"] = elems;
-
-  if (!base.isEmpty())
-    obj["base"] = base;
-
-  if (isFinal)
-    obj["final"] = isFinal;
+  return elements.size();
 }
 
-QSharedPointer<Node> Class::fromJson(const QJsonObject & obj)
+std::shared_ptr<Node> Class::childAt(size_t index) const
 {
-  auto ret = ClassRef::create(obj.value("name").toString(), json::readCheckState(obj));
-
-  QJsonArray elements = obj.value("elements").toArray();
-  ret->elements.reserve(elements.size());
-  for (const auto & item : elements)
-    ret->elements.push_back(Node::fromJson(item.toObject()));
-
-  ret->base = obj.value("base").toString();
-
-  if (!obj.contains("final"))
-    ret->isFinal = false;
-  else
-    ret->isFinal = obj.value("final").toBool();
-
-  return ret;
+  return elements.at(index);
 }
 
-//yaml::Value Class::toYaml() const
-//{
-//  yaml::Object content;
-//
-//  content["name"] = name;
-//  yaml::writeCheckstate(content, checkState);
-//  yaml::writeQtVersion(content, version);
-//
-//  if (!base.isEmpty())
-//    content["base"] = base;
-//
-//  if (isFinal)
-//    content["final"] = "true";
-//
-//  {
-//    yaml::Array elems;
-//
-//    for (const auto & e : elements)
-//    {
-//      elems.push(e->toYaml());
-//    }
-//
-//    content["elements"] = elems;
-//  }
-//
-//  yaml::Object ret;
-//  ret["class"] = content;
-//  return ret;
-//}
-//
-//QSharedPointer<Node> Class::fromYaml(const yaml::Object & inputobj)
-//{
-//  yaml::Object obj = inputobj.value("class").toObject();
-//
-//  auto ret = ClassRef::create(obj.value("name").toString(), yaml::readCheckState(obj));
-//  ret->version = yaml::readQtVersion(obj);
-//
-//  yaml::Array elements = obj.value("elements").toArray();
-//  ret->elements.reserve(elements.size());
-//  for (const auto & item : elements.underlyingList())
-//    ret->elements.push_back(Node::fromYaml(item.toObject()));
-//
-//  ret->base = obj.value("base").toString();
-//  ret->isFinal = obj.value("final").toString() == "true";
-//
-//  return ret;
-//}
+void Class::removeChild(size_t index)
+{
+  elements.removeAt(index);
+}
 
+QList<std::shared_ptr<Node>> Class::children() const
+{
+  return elements;
+}

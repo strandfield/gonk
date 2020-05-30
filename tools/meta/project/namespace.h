@@ -23,33 +23,34 @@ public:
   NodeType typeCode() const override { return staticTypeCode; }
 
   void appendChild(NodeRef n) override;
-
-  void fillJson(QJsonObject & obj) const override;
-  static QSharedPointer<Node> fromJson(const QJsonObject & val);
+  size_t childCount() const override;
+  std::shared_ptr<Node> childAt(size_t index) const override;
+  void removeChild(size_t index) override;
+  QList<std::shared_ptr<Node>> children() const override;
 
   template<typename T>
-  QSharedPointer<T> add(const QString & name)
+  std::shared_ptr<T> add(const QString & name)
   {
-    auto ret = QSharedPointer<T>::create(name);
+    auto ret = std::make_shared<T>(name);
     elements.append(ret);
     return ret;
   }
 
   template<typename T>
-  QSharedPointer<T> get(const QString & name)
+  std::shared_ptr<T> get(const QString & name)
   {
     for (const auto & e : elements)
     {
       if (e->is<T>() && e->name == name)
-        return qSharedPointerCast<T>(e);
+        return std::static_pointer_cast<T>(e);
     }
 
-    auto ret = QSharedPointer<T>::create(name);
+    auto ret = std::make_shared<T>(name);
     elements.append(ret);
     return ret;
   }
 
-  QSharedPointer<Namespace> getNamespace(const QString & name);
+  std::shared_ptr<Namespace> getNamespace(const QString & name);
 
 
   void remove(const QString & name);
@@ -69,7 +70,7 @@ public:
   }
 
 };
-typedef QSharedPointer<Namespace> NamespaceRef;
+typedef std::shared_ptr<Namespace> NamespaceRef;
 
 
 #endif // METAGONK_NAMESPACE_H

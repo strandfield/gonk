@@ -33,24 +33,25 @@ public:
   virtual QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
   {
     QTreeWidgetItem *item = static_cast<QTreeWidgetItem*>(index.internalPointer());
-    NodeRef node = item->data(0, ModuleTreeWidget::ProjectNodeRole).value<NodeRef>();
+    NodeRef node = dynamic_cast<ModuleTreeWidget*>(item->treeWidget())->getNode(item);
+
     if (node->is<Function>() && index.column() == 0)
-      return new FunctionNodeEditor(qSharedPointerCast<Function>(node), parent);
+      return new FunctionNodeEditor(std::static_pointer_cast<Function>(node), parent);
     else if (node->is<File>() && index.column() == 0)
-      return new FileNodeEditor(qSharedPointerCast<File>(node), parent);
+      return new FileNodeEditor(std::static_pointer_cast<File>(node), parent);
     else if (node->is<Namespace>() && index.column() == 0)
-      return new NamespaceNodeEditor(qSharedPointerCast<Namespace>(node), parent);
+      return new NamespaceNodeEditor(std::static_pointer_cast<Namespace>(node), parent);
     else if (node->is<Class>() && index.column() == 0)
-      return new ClassNodeEditor(qSharedPointerCast<Class>(node), parent);
+      return new ClassNodeEditor(std::static_pointer_cast<Class>(node), parent);
     else if (node->is<Enum>() && index.column() == 0)
-      return new EnumNodeEditor(qSharedPointerCast<Enum>(node), parent);
+      return new EnumNodeEditor(std::static_pointer_cast<Enum>(node), parent);
     return QStyledItemDelegate::createEditor(parent, option, index);
   }
 
   void setEditorData(QWidget *editor, const QModelIndex & index) const override
   {
     QTreeWidgetItem *item = static_cast<QTreeWidgetItem*>(index.internalPointer());
-    NodeRef node = item->data(0, ModuleTreeWidget::ProjectNodeRole).value<NodeRef>();
+    NodeRef node = dynamic_cast<ModuleTreeWidget*>(item->treeWidget())->getNode(item);
 
     EnumNodeEditor *enmedit = qobject_cast<EnumNodeEditor*>(editor);
     FileNodeEditor *fileedit = qobject_cast<FileNodeEditor*>(editor);
@@ -59,27 +60,27 @@ public:
     NamespaceNodeEditor *nsedit = qobject_cast<NamespaceNodeEditor*>(editor);
     if (funedit != nullptr)
     {
-      funedit->read(qSharedPointerCast<Function>(node));
+      funedit->read(std::static_pointer_cast<Function>(node));
       return;
     }
     else if (fileedit != nullptr)
     {
-      fileedit->read(qSharedPointerCast<File>(node));
+      fileedit->read(std::static_pointer_cast<File>(node));
       return;
     }
     else if (classedit != nullptr)
     {
-      classedit->read(qSharedPointerCast<Class>(node));
+      classedit->read(std::static_pointer_cast<Class>(node));
       return;
     }
     else if (enmedit != nullptr)
     {
-      enmedit->read(qSharedPointerCast<Enum>(node));
+      enmedit->read(std::static_pointer_cast<Enum>(node));
       return;
     }
     else if (nsedit != nullptr)
     {
-      nsedit->read(qSharedPointerCast<Namespace>(node));
+      nsedit->read(std::static_pointer_cast<Namespace>(node));
       return;
     }
     else
@@ -91,7 +92,6 @@ public:
   void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex & index) const override
   {
     QTreeWidgetItem *item = static_cast<QTreeWidgetItem*>(index.internalPointer());
-    NodeRef node = item->data(0, ModuleTreeWidget::ProjectNodeRole).value<NodeRef>();
 
     AbstractNodeEditor *nodeedit = qobject_cast<AbstractNodeEditor*>(editor);
     if (nodeedit != nullptr)
@@ -137,10 +137,10 @@ ModuleTreeWidget::ModuleTreeWidget(const ProjectRef & pro)
   connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(displayContextMenu(const QPoint &)));
 }
 
-static void handle_checkboxes(QTreeWidgetItem *item, bool on)
+void ModuleTreeWidget::handle_checkboxes(QTreeWidgetItem *item, bool on)
 {
-  NodeRef node = item->data(0, ModuleTreeWidget::ProjectNodeRole).value<NodeRef>();
- 
+  NodeRef node = getNode(item);
+
   if (on)
   {
     item->setCheckState(0, node->checkState);
@@ -206,7 +206,7 @@ void ModuleTreeWidget::removeSelectedRows()
 
     const int item_index = parent->indexOfChild(item);
     
-    NodeRef node = parent->data(0, ProjectNodeRole).value<NodeRef>();
+    NodeRef node = m_nodes_map.at(item);
     if (node == nullptr)
     {
       mProject->modules.removeAt(item_index);
@@ -251,7 +251,7 @@ void ModuleTreeWidget::moveSelectedRow(int k)
   else if (item_index == parent->childCount() - 1 && k == Qt::Key_Down)
     return;
 
-  NodeRef node = parent->data(0, ProjectNodeRole).value<NodeRef>();
+  NodeRef node = m_nodes_map.at(item);
   if (node == nullptr)
     return;
 
@@ -297,14 +297,14 @@ void ModuleTreeWidget::processCtrlE()
 
   QTreeWidgetItem *item = selecteds.first();
 
-  NodeRef node = item->data(0, ProjectNodeRole).value<NodeRef>();
+  NodeRef node = m_nodes_map.at(item);
   if (node == nullptr)
     return;
 
   if (!node->is<Function>())
     return;
 
-  auto *dialog = new NewFunctionDialog(qSharedPointerCast<Function>(node), this);
+  auto *dialog = new NewFunctionDialog(std::static_pointer_cast<Function>(node), this);
   int result = dialog->exec();
   dialog->deleteLater();
   if (result != QDialog::Accepted)
@@ -323,7 +323,7 @@ void ModuleTreeWidget::processCtrlN()
 
   QTreeWidgetItem *item = selecteds.first();
 
-  NodeRef node = item->data(0, ProjectNodeRole).value<NodeRef>();
+  NodeRef node = m_nodes_map.at(item);
   if (node == nullptr)
     return;
 
@@ -348,7 +348,7 @@ void ModuleTreeWidget::processCtrlN()
 
 void ModuleTreeWidget::refreshItem(QTreeWidgetItem* item)
 {
-  NodeRef node = item->data(0, ProjectNodeRole).value<NodeRef>();
+  NodeRef node = m_nodes_map.at(item);
   if (node == nullptr)
     return;
 
@@ -361,7 +361,7 @@ void ModuleTreeWidget::refreshItem(QTreeWidgetItem* item)
 
 void ModuleTreeWidget::fetchNewNodes(QTreeWidgetItem *item)
 {
-  NodeRef node = item->data(0, ProjectNodeRole).value<NodeRef>();
+  NodeRef node = m_nodes_map.at(item);
   if (node == nullptr)
     return;
 
@@ -417,7 +417,7 @@ QTreeWidgetItem* ModuleTreeWidget::createItem(const NodeRef & node)
 {
   QTreeWidgetItem *item = new QTreeWidgetItem(QStringList{ node->display() });
   item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEditable);
-  item->setData(0, ProjectNodeRole, QVariant::fromValue<NodeRef>(node));
+  m_nodes_map[item] = node;
 
   if (node->is<Module>())
   {
@@ -481,7 +481,7 @@ void ModuleTreeWidget::fill(QTreeWidgetItem *parent, const NodeRef & node)
 
 void ModuleTreeWidget::updateItem(QTreeWidgetItem *item, int column)
 {
-  NodeRef node = item->data(0, ProjectNodeRole).value<NodeRef>();
+  NodeRef node = m_nodes_map.at(item);
   if (node == nullptr)
     return;
 
@@ -571,9 +571,10 @@ void ModuleTreeWidget::displayContextMenu(const QPoint & p)
   execAction(item, node, act);
 }
 
-NodeRef ModuleTreeWidget::getNode(QTreeWidgetItem *item)
+NodeRef ModuleTreeWidget::getNode(QTreeWidgetItem *item) const
 {
-  return item->data(0, ModuleTreeWidget::ProjectNodeRole).value<NodeRef>();
+  auto it = m_nodes_map.find(item);
+  return it != m_nodes_map.end() ? it->second : nullptr;
 }
 
 void ModuleTreeWidget::createContextMenus()
@@ -597,18 +598,18 @@ void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *
     
     if (act == mAddCopyCtorAction)
     {
-      ConstructorRef ctor = ConstructorRef::create(cla.name);
+      ConstructorRef ctor = std::make_shared<Constructor>(cla.name);
       ctor->parameters.append("const " + cla.name + " &");
       cla.elements.append(ctor);
     }
     else if (act == mAddDestructorAction)
     {
-      DestructorRef dtor = DestructorRef::create("~" + cla.name);
+      DestructorRef dtor = std::make_shared<Destructor>("~" + cla.name);
       cla.elements.append(dtor);
     }
     else if (act == mAddAssignmentAction)
     {
-      FunctionRef assign = FunctionRef::create("operator=");
+      FunctionRef assign = std::make_shared<Function>("operator=");
       assign->returnType = cla.name + " &";
       assign->parameters.append("const " + cla.name + " &");
       cla.elements.append(assign);
@@ -626,7 +627,7 @@ void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *
     File & file = node->as<File>();
     if (act == mAddStatementAction)
     {
-      auto stmt = StatementRef::create("(void) 0;");
+      auto stmt = std::make_shared<Statement>("(void) 0;");
       file.elements.append(stmt);
     }
   }

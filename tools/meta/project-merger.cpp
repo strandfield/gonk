@@ -66,7 +66,7 @@ void ProjectMerger::getIds(NodeRef elem)
 
   if (elem->is<Module>())
   {
-    ModuleRef m = qSharedPointerCast<Module>(elem);
+    ModuleRef m = std::static_pointer_cast<Module>(elem);
 
     QSqlQuery query = database.exec(QString("INSERT INTO modules(name) VALUES('%1')").arg(m->name));
     m->module_id = query.lastInsertId().toInt();
@@ -78,7 +78,7 @@ void ProjectMerger::getIds(NodeRef elem)
   }
   else if (elem->is<File>())
   {
-    FileRef f = qSharedPointerCast<File>(elem);
+    FileRef f = std::static_pointer_cast<File>(elem);
 
     QSqlQuery query = database.exec(QString("INSERT INTO files(name) VALUES('%1')").arg(f->name));
     f->file_id = query.lastInsertId().toInt();
@@ -90,7 +90,7 @@ void ProjectMerger::getIds(NodeRef elem)
   }
   else if (elem->is<Namespace>())
   {
-    NamespaceRef ns = qSharedPointerCast<Namespace>(elem);
+    NamespaceRef ns = std::static_pointer_cast<Namespace>(elem);
 
     QSqlQuery query = database.exec(QString("INSERT INTO namespaces(name) VALUES('%1')").arg(ns->name));
     ns->namespace_id = query.lastInsertId().toInt();
@@ -102,7 +102,7 @@ void ProjectMerger::getIds(NodeRef elem)
   }
   else if (elem->is<Class>())
   {
-    ClassRef c = qSharedPointerCast<Class>(elem);
+    ClassRef c = std::static_pointer_cast<Class>(elem);
 
     QSqlQuery query = database.exec(QString("INSERT INTO classes(name) VALUES('%1')").arg(c->name));
     c->class_id = query.lastInsertId().toInt();
@@ -114,7 +114,7 @@ void ProjectMerger::getIds(NodeRef elem)
   }
   else if (elem->is<Enum>())
   {
-    EnumRef e = qSharedPointerCast<Enum>(elem);
+    EnumRef e = std::static_pointer_cast<Enum>(elem);
 
     QSqlQuery query = database.exec(QString("INSERT INTO enums(name) VALUES('%1')").arg(e->name));
     e->enum_id = query.lastInsertId().toInt();
@@ -126,8 +126,8 @@ void ProjectMerger::getIds(NodeRef elem)
   }
   else if (elem->is<Enumerator>())
   {
-    EnumeratorRef e = qSharedPointerCast<Enumerator>(elem);
-    EnumRef parent = qSharedPointerCast<Enum>(m_parent);
+    EnumeratorRef e = std::static_pointer_cast<Enumerator>(elem);
+    EnumRef parent = std::static_pointer_cast<Enum>(m_parent);
 
     QSqlQuery query = database.exec(QString("INSERT INTO enumerators(name, enum_id) VALUES('%1', %2)").arg(e->name, QString::number(parent->enum_id)));
     e->enumerator_id = query.lastInsertId().toInt();
@@ -139,7 +139,7 @@ void ProjectMerger::getIds(NodeRef elem)
   }
   else if (elem->is<Function>())
   {
-    FunctionRef f = qSharedPointerCast<Function>(elem);
+    FunctionRef f = std::static_pointer_cast<Function>(elem);
 
     QSqlQuery query = database.exec(QString("INSERT INTO functions(name, return_type, parameters, specifiers) VALUES('%1', '%2', '%3', '%4')")
       .arg(f->name, f->returnType, f->parameters.join(';'), f->getSpecifiers().join(',')));
@@ -152,7 +152,7 @@ void ProjectMerger::getIds(NodeRef elem)
   }
   else if (elem->is<Statement>())
   {
-    StatementRef s = qSharedPointerCast<Statement>(elem);
+    StatementRef s = std::static_pointer_cast<Statement>(elem);
 
     QSqlQuery query = database.exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(s->name));
     s->statement_id = query.lastInsertId().toInt();
@@ -184,36 +184,36 @@ void ProjectMerger::merge_recursively(QList<NodeRef>& target, const QList<NodeRe
 
     if (node == srcItem)
     {
-      auto children = Node::getChildren(node);
+      auto children = node->children();
       assignIds(children);
       continue;
     }
 
     if (node->is<Module>())
     {
-      ModuleRef targetModule = qSharedPointerCast<Module>(node);
-      ModuleRef srcModule = qSharedPointerCast<Module>(srcItem);
+      ModuleRef targetModule = std::static_pointer_cast<Module>(node);
+      ModuleRef srcModule = std::static_pointer_cast<Module>(srcItem);
 
       merge_recursively(targetModule->elements, srcModule->elements);
     }
     else if (node->is<Namespace>())
     {
-      NamespaceRef targetNamespace = qSharedPointerCast<Namespace>(node);
-      NamespaceRef srcNamespace = qSharedPointerCast<Namespace>(srcItem);
+      NamespaceRef targetNamespace = std::static_pointer_cast<Namespace>(node);
+      NamespaceRef srcNamespace = std::static_pointer_cast<Namespace>(srcItem);
 
       merge_recursively(targetNamespace->elements, srcNamespace->elements);
     }
     else if (node->is<Class>())
     {
-      ClassRef target_class = qSharedPointerCast<Class>(node);
-      ClassRef src_class = qSharedPointerCast<Class>(srcItem);
+      ClassRef target_class = std::static_pointer_cast<Class>(node);
+      ClassRef src_class = std::static_pointer_cast<Class>(srcItem);
 
       merge_recursively(target_class->elements, src_class->elements);
     }
     else if (node->is<Enum>())
     {
-      EnumRef target_enum = qSharedPointerCast<Enum>(node);
-      EnumRef src_enum = qSharedPointerCast<Enum>(srcItem);
+      EnumRef target_enum = std::static_pointer_cast<Enum>(node);
+      EnumRef src_enum = std::static_pointer_cast<Enum>(srcItem);
 
       target_enum->merge(*src_enum);
     }

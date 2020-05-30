@@ -29,7 +29,7 @@ public:
   ProjectLoader(QSqlDatabase & db)
     : database(db)
   {
-    project = ProjectRef::create();
+    project = std::make_shared<Project>();
   }
 
   void load()

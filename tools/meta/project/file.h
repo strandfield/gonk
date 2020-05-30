@@ -24,10 +24,7 @@ public:
 
   QString display() const override;
 
-  void fillJson(QJsonObject & obj) const override;
-  static QSharedPointer<Node> fromJson(const QJsonObject & obj);
-
 };
-typedef QSharedPointer<File> FileRef;
+typedef std::shared_ptr<File> FileRef;
 
 #endif // YASL_META_FILE_H

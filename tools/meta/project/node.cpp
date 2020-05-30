@@ -70,8 +70,6 @@ QString extractName(QString str)
 
 } // namespace yaml
 
-QMap<QString, Node::JsonDeserializer> Node::staticFactory = QMap<QString, Node::JsonDeserializer>{};
-
 namespace json
 {
 
@@ -97,67 +95,37 @@ Node::Node(const QString & n, Qt::CheckState c)
 
 }
 
-void Node::fillJson(QJsonObject & obj) const
-{
-  obj["name"] = this->name;
-  json::writeCheckState(obj, this->checkState);
-  obj["type"] = typeName();
-}
-
-QJsonObject Node::toJson() const
-{
-  QJsonObject result;
-  fillJson(result);
-  return result;
-}
-
-QSharedPointer<Node> Node::fromJson(const QJsonObject & obj)
-{
-  return staticFactory.value(obj.value("type").toString(), nullptr)(obj);
-}
-
-void Node::appendChild(QSharedPointer<Node> n)
+void Node::appendChild(std::shared_ptr<Node> n)
 {
   throw std::runtime_error{ "Node does not support child insertion" };
 }
 
-QList<QSharedPointer<Node>> Node::getChildren(const QSharedPointer<Node>& node)
+size_t Node::childCount() const
 {
-  if (node->is<Module>())
-  {
-    return qSharedPointerCast<Module>(node)->elements;
-  }
-  else if (node->is<Namespace>())
-  {
-    return qSharedPointerCast<Namespace>(node)->elements;
-  }
-  else if (node->is<Class>())
-  {
-    return qSharedPointerCast<Class>(node)->elements;
-  }
-  else if (node->is<Enum>())
-  {
-    QList<NodeRef> result;
-
-    for (auto n : qSharedPointerCast<Enum>(node)->enumerators)
-    {
-      result.push_back(n);
-    }
-
-    return result;
-  }
-  else
-  {
-    return {};
-  }
+  return 0;
 }
 
-void Node::registerDeserializer(const QString & name, JsonDeserializer func)
+std::shared_ptr<Node> Node::childAt(size_t index) const
 {
-  staticFactory[name] = func;
+  throw std::runtime_error{ "Node does not support childAt()" };
 }
 
-QString Node::nameQualification(const QStack<QSharedPointer<Node>> & nodes)
+void Node::removeChild(size_t index)
+{
+  throw std::runtime_error{ "Node does not support removeChild()" };
+}
+
+QList<std::shared_ptr<Node>> Node::children() const
+{
+  QList<std::shared_ptr<Node>> ret;
+
+  for (size_t i(0); i < childCount(); ++i)
+    ret.append(childAt(i));
+
+  return ret;
+}
+
+QString Node::nameQualification(const QStack<std::shared_ptr<Node>> & nodes)
 {
   if (nodes.isEmpty())
     return "";

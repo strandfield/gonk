@@ -10,6 +10,8 @@
 #include <QSharedPointer>
 #include <QStack>
 
+#include <memory>
+
 namespace yaml
 {
 class Value;
@@ -62,23 +64,17 @@ public:
     return *dynamic_cast<T*>(this);
   }
 
-  virtual void fillJson(QJsonObject & obj) const;
-  QJsonObject toJson() const;
-  static QSharedPointer<Node> fromJson(const QJsonObject & val);
-
   virtual QString display() const { return name; }
   virtual QString typeName() const = 0;
   virtual NodeType typeCode() const = 0;
 
-  virtual void appendChild(QSharedPointer<Node> n);
+  virtual void appendChild(std::shared_ptr<Node> n);
+  virtual size_t childCount() const;
+  virtual std::shared_ptr<Node> childAt(size_t index) const;
+  virtual void removeChild(size_t index);
+  virtual QList<std::shared_ptr<Node>> children() const;
 
-  static QList<QSharedPointer<Node>> getChildren(const QSharedPointer<Node>& node);
-
-  typedef QSharedPointer<Node>(*JsonDeserializer)(const QJsonObject &);
-  static QMap<QString, JsonDeserializer> staticFactory;
-  static void registerDeserializer(const QString & name, JsonDeserializer func);
-
-  static QString nameQualification(const QStack<QSharedPointer<Node>> & nodes);
+  static QString nameQualification(const QStack<std::shared_ptr<Node>> & nodes);
 
   static int compare(const Node & a, const Node & b);
 
@@ -91,9 +87,7 @@ public:
 protected:
   virtual int compareTo(const Node & other) const;
 };
-typedef QSharedPointer<Node> NodeRef;
-
-Q_DECLARE_METATYPE(QSharedPointer<Node>);
+typedef std::shared_ptr<Node> NodeRef;
 
 /// TODO: this seems to be dead code, remove!
 class NodeValue

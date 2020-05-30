@@ -18,16 +18,14 @@ class ModuleTreeWidget : public QTreeWidget
 public:
   ModuleTreeWidget(const ProjectRef & pro);
 
-  enum Role {
-    ProjectNodeRole = Qt::UserRole + 66,
-  };
-
   void setShowCheckboxes(bool visible);
 
   inline ProjectRef project() const { return mProject; }
   void setProject(const ProjectRef & pro);
 
   void fetchNewNodes();
+
+  NodeRef getNode(QTreeWidgetItem* item) const;
 
 protected:
   void keyPressEvent(QKeyEvent *e);
@@ -51,8 +49,10 @@ protected Q_SLOTS:
   void resizeColumnsAuto();
   void displayContextMenu(const QPoint & p);
 
+protected:
+  void handle_checkboxes(QTreeWidgetItem* item, bool on);
+
 private:
-  static NodeRef getNode(QTreeWidgetItem *item);
   void createContextMenus();
   void execAction(QTreeWidgetItem *item, NodeRef node, QAction *act);
 
@@ -66,6 +66,7 @@ private:
   QAction *mSortClassMembersAction;
   QMenu *mFileNodeMenu;
   QAction *mAddStatementAction;
+  std::unordered_map<QTreeWidgetItem*, std::shared_ptr<Node>> m_nodes_map;
 };
 
 #endif // YASL_META_MODULETREEWIDGET_H

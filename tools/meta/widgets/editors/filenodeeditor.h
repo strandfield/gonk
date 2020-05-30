@@ -21,7 +21,7 @@ public:
   void write() override;
   void read(FileRef f);
 
-  inline FileRef getFile() const { return qSharedPointerCast<File>(getNode()); }
+  inline FileRef getFile() const { return std::static_pointer_cast<File>(getNode()); }
 
 private:
   QLineEdit *mName;

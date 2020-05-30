@@ -172,7 +172,7 @@ void ProjectLoader::loadModules()
 
   while (query.next())
   {
-    auto m = ModuleRef::create("");
+    auto m = std::make_shared<Module>("");
     m->module_id = query.value(ID).toInt();
     m->name = query.value(NAME).toString();
 
@@ -191,7 +191,7 @@ void ProjectLoader::loadFiles()
 
   while (query.next())
   {
-    auto f = FileRef::create("");
+    auto f = std::make_shared<File>("");
     f->file_id = query.value(ID).toInt();
     f->name = query.value(NAME).toString();
 
@@ -213,7 +213,7 @@ void ProjectLoader::loadFunctions()
 
   while (query.next())
   {
-    auto fun = FunctionRef::create("");
+    auto fun = std::make_shared<Function>("");
     fun->function_id = query.value(ID).toInt();
     fun->name = query.value(NAME).toString();
     fun->returnType = query.value(RETURN_TYPE).toString();
@@ -240,7 +240,7 @@ void ProjectLoader::loadClasses()
 
   while (query.next())
   {
-    auto c = ClassRef::create("");
+    auto c = std::make_shared<Class>("");
     c->class_id = query.value(ID).toInt();
     c->name = query.value(NAME).toString();
 
@@ -259,7 +259,7 @@ void ProjectLoader::loadEnums()
 
   while (query.next())
   {
-    auto enm = EnumRef::create("");
+    auto enm = std::make_shared<Enum>("");
     enm->enum_id = query.value(ID).toInt();
     enm->name = query.value(NAME).toString();
 
@@ -296,7 +296,7 @@ void ProjectLoader::loadEnumerators()
 
   while (query.next())
   {
-    auto enm = EnumeratorRef::create("");
+    auto enm = std::make_shared<Enumerator>("");
     enm->enumerator_id = query.value(ID).toInt();
     enm->name = query.value(NAME).toString();
 
@@ -315,7 +315,7 @@ void ProjectLoader::loadStatements()
 
   while (query.next())
   {
-    auto s = StatementRef::create("");
+    auto s = std::make_shared<Statement>("");
     s->statement_id = query.value(ID).toInt();
     s->name = query.value(CONTENT).toString();
 

@@ -99,7 +99,7 @@ struct FileVisitor
 
     for (auto val : decl.enum_->values)
     {
-      enm->enumerators.append(EnumeratorRef::create(QString::fromStdString(val->name)));
+      enm->enumerators.append(std::make_shared<Enumerator>(QString::fromStdString(val->name)));
     }
   }
 
@@ -150,7 +150,7 @@ struct FileVisitor
   {
     QFileInfo fileinfo{ QString::fromStdString(file.path()) };
 
-    auto project_file = FileRef::create(fileinfo.baseName());
+    auto project_file = std::make_shared<File>(fileinfo.baseName());
     RAIINodeGuard guard{ curNode };
     curNode = project_file;
 

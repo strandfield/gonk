@@ -22,7 +22,7 @@ public:
   void write() override;
   void read(EnumRef enm);
 
-  inline EnumRef getEnum() const { return qSharedPointerCast<Enum>(getNode()); }
+  inline EnumRef getEnum() const { return std::static_pointer_cast<Enum>(getNode()); }
 
 private:
   QLineEdit *mCondition;

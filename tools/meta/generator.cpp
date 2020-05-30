@@ -263,11 +263,11 @@ void Generator::generate(ModuleRef mod)
 
     if (n->is<File>())
     {
-      generate(qSharedPointerCast<File>(n));
+      generate(std::static_pointer_cast<File>(n));
 
       if (mProgressCallback)
       {
-        if (!mProgressCallback(qSharedPointerCast<File>(n)->name))
+        if (!mProgressCallback(std::static_pointer_cast<File>(n)->name))
           return;
       }
 
@@ -862,7 +862,7 @@ void Generator::generate(ClassRef cla)
     if (n->checkState == Qt::Unchecked || !n->is<Function>())
       continue;
 
-    FunctionRef fun = qSharedPointerCast<Function>(n);
+    FunctionRef fun = std::static_pointer_cast<Function>(n);
 
     if (!fun->condition.empty())
       lines << QString("#if %1").arg(QString::fromStdString(fun->condition));
@@ -1058,7 +1058,7 @@ void Generator::generate(NamespaceRef ns)
 
     if (n->is<Function>())
     {
-      FunctionRef fun = qSharedPointerCast<Function>(n);
+      FunctionRef fun = std::static_pointer_cast<Function>(n);
       if (!fun->condition.empty())
         lines << QString("#if %1").arg(QString::fromStdString(fun->condition));
 
@@ -1095,13 +1095,13 @@ void Generator::generate(NodeRef n)
   }
 
   if (n->is<Module>())
-    generate(qSharedPointerCast<Module>(n));
+    generate(std::static_pointer_cast<Module>(n));
   else if (n->is<Namespace>())
-    generate(qSharedPointerCast<Namespace>(n));
+    generate(std::static_pointer_cast<Namespace>(n));
   else if (n->is<Class>())
-    generate(qSharedPointerCast<Class>(n));
+    generate(std::static_pointer_cast<Class>(n));
   else if (n->is<Enum>())
-    generate(qSharedPointerCast<Enum>(n));
+    generate(std::static_pointer_cast<Enum>(n));
   else
   {
     qDebug() << "Error in generate(NodeRef)";

@@ -32,15 +32,15 @@ MainWindow::MainWindow()
 
   mSettings = new QSettings("settings.ini", QSettings::IniFormat, this);
 
-  if (mSettings->contains("lastproject"))
-  {
-    mProject = Project::load(mSettings->value("lastproject").toString());
-    if (mProject == nullptr)
-      mSettings->remove("lastproject");
-  }
+  //if (mSettings->contains("lastproject"))
+  //{
+  //  mProject = Project::load(mSettings->value("lastproject").toString());
+  //  if (mProject == nullptr)
+  //    mSettings->remove("lastproject");
+  //}
   
-  if(mProject == nullptr)
-    mProject = ProjectRef::create();
+  if (mProject == nullptr)
+    mProject = std::make_shared<Project>();
 
   mTabWidget = new QTabWidget();
 
@@ -53,7 +53,6 @@ MainWindow::MainWindow()
   setCentralWidget(mTabWidget);
 
   menuBar()->addAction("Open", this, SLOT(openProject()));
-  menuBar()->addAction("Save", this, SLOT(saveProject()));
   menuBar()->addAction("New type", this, SLOT(createNewType()));
   menuBar()->addAction("Import", this, SLOT(importCpp()));
   menuBar()->addAction("Generate", this, SLOT(generateBinding()));
@@ -117,19 +116,6 @@ void MainWindow::openProject()
   }
 }
 
-void MainWindow::saveProject()
-{
-  QString path = mSettings->value("lastproject").toString();
-  if (path.isEmpty())
-    path = QFileDialog::getSaveFileName(this, "Save", QString(), QString("Meta project (*.json)"));
-
-  if (path.isEmpty())
-    return;
-
-  mProject->save(path);
-  mSettings->setValue("lastproject", path);
-}
-
 void MainWindow::createNewType()
 {
   auto *dialog = new NewTypeDialog(this);
@@ -163,8 +149,6 @@ void MainWindow::importCpp()
 
 void MainWindow::generateBinding()
 {
-  saveProject();
-
   QString path = mSettings->value("generatedir").toString();
   if (path.isEmpty())
     path = QFileDialog::getExistingDirectory(this, "Save directory");

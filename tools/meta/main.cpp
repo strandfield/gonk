@@ -20,16 +20,6 @@ int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
 
-  Node::registerDeserializer("class", Class::fromJson);
-  Node::registerDeserializer("enum", Enum::fromJson);
-  Node::registerDeserializer("file", File::fromJson);
-  Node::registerDeserializer("function", Function::fromJson);
-  Node::registerDeserializer("constructor", Constructor::fromJson);
-  Node::registerDeserializer("destructor", Destructor::fromJson);
-  Node::registerDeserializer("module", Module::fromJson);
-  Node::registerDeserializer("namespace", Namespace::fromJson);
-  Node::registerDeserializer("statement", Statement::fromJson);
-
   MainWindow w;
   w.show();
 

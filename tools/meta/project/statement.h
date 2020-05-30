@@ -17,11 +17,8 @@ public:
   static const NodeType staticTypeCode = NodeType::Statement;
   NodeType typeCode() const override { return staticTypeCode; }
 
-  void fillJson(QJsonObject & obj) const override;
-  static QSharedPointer<Node> fromJson(const QJsonObject & val);
-
   int statement_id = -1;
 };
-typedef QSharedPointer<Statement> StatementRef;
+typedef std::shared_ptr<Statement> StatementRef;
 
 #endif // YASL_META_STATEMENT_H

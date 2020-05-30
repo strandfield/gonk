@@ -74,7 +74,7 @@ protected:
       RAIINodeGuard guard{ m_parent };
       m_parent = item;
 
-      QList<NodeRef> children = Node::getChildren(item);
+      QList<NodeRef> children = item->children();
       assignIds(children);
     }
   }

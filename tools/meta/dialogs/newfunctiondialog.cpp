@@ -14,7 +14,7 @@ NewFunctionDialog::NewFunctionDialog(QWidget *parent)
   : QDialog(parent)
 {
   setup();
-  mFunction = FunctionRef::create("");
+  mFunction = std::make_shared<Function>("");
 }
 
 NewFunctionDialog::NewFunctionDialog(FunctionRef fun, QWidget *parent)

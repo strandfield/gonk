@@ -22,7 +22,7 @@ public:
   void write() override;
   void read(ClassRef cla);
 
-  inline ClassRef getClass() const { return qSharedPointerCast<Class>(getNode()); }
+  inline ClassRef getClass() const { return std::static_pointer_cast<Class>(getNode()); }
 
 private:
   QLineEdit *mCondition;

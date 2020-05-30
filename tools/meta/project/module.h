@@ -21,26 +21,28 @@ public:
   static const NodeType staticTypeCode = NodeType::Module;
   NodeType typeCode() const override { return staticTypeCode; }
 
-  void fillJson(QJsonObject & obj) const override;
-  static QSharedPointer<Node> fromJson(const QJsonObject & obj);
-
   void appendChild(NodeRef child) override;
+  size_t childCount() const override;
+  std::shared_ptr<Node> childAt(size_t index) const override;
+  void removeChild(size_t index) override;
+  QList<std::shared_ptr<Node>> children() const override;
+
 
   template<typename T>
-  QSharedPointer<T> get(const QString & name)
+  std::shared_ptr<T> get(const QString & name)
   {
     for (const auto & e : elements)
     {
       if (e->is<T>() && e->name == name)
-        return qSharedPointerCast<T>(e);
+        return std::static_pointer_cast<T>(e);
     }
 
-    auto ret = QSharedPointer<T>::create(name);
+    auto ret = std::make_shared<T>(name);
     elements.append(ret);
     return ret;
   }
 
 };
-typedef QSharedPointer<Module> ModuleRef;
+typedef std::shared_ptr<Module> ModuleRef;
 
 #endif // YASL_META_MODULE_H
