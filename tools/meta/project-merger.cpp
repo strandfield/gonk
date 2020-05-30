@@ -184,7 +184,8 @@ void ProjectMerger::merge_recursively(QList<NodeRef>& target, const QList<NodeRe
 
     if (node == srcItem)
     {
-      assignIds(getChildren(node));
+      auto children = Node::getChildren(node);
+      assignIds(children);
       continue;
     }
 
@@ -252,36 +253,5 @@ void ProjectMerger::merge_recursively(QList<ModuleRef>& target, const QList<Modu
       assignIds(m->elements);
     else
       merge_recursively(m->elements, srcItem->elements);
-  }
-}
-
-QList<NodeRef> ProjectMerger::getChildren(const NodeRef& node)
-{
-  if (node->is<Module>())
-  {
-    return qSharedPointerCast<Module>(node)->elements;
-  }
-  else if (node->is<Namespace>())
-  {
-    return qSharedPointerCast<Namespace>(node)->elements;
-  }
-  else if (node->is<Class>())
-  {
-    return qSharedPointerCast<Class>(node)->elements;
-  }
-  else if (node->is<Enum>())
-  {
-    QList<NodeRef> result;
-
-    for (auto n : qSharedPointerCast<Enum>(node)->enumerators)
-    {
-      result.push_back(n);
-    }
-
-    return result;
-  }
-  else
-  {
-    return {};
   }
 }

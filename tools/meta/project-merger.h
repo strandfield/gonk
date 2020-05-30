@@ -64,8 +64,6 @@ protected:
   ModuleRef find_or_set(QList<ModuleRef>& list, const ModuleRef& elem);
   void merge_recursively(QList<ModuleRef>& target, const QList<ModuleRef>& src);
 
-  QList<NodeRef> getChildren(const NodeRef& node);
-
   template<typename T>
   void assignIds(QList<T>& list)
   {
@@ -76,7 +74,7 @@ protected:
       RAIINodeGuard guard{ m_parent };
       m_parent = item;
 
-      QList<NodeRef> children = getChildren(item);
+      QList<NodeRef> children = Node::getChildren(item);
       assignIds(children);
     }
   }

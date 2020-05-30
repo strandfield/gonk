@@ -72,6 +72,8 @@ public:
 
   virtual void appendChild(QSharedPointer<Node> n);
 
+  static QList<QSharedPointer<Node>> getChildren(const QSharedPointer<Node>& node);
+
   typedef QSharedPointer<Node>(*JsonDeserializer)(const QJsonObject &);
   static QMap<QString, JsonDeserializer> staticFactory;
   static void registerDeserializer(const QString & name, JsonDeserializer func);

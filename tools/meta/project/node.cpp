@@ -6,6 +6,8 @@
 
 #include "project/file.h"
 #include "project/function.h"
+#include "project/enum.h"
+#include "project/class.h"
 #include "project/module.h"
 
 namespace yaml
@@ -117,6 +119,37 @@ QSharedPointer<Node> Node::fromJson(const QJsonObject & obj)
 void Node::appendChild(QSharedPointer<Node> n)
 {
   throw std::runtime_error{ "Node does not support child insertion" };
+}
+
+QList<QSharedPointer<Node>> Node::getChildren(const QSharedPointer<Node>& node)
+{
+  if (node->is<Module>())
+  {
+    return qSharedPointerCast<Module>(node)->elements;
+  }
+  else if (node->is<Namespace>())
+  {
+    return qSharedPointerCast<Namespace>(node)->elements;
+  }
+  else if (node->is<Class>())
+  {
+    return qSharedPointerCast<Class>(node)->elements;
+  }
+  else if (node->is<Enum>())
+  {
+    QList<NodeRef> result;
+
+    for (auto n : qSharedPointerCast<Enum>(node)->enumerators)
+    {
+      result.push_back(n);
+    }
+
+    return result;
+  }
+  else
+  {
+    return {};
+  }
 }
 
 void Node::registerDeserializer(const QString & name, JsonDeserializer func)
