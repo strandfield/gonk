@@ -4,6 +4,7 @@
 
 #include "controller.h"
 
+#include "project-controller.h"
 #include "project-loader.h"
 #include "project-merger.h"
 
@@ -111,6 +112,7 @@ void Controller::loadProject()
   ProjectLoader loader{ database() };
   loader.load();
   m_project = loader.project;
+  m_project_controller.reset(new ProjectController(database(), m_project));
 }
 
 ProjectRef Controller::project() const
@@ -123,3 +125,9 @@ void Controller::importSymbols(ProjectRef other)
   ProjectMerger merger{ database(), m_project, other };
   merger.merge();
 }
+
+ProjectController& Controller::projectController()
+{
+  return *m_project_controller;
+}
+

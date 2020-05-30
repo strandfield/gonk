@@ -50,6 +50,8 @@ public:
   static const NodeType staticTypeCode = NodeType::Function;
   NodeType typeCode() const override { return staticTypeCode; }
 
+  void accept(NodeVisitor& visitor) override;
+
   QString display() const override;
 
   int compareTo(const Node & o) const;

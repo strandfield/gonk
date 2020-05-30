@@ -25,6 +25,8 @@ public:
 
   QString display() const override;
 
+  void accept(NodeVisitor& visitor) override;
+
   void appendChild(NodeRef n) override;
   size_t childCount() const override;
   std::shared_ptr<Node> childAt(size_t index) const override;

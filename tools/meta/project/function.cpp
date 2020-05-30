@@ -4,6 +4,8 @@
 
 #include "project/function.h"
 
+#include "project/node-visitor.h"
+
 #include <QJsonArray>
 
 Function::Function(const QString & n, Qt::CheckState c)
@@ -15,6 +17,11 @@ Function::Function(const QString & n, Qt::CheckState c)
   , bindingMethod(Function::AutoBinding)
 {
 
+}
+
+void Function::accept(NodeVisitor& visitor)
+{
+  visitor.visit(*this);
 }
 
 QString Function::display() const

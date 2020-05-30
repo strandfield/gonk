@@ -17,6 +17,8 @@ public:
   static const NodeType staticTypeCode = NodeType::Statement;
   NodeType typeCode() const override { return staticTypeCode; }
 
+  void accept(NodeVisitor& visitor) override;
+
   int statement_id = -1;
 };
 typedef std::shared_ptr<Statement> StatementRef;

@@ -46,7 +46,9 @@ enum class NodeType
   Statement,
 };
 
-class Node
+class NodeVisitor;
+
+class Node : public std::enable_shared_from_this<Node>
 {
 public:
   Node(const QString & n, Qt::CheckState c = Qt::Checked);
@@ -68,6 +70,8 @@ public:
   virtual QString typeName() const = 0;
   virtual NodeType typeCode() const = 0;
 
+  virtual void accept(NodeVisitor& visitor) = 0;
+
   virtual void appendChild(std::shared_ptr<Node> n);
   virtual size_t childCount() const;
   virtual std::shared_ptr<Node> childAt(size_t index) const;
@@ -79,6 +83,7 @@ public:
   static int compare(const Node & a, const Node & b);
 
   int entity_id = -1;
+  std::weak_ptr<Node> parent;
   int order = -1;
   QString name;
   Qt::CheckState checkState;

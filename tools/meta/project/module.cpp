@@ -4,6 +4,8 @@
 
 #include "project/module.h"
 
+#include "project/node-visitor.h"
+
 #include <QJsonArray>
 #include <QJsonObject>
 
@@ -13,9 +15,15 @@ Module::Module(const QString & n, Qt::CheckState c)
 
 }
 
+void Module::accept(NodeVisitor& visitor)
+{
+  visitor.visit(*this);
+}
+
 void Module::appendChild(NodeRef child)
 {
   elements.push_back(child);
+  child->parent = shared_from_this();
 }
 
 size_t Module::childCount() const

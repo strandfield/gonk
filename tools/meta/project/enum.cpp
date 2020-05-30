@@ -4,6 +4,8 @@
 
 #include "project/enum.h"
 
+#include "project/node-visitor.h"
+
 #include <QDebug>
 #include <QJsonArray>
 
@@ -11,6 +13,11 @@ Enumerator::Enumerator(const QString & n, Qt::CheckState c)
   : Node(n, c)
 {
 
+}
+
+void Enumerator::accept(NodeVisitor& visitor)
+{
+  visitor.visit(*this);
 }
 
 
@@ -32,12 +39,18 @@ QString Enum::display() const
   return ret;
 }
 
+void Enum::accept(NodeVisitor& visitor)
+{
+  visitor.visit(*this);
+}
+
 void Enum::appendChild(NodeRef n)
 {
   if (!n->is<Enumerator>())
     throw std::runtime_error{ "Enum::appendChild() : child must be an Enumerator" };
 
   this->enumerators.push_back(std::static_pointer_cast<Enumerator>(n));
+  n->parent = shared_from_this();
 }
 
 size_t Enum::childCount() const

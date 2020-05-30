@@ -4,6 +4,8 @@
 
 #include "project/class.h"
 
+#include "project/node-visitor.h"
+
 #include <QJsonArray>
 
 Class::Class(const QString & n, Qt::CheckState c)
@@ -27,9 +29,15 @@ QString Class::display() const
   return ret;
 }
 
+void Class::accept(NodeVisitor& visitor)
+{
+  visitor.visit(*this);
+}
+
 void Class::appendChild(NodeRef n)
 {
   elements.append(n);
+  n->parent = shared_from_this();
 }
 
 size_t Class::childCount() const

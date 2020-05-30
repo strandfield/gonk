@@ -4,6 +4,9 @@
 
 #include "moduletreewidget.h"
 
+#include "controller.h"
+#include "project-controller.h"
+
 #include "dialogs/newfunctiondialog.h"
 
 #include "project/class.h"
@@ -200,38 +203,12 @@ void ModuleTreeWidget::removeSelectedRows()
   const QList<QTreeWidgetItem*> selecteds = selectedItems();
   for (auto item : selecteds)
   {
+    Controller::Instance().projectController().remove(getNode(item));
+
     QTreeWidgetItem *parent = item->parent();
     if (parent == nullptr)
       parent = invisibleRootItem();
-
     const int item_index = parent->indexOfChild(item);
-    
-    NodeRef node = m_nodes_map.at(item);
-    if (node == nullptr)
-    {
-      mProject->modules.removeAt(item_index);
-    }
-    else if (node->is<Namespace>())
-    {
-      Namespace & ns = node->as<Namespace>();
-      ns.elements.removeAt(item_index);
-    }
-    else if (node->is<Module>())
-    {
-      Module & mod = node->as<Module>();
-      mod.elements.removeAt(item_index);
-    }
-    else if (node->is<Class>())
-    {
-      Class & cla = node->as<Class>();
-      cla.elements.removeAt(item_index);
-    }
-    else if (node->is<Enum>())
-    {
-      Enum & enm = node->as<Enum>();
-      enm.enumerators.removeAt(item_index);
-    }
-
     parent->removeChild(item);
   }
 }

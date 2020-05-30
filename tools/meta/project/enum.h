@@ -20,6 +20,8 @@ public:
   QString typeName() const override { return "enumerator"; }
   static const NodeType staticTypeCode = NodeType::Enumerator;
   NodeType typeCode() const override { return staticTypeCode; }
+
+  void accept(NodeVisitor& visitor) override;
 };
 
 typedef std::shared_ptr<Enumerator> EnumeratorRef;
@@ -42,6 +44,8 @@ public:
   QString typeName() const override { return "enum"; }
   static const NodeType staticTypeCode = NodeType::Enum;
   NodeType typeCode() const override { return staticTypeCode; }
+
+  void accept(NodeVisitor& visitor) override;
 
   void appendChild(NodeRef n) override;
   size_t childCount() const override;

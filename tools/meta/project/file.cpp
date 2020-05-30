@@ -4,6 +4,8 @@
 
 #include "project/file.h"
 
+#include "project/node-visitor.h"
+
 #include <QJsonArray>
 #include <QJsonObject>
 
@@ -28,4 +30,9 @@ QString File::display() const
   }
 
   return ret;
+}
+
+void File::accept(NodeVisitor& visitor)
+{
+  visitor.visit(*this);
 }

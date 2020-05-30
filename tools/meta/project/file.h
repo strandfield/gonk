@@ -24,6 +24,8 @@ public:
 
   QString display() const override;
 
+  void accept(NodeVisitor& visitor) override;
+
 };
 typedef std::shared_ptr<File> FileRef;
 

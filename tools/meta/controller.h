@@ -15,6 +15,8 @@ class QFileInfo;
 
 class QSqlDatabase;
 
+class ProjectController;
+
 class Controller : public QObject
 {
   Q_OBJECT
@@ -29,6 +31,7 @@ public:
   void loadProject();
   ProjectRef project() const;
   void importSymbols(ProjectRef other);
+  ProjectController& projectController();
 
   static Controller& Instance();
 
@@ -39,6 +42,7 @@ private:
   std::unique_ptr<QSqlDatabase> m_database;
   QString m_database_path;
   ProjectRef m_project;
+  std::unique_ptr<ProjectController> m_project_controller;
 };
 
 #endif // METAGONK_CONTROLLER_H

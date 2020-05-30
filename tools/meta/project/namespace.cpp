@@ -4,6 +4,8 @@
 
 #include "project/namespace.h"
 
+#include "project/node-visitor.h"
+
 #include <QJsonArray>
 
 Namespace::Namespace(const QString & n, Qt::CheckState c)
@@ -12,9 +14,15 @@ Namespace::Namespace(const QString & n, Qt::CheckState c)
 
 }
 
+void Namespace::accept(NodeVisitor& visitor)
+{
+  visitor.visit(*this);
+}
+
 void Namespace::appendChild(NodeRef n)
 {
   elements.append(n);
+  n->parent = shared_from_this();
 }
 
 size_t Namespace::childCount() const
