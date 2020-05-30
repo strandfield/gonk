@@ -48,12 +48,7 @@ void ImportPage::initializePage()
 {
   auto & fields = ImportWizard::get(wizard())->fields(); 
 
-  QStringList modules = fields.moduleName.split(".");
-  ModuleRef m = fields.importedSymbols->get<Module>(modules.takeFirst());
-  while (!modules.isEmpty())
-  {
-    m = m->get<Module>(modules.takeFirst());
-  }
+  ModuleRef m = fields.importedSymbols->get<Module>(fields.moduleName);
 
   CppParser parser{ fields.importedSymbols };
   parser.setIncludeDirectories(fields.includeDirectories);
