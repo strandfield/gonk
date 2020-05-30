@@ -11,6 +11,7 @@
 class Type
 {
 public:
+  int database_id = -1;
   QString name;
   QString id;
   QString rename;

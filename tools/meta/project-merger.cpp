@@ -14,23 +14,27 @@
 
 void ProjectMerger::merge()
 {
-  for (const auto& t : other->types.classes)
+  for (auto t : other->types.classes)
   {
     if (!project->hasClassType(t.name))
     {
       QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 0, 1)")
         .arg(t.name, t.id, t.header));
 
+      t.database_id = query.lastInsertId().toInt();
+
       project->types.classes.append(t);
     }
   }
 
-  for (const auto& t : other->types.enums)
+  for (auto t : other->types.enums)
   {
     if (!project->hasEnumType(t.name))
     {
       QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 1, 0)")
         .arg(t.name, t.id, t.header));
+
+      t.database_id = query.lastInsertId().toInt();
 
       project->types.enums.append(t);
     }

@@ -32,6 +32,7 @@ void ProjectLoader::loadTypes()
   while (query.next())
   {
     Type result;
+    result.database_id = query.value("id").toInt();
     result.name = query.value("name").toString();
     result.id = query.value("typeid").toString();
 
@@ -43,6 +44,7 @@ void ProjectLoader::loadTypes()
   while (query.next())
   {
     Type result;
+    result.database_id = query.value("id").toInt();
     result.name = query.value("name").toString();
     result.id = query.value("typeid").toString();
 
@@ -54,6 +56,7 @@ void ProjectLoader::loadTypes()
   while (query.next())
   {
     Type result;
+    result.database_id = query.value("id").toInt();
     result.name = query.value("name").toString();
     result.id = query.value("typeid").toString();
 
