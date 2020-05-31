@@ -21,9 +21,9 @@ class Project
 public:
   struct Types
   {
-    QList<Type> fundamentals;
-    QList<Type> enums;
-    QList<Type> classes;
+    QList<std::shared_ptr<Type>> fundamentals;
+    QList<std::shared_ptr<Type>> enums;
+    QList<std::shared_ptr<Type>> classes;
   };
 
 public:

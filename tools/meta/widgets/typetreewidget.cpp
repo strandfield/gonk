@@ -29,16 +29,16 @@ void TypeTreeWidget::setProject(const ProjectRef & pro)
 void TypeTreeWidget::fetchNewNodes()
 {
   for (int i(mFundamentalTypes->childCount()); i < mProject->types.fundamentals.size(); ++i)
-    mFundamentalTypes->addChild(createItem(mProject->types.fundamentals.at(i)));
+    mFundamentalTypes->addChild(createItem(*mProject->types.fundamentals.at(i)));
 
   for (int i(mEnums->childCount()); i < mProject->types.enums.size(); ++i)
-    mEnums->addChild(createItem(mProject->types.enums.at(i)));
+    mEnums->addChild(createItem(*mProject->types.enums.at(i)));
 
   for (int i(mClasses->childCount()); i < mProject->types.classes.size(); ++i)
-    mClasses->addChild(createItem(mProject->types.classes.at(i)));
+    mClasses->addChild(createItem(*mProject->types.classes.at(i)));
 }
 
-QList<Type> & TypeTreeWidget::getTypeList(QTreeWidgetItem *item)
+QList<std::shared_ptr<Type>> & TypeTreeWidget::getTypeList(QTreeWidgetItem *item)
 {
   if (item->parent() == mFundamentalTypes)
     return mProject->types.fundamentals;
@@ -52,11 +52,11 @@ Type & TypeTreeWidget::getType(QTreeWidgetItem *item)
 {
   const int item_index = item->parent()->indexOfChild(item);
   if (item->parent() == mFundamentalTypes)
-    return mProject->types.fundamentals[item_index];
+    return *mProject->types.fundamentals[item_index];
   else if (item->parent() == mEnums)
-    return mProject->types.enums[item_index];
+    return *mProject->types.enums[item_index];
   else
-    return mProject->types.classes[item_index];
+    return *mProject->types.classes[item_index];
 }
 
 QString & TypeTreeWidget::getField(Type & t, int col)
@@ -124,7 +124,7 @@ void TypeTreeWidget::moveSelectedRow(int k)
   else if (item_index == parent->childCount() - 1 && k == Qt::Key_Down)
     return;
 
-  QList<Type> & types = getTypeList(item);
+  QList<std::shared_ptr<Type>> & types = getTypeList(item);
 
   if (k == Qt::Key_Up)
   {
@@ -168,11 +168,11 @@ void TypeTreeWidget::fillTreeWidget(const ProjectRef & pro)
   invisibleRootItem()->addChild(mClasses);
 }
 
-void TypeTreeWidget::fill(QTreeWidgetItem *parent, const QList<Type> & types)
+void TypeTreeWidget::fill(QTreeWidgetItem *parent, const QList<std::shared_ptr<Type>> & types)
 {
   for (const auto & t : types)
   {
-    QTreeWidgetItem *item = createItem(t);
+    QTreeWidgetItem *item = createItem(*t);
     parent->addChild(item);
   }
 }

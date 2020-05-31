@@ -1249,13 +1249,13 @@ void Generator::buildTypeInfo()
   mTypeInfos.clear();
 
   for (const auto & t : mProject->types.fundamentals)
-    mTypeInfos[t.name] = t;
+    mTypeInfos[t->name] = *t;
 
   for (const auto & t : mProject->types.enums)
-    mTypeInfos[t.name] = t;
+    mTypeInfos[t->name] = *t;
 
   for (const auto & t : mProject->types.classes)
-    mTypeInfos[t.name] = t;
+    mTypeInfos[t->name] = *t;
 
 }
 

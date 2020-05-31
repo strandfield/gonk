@@ -20,7 +20,7 @@ public:
   ~NewTypeDialog() = default;
 
   Type::Category getCategory() const;
-  Type getType() const;
+  std::shared_ptr<Type> getType() const;
 
 private:
   QComboBox *mTypeCategoryComboBox;

@@ -33,7 +33,7 @@ protected:
     MetatypeColumn,
   };
 
-  QList<Type> & getTypeList(QTreeWidgetItem *item);
+  QList<std::shared_ptr<Type>> & getTypeList(QTreeWidgetItem *item);
   Type & getType(QTreeWidgetItem *item);
   QString & getField(Type & t, int col);
 
@@ -49,7 +49,7 @@ protected:
 
 protected:
   void fillTreeWidget(const ProjectRef & pro);
-  void fill(QTreeWidgetItem *parent, const QList<Type> & types);
+  void fill(QTreeWidgetItem *parent, const QList<std::shared_ptr<Type>> & types);
   QTreeWidgetItem* createItem(const Type & t);
 
 private:

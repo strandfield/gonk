@@ -31,10 +31,10 @@ void ProjectLoader::loadTypes()
 
   while (query.next())
   {
-    Type result;
-    result.database_id = query.value("id").toInt();
-    result.name = query.value("name").toString();
-    result.id = query.value("typeid").toString();
+    auto result = std::make_shared<Type>();
+    result->database_id = query.value("id").toInt();
+    result->name = query.value("name").toString();
+    result->id = query.value("typeid").toString();
 
     project->types.fundamentals.append(result);
   }
@@ -43,10 +43,10 @@ void ProjectLoader::loadTypes()
 
   while (query.next())
   {
-    Type result;
-    result.database_id = query.value("id").toInt();
-    result.name = query.value("name").toString();
-    result.id = query.value("typeid").toString();
+    auto result = std::make_shared<Type>();
+    result->database_id = query.value("id").toInt();
+    result->name = query.value("name").toString();
+    result->id = query.value("typeid").toString();
 
     project->types.enums.append(result);
   }
@@ -55,10 +55,10 @@ void ProjectLoader::loadTypes()
 
   while (query.next())
   {
-    Type result;
-    result.database_id = query.value("id").toInt();
-    result.name = query.value("name").toString();
-    result.id = query.value("typeid").toString();
+    auto result = std::make_shared<Type>();
+    result->database_id = query.value("id").toInt();
+    result->name = query.value("name").toString();
+    result->id = query.value("typeid").toString();
 
     project->types.classes.append(result);
   }
@@ -233,16 +233,18 @@ void ProjectLoader::loadClasses()
 {
   setState("loading classes");
 
-  QSqlQuery query = database.exec("SELECT id, name FROM classes");
+  QSqlQuery query = database.exec("SELECT id, name, type FROM classes");
 
   int ID = 0;
   int NAME = 1;
+  int TYPE = 2;
 
   while (query.next())
   {
     auto c = std::make_shared<Class>("");
     c->class_id = query.value(ID).toInt();
     c->name = query.value(NAME).toString();
+    c->type_id = query.value(TYPE).toInt();
 
     project->classes[c->class_id] = c;
   }
@@ -252,16 +254,18 @@ void ProjectLoader::loadEnums()
 {
   setState("loading enums");
 
-  QSqlQuery query = database.exec("SELECT id, name FROM enums");
+  QSqlQuery query = database.exec("SELECT id, name, type FROM enums");
 
   int ID = 0;
   int NAME = 1;
+  int TYPE = 2;
 
   while (query.next())
   {
     auto enm = std::make_shared<Enum>("");
     enm->enum_id = query.value(ID).toInt();
     enm->name = query.value(NAME).toString();
+    enm->type_id = query.value(TYPE).toInt();
 
     project->enums[enm->enum_id] = enm;
   }

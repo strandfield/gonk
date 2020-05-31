@@ -31,6 +31,7 @@ class Enum : public Node
 {
 public:
   int enum_id = -1;
+  int type_id = -1;
   QList<EnumeratorRef> enumerators;
   bool isCppEnumClass;
   bool isEnumClass;

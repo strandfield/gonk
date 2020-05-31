@@ -90,7 +90,7 @@ static void fetch_types_recursively(Project & pro, QStack<NodeRef> & stack, cons
 
     stack.pop();
     const QString name = Node::nameQualification(stack) + node->name;
-    pro.types.classes.append(Type{ name, QString{ name }.remove("::") });
+    pro.types.classes.append(std::make_shared<Type>( name, QString{ name }.remove("::") ));
     stack.push(node);
 
     fetch_types_recursively(pro, stack, node->as<Class>().elements);
@@ -102,7 +102,7 @@ static void fetch_types_recursively(Project & pro, QStack<NodeRef> & stack, cons
 
     stack.pop();
     const QString name = Node::nameQualification(stack) + node->name;
-    pro.types.enums.append(Type{ name, QString{ name }.remove("::") });
+    pro.types.enums.append(std::make_shared<Type>( name, QString{ name }.remove("::") ));
     stack.push(node);
   }
 
@@ -119,7 +119,7 @@ bool Project::hasEnumType(const QString & name) const
 {
   for (const auto & t : types.enums)
   {
-    if (t.name == name)
+    if (t->name == name)
       return true;
   }
 
@@ -130,7 +130,7 @@ bool Project::hasClassType(const QString & name) const
 {
   for (const auto & t : types.classes)
   {
-    if (t.name == name)
+    if (t->name == name)
       return true;
   }
 
@@ -141,20 +141,20 @@ Type & Project::getType(const QString & name)
 {
   for (auto & t : types.fundamentals)
   {
-    if (t.name == name)
-      return t;
+    if (t->name == name)
+      return *t;
   }
 
   for (auto & t : types.classes)
   {
-    if (t.name == name)
-      return t;
+    if (t->name == name)
+      return *t;
   }
 
   for (auto & t : types.enums)
   {
-    if (t.name == name)
-      return t;
+    if (t->name == name)
+      return *t;
   }
 
   throw std::runtime_error{ "Project::getType() : Unsupported type" };

@@ -11,6 +11,7 @@ class Class : public Node
 {
 public:
   int class_id = -1;
+  int type_id = -1;
   QList<NodeRef> elements;
   QString base;
   bool isFinal;

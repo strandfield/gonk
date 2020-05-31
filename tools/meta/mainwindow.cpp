@@ -124,7 +124,7 @@ void MainWindow::createNewType()
   if (result != QDialog::Accepted)
     return;
 
-  Type t = dialog->getType();
+  auto t = dialog->getType();
   Type::Category cat = dialog->getCategory();
 
   if (cat == Type::FundamentalType)

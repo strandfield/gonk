@@ -51,12 +51,12 @@ Type::Category NewTypeDialog::getCategory() const
   return Type::ClassType;
 }
 
-Type NewTypeDialog::getType() const
+std::shared_ptr<Type> NewTypeDialog::getType() const
 {
-  Type ret{ mNameLineEdit->text(), mIdLineEdit->text() };
-  ret.header = mHeaderLineEdit->text();
-  ret.rename = mRenameLineEdit->text();
-  ret.tag = mTagLineEdit->text();
-  ret.links = mLinksLineEdit->text();
+  auto ret =std::make_shared<Type>( mNameLineEdit->text(), mIdLineEdit->text());
+  ret->header = mHeaderLineEdit->text();
+  ret->rename = mRenameLineEdit->text();
+  ret->tag = mTagLineEdit->text();
+  ret->links = mLinksLineEdit->text();
   return ret;
 }

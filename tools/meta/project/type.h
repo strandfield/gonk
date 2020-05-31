@@ -32,8 +32,6 @@ public:
     EnumType,
   };
 
-  QJsonObject toJson() const;
-  static Type fromJson(const QJsonObject & obj);
 };
 
 #endif // METAGONK_TYPE_H
