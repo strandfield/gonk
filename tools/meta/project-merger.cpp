@@ -14,29 +14,41 @@
 
 void ProjectMerger::merge()
 {
-  for (auto t : other->types.classes)
+  fetchTypes(other);
+
+  for (const auto& e : m_types_map)
   {
-    if (!project->hasClassType(t->name))
+    auto t = e.second;
+
+    if (e.first->is<Class>())
     {
-      QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 0, 1)")
-        .arg(t->name, t->id, t->header));
+      auto c = std::static_pointer_cast<Class>(e.first);
 
-      t->database_id = query.lastInsertId().toInt();
+      if (!project->hasClassType(t->name))
+      {
+        QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 0, 1)")
+          .arg(t->name, t->id, t->header));
 
-      project->types.classes.append(t);
+        t->database_id = query.lastInsertId().toInt();
+        c->type_id = t->database_id;
+
+        project->types.classes.append(t);
+      }
     }
-  }
-
-  for (auto t : other->types.enums)
-  {
-    if (!project->hasEnumType(t->name))
+    else if (e.first->is<Enum>())
     {
-      QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 1, 0)")
-        .arg(t->name, t->id, t->header));
+      auto enm = std::static_pointer_cast<Enum>(e.first);
 
-      t->database_id = query.lastInsertId().toInt();
+      if (!project->hasEnumType(t->name))
+      {
+        QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 1, 0)")
+          .arg(t->name, t->id, t->header));
 
-      project->types.enums.append(t);
+        t->database_id = query.lastInsertId().toInt();
+        enm->type_id = t->database_id;
+
+        project->types.enums.append(t);
+      }
     }
   }
 
@@ -104,7 +116,7 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     ClassRef c = std::static_pointer_cast<Class>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO classes(name) VALUES('%1')").arg(c->name));
+    QSqlQuery query = database.exec(QString("INSERT INTO classes(name, type) VALUES('%1', %2)").arg(c->name, QString::number(c->type_id)));
     c->class_id = query.lastInsertId().toInt();
 
     query = database.exec(QString("INSERT INTO entities(parent, class_id) VALUES(%1, %2)").arg(parentId(), QString::number(c->class_id)));
@@ -116,7 +128,7 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     EnumRef e = std::static_pointer_cast<Enum>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO enums(name) VALUES('%1')").arg(e->name));
+    QSqlQuery query = database.exec(QString("INSERT INTO enums(name, type) VALUES('%1', %2)").arg(e->name, QString::number(e->type_id)));
     e->enum_id = query.lastInsertId().toInt();
 
     query = database.exec(QString("INSERT INTO entities(parent, enum_id) VALUES(%1, %2)").arg(parentId(), QString::number(e->enum_id)));
@@ -254,4 +266,54 @@ void ProjectMerger::merge_recursively(QList<ModuleRef>& target, const QList<Modu
     else
       merge_recursively(m->elements, srcItem->elements);
   }
+}
+
+void ProjectMerger::fetch_types_recursively(Project& pro, std::vector<NodeRef>& stack, const NodeRef& node)
+{
+  if (node->is<Namespace>())
+  {
+    Namespace& ns = node->as<Namespace>();
+
+    stack.push_back(node);
+    fetch_types_recursively(pro, stack, ns.elements);
+    stack.pop_back();
+  }
+  else if (node->is<Module>())
+  {
+    Module& m = node->as<Module>();
+
+    stack.push_back(node);
+    fetch_types_recursively(pro, stack, m.elements);
+    stack.pop_back();
+  }
+  else if (node->is<Class>())
+  {
+    if (pro.hasClassType(node->name))
+      return;
+
+    const QString name = Node::nameQualification(stack) + node->name;
+    auto type = std::make_shared<Type>(name, QString{ name }.remove("::"));
+    m_types_map[node] = type;
+
+    stack.push_back(node);
+    fetch_types_recursively(pro, stack, node->as<Class>().elements);
+    stack.pop_back();
+  }
+  else if (node->is<Enum>())
+  {
+    if (pro.hasEnumType(node->name))
+      return;
+
+    const QString name = Node::nameQualification(stack) + node->name;
+    auto type = std::make_shared<Type>(name, QString{ name }.remove("::"));
+    m_types_map[node] = type;
+
+    pro.types.enums.append(std::make_shared<Type>(name, QString{ name }.remove("::")));
+  }
+}
+
+void ProjectMerger::fetchTypes(ProjectRef pro)
+{
+  std::vector<NodeRef> stack;
+  fetch_types_recursively(*pro, stack, pro->modules);
 }

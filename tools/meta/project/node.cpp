@@ -144,6 +144,25 @@ QString Node::nameQualification(const QStack<std::shared_ptr<Node>> & nodes)
   return names.join("::") + "::";
 }
 
+QString Node::nameQualification(const std::vector<std::shared_ptr<Node>>& nodes)
+{
+  if (nodes.empty())
+    return "";
+
+  QStringList names;
+  for (const auto& node : nodes)
+  {
+    if (node->is<File>() || node->is<Module>())
+      continue;
+
+    names << node->name;
+  }
+
+  if (names.empty())
+    return "";
+  return names.join("::") + "::";
+}
+
 int Node::compare(const Node & a, const Node & b)
 {
   if (a.typeCode() < b.typeCode())

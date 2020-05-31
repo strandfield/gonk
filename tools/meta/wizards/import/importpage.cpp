@@ -65,7 +65,6 @@ bool ImportPage::validatePage()
   auto & fields = ImportWizard::get(wizard())->fields();
 
   fields.importedSymbols->removeUncheckedSymbols();
-  fields.importedSymbols->fetchTypes();
 
   ProjectRef pro = ImportWizard::get(wizard())->project();
   Controller::Instance().importSymbols(fields.importedSymbols);

@@ -5,8 +5,9 @@
 #ifndef METAGONK_TYPE_H
 #define METAGONK_TYPE_H
 
-#include <QJsonObject>
 #include <QString>
+
+#include <memory>
 
 class Type
 {
@@ -31,7 +32,8 @@ public:
     ClassType,
     EnumType,
   };
-
 };
+
+typedef std::shared_ptr<Type> TypePtr;
 
 #endif // METAGONK_TYPE_H

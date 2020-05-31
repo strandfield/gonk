@@ -11,6 +11,7 @@
 #include <QStack>
 
 #include <memory>
+#include <vector>
 
 namespace yaml
 {
@@ -79,6 +80,7 @@ public:
   virtual QList<std::shared_ptr<Node>> children() const;
 
   static QString nameQualification(const QStack<std::shared_ptr<Node>> & nodes);
+  static QString nameQualification(const std::vector<std::shared_ptr<Node>>& nodes);
 
   static int compare(const Node & a, const Node & b);
 

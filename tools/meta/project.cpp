@@ -62,59 +62,6 @@ void Project::removeUncheckedSymbols()
   remove_unchekced_recursively(this->modules);
 }
 
-template<typename T>
-void fetch_types_recursively(Project & pro, QStack<NodeRef> & stack, const QList<T> & nodes)
-{
-  for (const auto & n : nodes)
-    fetch_types_recursively(pro, stack, n);
-}
-
-static void fetch_types_recursively(Project & pro, QStack<NodeRef> & stack, const NodeRef & node)
-{
-  stack.push(node);
-
-  if (node->is<Namespace>())
-  {
-    Namespace & ns = node->as<Namespace>();
-    fetch_types_recursively(pro, stack, ns.elements);
-  }
-  else if (node->is<Module>())
-  {
-    Module &m = node->as<Module>();
-    fetch_types_recursively(pro, stack, m.elements);
-  }
-  else if (node->is<Class>())
-  {
-    if (pro.hasClassType(node->name))
-      return;
-
-    stack.pop();
-    const QString name = Node::nameQualification(stack) + node->name;
-    pro.types.classes.append(std::make_shared<Type>( name, QString{ name }.remove("::") ));
-    stack.push(node);
-
-    fetch_types_recursively(pro, stack, node->as<Class>().elements);
-  }
-  else if (node->is<Enum>())
-  {
-    if (pro.hasEnumType(node->name))
-      return;
-
-    stack.pop();
-    const QString name = Node::nameQualification(stack) + node->name;
-    pro.types.enums.append(std::make_shared<Type>( name, QString{ name }.remove("::") ));
-    stack.push(node);
-  }
-
-  stack.pop();
-}
-
-void Project::fetchTypes()
-{
-  QStack<NodeRef> stack;
-  fetch_types_recursively(*this, stack, this->modules);
-}
-
 bool Project::hasEnumType(const QString & name) const
 {
   for (const auto & t : types.enums)

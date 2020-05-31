@@ -11,6 +11,7 @@
 
 #include <map>
 #include <memory>
+#include <unordered_map>
 
 class QFileInfo;
 
@@ -79,9 +80,23 @@ protected:
     }
   }
 
+protected:
+
+  template<typename T>
+  void fetch_types_recursively(Project& pro, std::vector<NodeRef>& stack, const QList<T>& nodes)
+  {
+    for (const auto& n : nodes)
+      fetch_types_recursively(pro, stack, n);
+  }
+
+  void fetch_types_recursively(Project& pro, std::vector<NodeRef>& stack, const NodeRef& node);
+
+  void fetchTypes(ProjectRef pro);
+
 private:
   NodeRef m_parent = nullptr;
   int m_imported_symbols_count = 0;
+  std::unordered_map<NodeRef, TypePtr> m_types_map;
 };
 
 #endif // METAGONK_PROJECTMERGER_H

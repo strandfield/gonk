@@ -40,7 +40,6 @@ public:
   std::map<int, NodeRef> entities;
 
   void removeUncheckedSymbols();
-  void fetchTypes();
 
   bool hasEnumType(const QString & name) const;
   bool hasClassType(const QString & name) const;
