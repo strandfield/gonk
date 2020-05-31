@@ -41,6 +41,16 @@ struct FileVisitor
   ModuleRef curModule;
   NodeRef curNode;
 
+  void fill(Function& f, const cxx::Function& cxxfunc)
+  {
+    f.returnType = QString::fromStdString(cxxfunc.return_type.toString());
+
+    for (auto p : cxxfunc.parameters)
+    {
+      f.parameters.push_back(QString::fromStdString(p->type.toString()));
+    }
+  }
+
   void visit(const cxx::NamespaceDeclaration& decl)
   {
     Namespace& ns = dynamic_cast<Namespace&>(*curNode);
@@ -60,44 +70,55 @@ struct FileVisitor
     if (decl.isForwardDeclaration())
       return;
 
+    visit(*decl.class_);
+  }
+
+  void visit(const cxx::Class& cxxclass)
+  {
     NodeRef inner;
 
     if (curNode->is<Class>())
     {
       Class& cla = static_cast<Class&>(*curNode);
-      inner = cla.get<Class>(QString::fromStdString(decl.class_->name));
+      inner = cla.get<Class>(QString::fromStdString(cxxclass.name));
     }
-    else if(curNode->is<Namespace>())
+    else if (curNode->is<Namespace>())
     {
       Namespace& ns = static_cast<Namespace&>(*curNode);
-      inner = ns.get<Class>(QString::fromStdString(decl.class_->name));
+      inner = ns.get<Class>(QString::fromStdString(cxxclass.name));
     }
 
-    if(inner)
+    if (inner)
     {
       RAIINodeGuard guard{ curNode };
       curNode = inner;
 
-      visitAll(decl.declarations);
+      for (const auto m : cxxclass.members)
+        visitNode(*m);
     }
   }
 
   void visit(const cxx::EnumDeclaration& decl)
+  {
+    visit(*decl.enum_);
+  }
+
+  void visit(const cxx::Enum& cxxenum)
   {
     EnumRef enm;
 
     if (curNode->is<Class>())
     {
       Class& cla = static_cast<Class&>(*curNode);
-      enm = cla.get<Enum>(QString::fromStdString(decl.enum_->name));
+      enm = cla.get<Enum>(QString::fromStdString(cxxenum.name));
     }
     else if (curNode->is<Namespace>())
     {
       Namespace& ns = static_cast<Namespace&>(*curNode);
-      enm = ns.get<Enum>(QString::fromStdString(decl.enum_->name));
+      enm = ns.get<Enum>(QString::fromStdString(cxxenum.name));
     }
 
-    for (auto val : decl.enum_->values)
+    for (auto val : cxxenum.values)
     {
       enm->enumerators.append(std::make_shared<Enumerator>(QString::fromStdString(val->name)));
     }
@@ -105,13 +126,15 @@ struct FileVisitor
 
   void visit(const cxx::FunctionDeclaration& decl)
   {
-    if (decl.isForwardDeclaration())
+    visit(*decl.function);
+  }
+
+  void visit(const cxx::Function& cxxfunc)
+  {
+    if (cxxfunc.parent()->is<cxx::Class>())
       return;
 
-    cxx::Function& cxxfunc = *(decl.function);
-
     FunctionRef func = nullptr;
-
 
     if (curNode->is<Class>())
     {
@@ -138,12 +161,7 @@ struct FileVisitor
       func = ns.add<Function>(QString::fromStdString(cxxfunc.name));
     }
 
-    func->returnType = QString::fromStdString(cxxfunc.return_type.toString());
-
-    for (auto p : cxxfunc.parameters)
-    {
-      func->parameters.push_back(QString::fromStdString(p->type.toString()));
-    }
+    fill(*func, cxxfunc);
   }
 
   void visit(const cxx::File& file)
@@ -179,6 +197,18 @@ struct FileVisitor
     else if (n.is<cxx::FunctionDeclaration>())
     {
       visit(static_cast<const cxx::FunctionDeclaration&>(n));
+    }
+    else if (n.is<cxx::Function>())
+    {
+      visit(static_cast<const cxx::Function&>(n));
+    }
+    else if (n.is<cxx::Class>())
+    {
+      visit(static_cast<const cxx::Class&>(n));
+    }
+    else if (n.is<cxx::Enum>())
+    {
+      visit(static_cast<const cxx::Enum&>(n));
     }
   }
 
