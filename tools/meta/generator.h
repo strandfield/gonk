@@ -17,8 +17,6 @@
 #include <functional>
 #include <map>
 
-class HeaderFile;
-class SourceFile;
 class CppFile;
 
 class QTextStream;
@@ -127,10 +125,6 @@ private:
   Function::BindingMethod getBindingMethod(FunctionRef fun) const;
   Function::BindingMethod guessBindingMethod(FunctionRef fun) const;
 
-  typedef QPair<QString, QString> Link;
-  typedef QList<Link> Links;
-  static Links extractLinks(const QString & str);
-
   static QString fundisplay(FunctionRef fun);
 
 private:
@@ -142,7 +136,7 @@ private:
   QString removeQualification(QString name) const;
   bool isMember() const;
 
-  HeaderFile & currentHeader();
+  CppFile& currentHeader();
   CppFile& currentSource();
   QString pluginDirectory() const;
   QString currentHeaderDirectory();
@@ -164,7 +158,7 @@ private:
   QString mCurrentModuleName;
   ModuleRef m_current_module;
   FileRef m_current_file;
-  HeaderFile *mCurrentHeader;
+  CppFile* m_current_header = nullptr;
   CppFile* m_current_source = nullptr;
 
   std::map<QString, QString> m_types_headers; // QByteArray -> bytearray.h

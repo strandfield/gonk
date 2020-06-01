@@ -35,7 +35,7 @@ public:
   QString current_module_name;
   ModuleRef current_module;
   FileRef current_file;
-  HeaderFile *header;
+  CppFile *header;
   CppFile *source;
 
   StateGuard(Generator *g, const NodeRef & n)
@@ -45,7 +45,7 @@ public:
     current_module = gen->m_current_module;
     current_file = gen->m_current_file;
     current_module_name = gen->mCurrentModuleName;
-    header = gen->mCurrentHeader;
+    header = gen->m_current_header;
     source = gen->m_current_source;
 
     if (node != nullptr)
@@ -76,7 +76,7 @@ public:
     gen->m_current_module = current_module;
     gen->mCurrentModuleName = current_module_name;
     gen->m_current_file = current_file;
-    gen->mCurrentHeader = header;
+    gen->m_current_header = header;
     gen->m_current_source = source;
   }
 };
@@ -91,7 +91,6 @@ Generator::TypeInfo::TypeInfo(const Type & t)
 
 Generator::Generator(const QString & dir)
   : mRootDirectory(dir)
-  , mCurrentHeader(nullptr)
 {
 
 }
@@ -516,11 +515,12 @@ void Generator::generate(FileRef file)
 {
   StateGuard state{ this, file };
 
-  HeaderFile header;
-  header.file = QFileInfo{ currentHeaderDirectory() + "/" + file->name + ".h" };
-  header.moduleName = mCurrentModuleName;
+  CppFile header;
+  header.header_guard = "GONK_" + m_current_module->module_snake_name().toUpper() + "_" + file->name.toUpper() + "_H";
+
   for (const auto & inc : file->hincludes)
-    header.generalIncludes.insert(inc);
+    header.include("general", inc);
+
   CppFile source;
   source.main_include = file->name + ".h";
 
@@ -528,11 +528,11 @@ void Generator::generate(FileRef file)
     source.include("general", inc);
 
   m_current_source = &source;
-  mCurrentHeader = &header;
+  m_current_header = &header;
 
   generate(NamespaceRef{ file });
 
-  header.write();
+  header.write(QFileInfo{ currentHeaderDirectory() + "/" + file->name + ".h" });
   source.write(QFileInfo{ currentSourceDirectory() + "/" + file->name + ".cpp" });
 }
 
@@ -842,26 +842,6 @@ Function::BindingMethod Generator::guessBindingMethod(FunctionRef fun) const
     return Function::StaticBinding;
   else
     return Function::SimpleBinding;
-}
-
-QList<QPair<QString, QString>> Generator::extractLinks(const QString & str)
-{
-  QList<QPair<QString, QString>> ret;
-
-  QStringList links = str.split(";", QString::SkipEmptyParts);
-  for (auto lstr : links)
-  {
-    const int at_index = lstr.indexOf("@");
-    if (at_index == -1)
-      continue;
-
-    QPair<QString, QString> link;
-    link.first = lstr.mid(0, at_index).simplified();
-    link.second = lstr.mid(at_index + 1).simplified();
-    ret.append(link);
-  }
-
-  return ret;
 }
 
 QString Generator::fundisplay(FunctionRef fun)
@@ -1284,9 +1264,9 @@ bool Generator::isMember() const
   return !mProcessingStack.isEmpty() && mProcessingStack.top()->is<Class>();
 }
 
-HeaderFile & Generator::currentHeader()
+CppFile& Generator::currentHeader()
 {
-  return *mCurrentHeader;
+  return *m_current_header;
 }
 
 CppFile& Generator::currentSource()
