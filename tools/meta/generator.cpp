@@ -36,7 +36,7 @@ public:
   ModuleRef current_module;
   FileRef current_file;
   HeaderFile *header;
-  SourceFile *source;
+  CppFile *source;
 
   StateGuard(Generator *g, const NodeRef & n)
     : gen(g)
@@ -46,7 +46,7 @@ public:
     current_file = gen->m_current_file;
     current_module_name = gen->mCurrentModuleName;
     header = gen->mCurrentHeader;
-    source = gen->mCurrentSource;
+    source = gen->m_current_source;
 
     if (node != nullptr)
     {
@@ -77,7 +77,7 @@ public:
     gen->mCurrentModuleName = current_module_name;
     gen->m_current_file = current_file;
     gen->mCurrentHeader = header;
-    gen->mCurrentSource = source;
+    gen->m_current_source = source;
   }
 };
 
@@ -92,7 +92,6 @@ Generator::TypeInfo::TypeInfo(const Type & t)
 Generator::Generator(const QString & dir)
   : mRootDirectory(dir)
   , mCurrentHeader(nullptr)
-  , mCurrentSource(nullptr)
 {
 
 }
@@ -522,19 +521,19 @@ void Generator::generate(FileRef file)
   header.moduleName = mCurrentModuleName;
   for (const auto & inc : file->hincludes)
     header.generalIncludes.insert(inc);
-  SourceFile source;
-  source.file = QFileInfo{ currentSourceDirectory() + "/" + file->name + ".cpp" };
-  source.header = file->name + ".h";
-  for (const auto & inc : file->cppincludes)
-    source.generalIncludes.insert(inc);
+  CppFile source;
+  source.main_include = file->name + ".h";
 
-  mCurrentSource = &source;
+  for (const auto & inc : file->cppincludes)
+    source.include("general", inc);
+
+  m_current_source = &source;
   mCurrentHeader = &header;
 
   generate(NamespaceRef{ file });
 
   header.write();
-  source.write();
+  source.write(QFileInfo{ currentSourceDirectory() + "/" + file->name + ".cpp" });
 }
 
 QString Generator::generate(FunctionRef fun)
@@ -603,7 +602,7 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 
   if (!fun->defaultArguments.isEmpty())
   {
-    currentSource().bindingIncludes.insert("yasl/common/binding/default_arguments.h");
+    currentSource().include("binding", "gonk/common/binding/default_arguments.h");
 
     ret += endl;
     ret += QString("    .apply(bind::default_arguments(") + fun->defaultArguments.join(", ") + "))";
@@ -714,7 +713,7 @@ QString Generator::generateOperator(FunctionRef fun, OperatorSymbol op)
 
 QString Generator::generateNewFunction(FunctionRef fn)
 {
-  currentSource().bindingIncludes.insert("yasl/common/binding/newfunction.h");
+  currentSource().include("binding", "gonk/common/binding/newfunction.h");
 
   QString rettype = fn->returnType;
   if (rettype.endsWith(" &"))
@@ -770,7 +769,7 @@ QString Generator::fparam(const QString & p)
   const Type & info = typeinfo(pp);
 
   if (!info.header.isEmpty())
-    currentSource().generalIncludes.insert(info.header);
+    currentSource().include("general", info.header);
 
   return p;
 }
@@ -915,7 +914,7 @@ void Generator::generate(ClassRef cla)
   if (cla->checkState == Qt::Unchecked)
     return;
 
-  currentSource().libscriptIncludes.insert(ClassBuilderInclude);
+  currentSource().include("libscript", ClassBuilderInclude);
 
   const QString pre = prefix();
   const QString enclosing_snake = enclosing_snake_name();
@@ -995,7 +994,7 @@ void Generator::generate(ClassRef cla)
       lines << QString("#endif");
   }
 
-  currentSource().bindingIncludes.insert(ClassBinderInclude);
+  currentSource().include("binding", ClassBinderInclude);
 
   lines << QString();
 
@@ -1033,7 +1032,7 @@ void Generator::generate(ClassRef cla)
 
   QString body = lines.join(endl);
 
-  currentSource().functions.append(body);
+  currentSource().lines.push_back(body);
 
   m_generated_types.push_back(project()->getType(cla->type_id));
 }
@@ -1043,8 +1042,8 @@ void Generator::generate(EnumRef enm)
   if (enm->checkState == Qt::Unchecked)
     return;
 
-  currentSource().libscriptIncludes.insert(EnumBuilderInclude);
-  currentSource().bindingIncludes.insert(EnumBinderInclude);
+  currentSource().include("libscript", EnumBuilderInclude);
+  currentSource().include("binding", EnumBinderInclude);
 
   const QString pre = prefix();
 
@@ -1094,7 +1093,7 @@ void Generator::generate(EnumRef enm)
 
   lines << endl;
 
-  currentSource().functions.append(lines.join(endl));
+  currentSource().lines.push_back(lines.join(endl));
 
   m_generated_types.push_back(project()->getType(enm->type_id));
 }
@@ -1105,7 +1104,7 @@ void Generator::generate(NamespaceRef ns)
     return;
 
   //currentSource().libscriptIncludes.insert();
-  currentSource().bindingIncludes.insert(NamespaceBinderInclude);
+  currentSource().include("binding", NamespaceBinderInclude);
 
   const QString pre = prefix();
   const QString enclosing_snake = enclosing_snake_name();
@@ -1199,7 +1198,7 @@ void Generator::generate(NamespaceRef ns)
 
   lines << "}";
 
-  currentSource().functions.append(lines.join(endl));
+  currentSource().lines.push_back(lines.join(endl));
 }
 
 void Generator::generate(NodeRef n)
@@ -1290,9 +1289,9 @@ HeaderFile & Generator::currentHeader()
   return *mCurrentHeader;
 }
 
-SourceFile & Generator::currentSource()
+CppFile& Generator::currentSource()
 {
-  return *mCurrentSource;
+  return *m_current_source;
 }
 
 QString Generator::pluginDirectory() const
