@@ -24,6 +24,8 @@ public:
   {
   }
 
+  bool update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes);
+
   void remove(NodeRef node);
 
 protected:

@@ -189,16 +189,20 @@ void ProjectLoader::loadFiles()
 {
   setState("loading files");
 
-  QSqlQuery query = database.exec("SELECT id, name FROM files");
+  QSqlQuery query = database.exec("SELECT id, name, hincludes, cppincludes FROM files");
 
   int ID = 0;
   int NAME = 1;
+  int HINCLUDES = 2;
+  int CPPINCLUDES = 3;
 
   while (query.next())
   {
     auto f = std::make_shared<File>("");
     f->file_id = query.value(ID).toInt();
     f->name = query.value(NAME).toString();
+    f->hincludes = query.value(HINCLUDES).toString().split(',', QString::SkipEmptyParts);
+    f->cppincludes = query.value(CPPINCLUDES).toString().split(',', QString::SkipEmptyParts);
 
     project->files[f->file_id] = f;
   }

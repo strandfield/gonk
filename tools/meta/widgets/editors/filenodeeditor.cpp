@@ -4,6 +4,9 @@
 
 #include "filenodeeditor.h"
 
+#include "controller.h"
+#include "project-controller.h"
+
 #include <QBoxLayout>
 #include <QFontMetrics>
 #include <QLineEdit>
@@ -40,9 +43,10 @@ void FileNodeEditor::write()
 {
   auto mFile = getFile();
 
-  mFile->name = mName->text();
-  mFile->hincludes = mHIncludes->text().split(',', QString::SkipEmptyParts);
-  mFile->cppincludes = mCppIncludes->text().split(',', QString::SkipEmptyParts);
+  Controller::Instance().projectController().update(*mFile, 
+    mName->text(), 
+    mHIncludes->text().split(',', QString::SkipEmptyParts), 
+    mCppIncludes->text().split(',', QString::SkipEmptyParts));
 }
 
 void FileNodeEditor::read(FileRef f)

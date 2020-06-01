@@ -14,6 +14,22 @@
 
 #include <list>
 
+bool ProjectController::update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes)
+{
+  QSqlQuery query = database.exec(QString("UPDATE files SET name='%1', hincludes='%2', cppincludes='%3' WHERE id = %4").arg(
+    name, hincludes.join(','), cppincludes.join(','), QString::number(file.file_id)
+  ));
+
+  if (query.lastError().isValid())
+    return false;
+
+  file.name = name;
+  file.hincludes = hincludes;
+  file.cppincludes = cppincludes;
+
+  return true;
+}
+
 struct NodeDeleter : public NodeVisitor
 {
   QSqlDatabase& database;

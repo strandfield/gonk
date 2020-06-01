@@ -138,6 +138,9 @@ struct FileVisitor
 
     if (curNode->is<Class>())
     {
+      if (cxxfunc.getAccessSpecifier() != cxx::AccessSpecifier::PUBLIC)
+        return;
+
       Class& cla = static_cast<Class&>(*curNode);
 
       func = cla.add<Function>(QString::fromStdString(cxxfunc.name));

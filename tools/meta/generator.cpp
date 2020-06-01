@@ -102,9 +102,9 @@ void Generator::generate(const ProjectRef & p)
 
   mProject = p;
 
-  buildTypeInfo();
-
   fetchTypesHeaders();
+
+  buildTypeInfo();
 
   {
     QDir dir{ mRootDirectory };
@@ -272,9 +272,11 @@ void Generator::fetchTypesHeaders(NodeRef node)
   }
   else if (node->is<Class>() || node->is<Enum>())
   {
-    StateGuard guard{ this, node };
+    QString qual = Node::nameQualification(this->mProcessingStack);
 
-    m_types_headers[Node::nameQualification(this->mProcessingStack)] = m_current_module->module_dir_name() + "/" + m_current_file->name + ".h";
+    m_types_headers[qual + node->name] = m_current_module->module_dir_name() + "/" + m_current_file->name + ".h";
+
+    StateGuard guard{ this, node };
 
     for (size_t i(0); i < node->childCount(); ++i)
       fetchTypesHeaders(node->childAt(i));
@@ -445,7 +447,7 @@ void Generator::generateModuleFile()
     source.include("libscript", "<script/typesystem.h>");
 
     for (QString f : generated_files)
-      source.lines.push_back(format("extern register_%1_file(script::Namespace ns); // defined in %1.cpp", f));
+      source.lines.push_back(format("extern void register_%1_file(script::Namespace ns); // defined in %1.cpp", f));
 
     source.lines.push_back("");
 
@@ -748,13 +750,13 @@ QString Generator::generateMakeTypeHelper(std::shared_ptr<Type> t)
   if (t->is_class)
   {
     lines << format("template<> struct make_type_helper<%3> { inline static script::Type get()"
-    "{ return (gonk::%1::class_type_id_offset() + gonk::%1::ClassTypeIds::%2) | script::Type::ObjectFlag; } };",
+    "{ return (gonk::%1::class_type_id_offset() + static_cast<int>(gonk::%1::ClassTypeIds::%2)) | script::Type::ObjectFlag; } };",
       m_current_module->module_snake_name(), t->id, t->name);
   }
   else
   {
     lines << format("template<> struct make_type_helper<%3> { inline static script::Type get()"
-      "{ return (gonk::%1::enum_type_id_offset() + gonk::%1::EnumTypeIds::%2) | script::Type::EnumFlag; } };",
+      "{ return (gonk::%1::enum_type_id_offset() + static_cast<int>(gonk::%1::EnumTypeIds::%2)) | script::Type::EnumFlag; } };",
       m_current_module->module_snake_name(), t->id, t->name);
   }
 
@@ -970,9 +972,9 @@ void Generator::generate(ClassRef cla)
   lines << QString();
 
   {
-    QString format = "  Class %1 = %2.%3(\"%4\").setId(script::Type::%5)__DATA____BASE____FINAL__.get();";
+    QString format = "  Class %1 = %2.%3(\"%4\").setId(script::Type::make<%5>().data())__DATA____BASE____FINAL__.get();";
     QString arg3 = enclosing_entity == "Namespace" ? "newClass" : "newNestedClass";
-    QString line = format.arg(snake, enclosing_snake, arg3, claname, class_info.id);
+    QString line = format.arg(snake, enclosing_snake, arg3, claname, class_info.name);
     if (!cla->base.isEmpty())
     {
       Type base_class_info = typeinfo(cla->base);
@@ -1086,7 +1088,7 @@ void Generator::generate(EnumRef enm)
   lines << "{";
   lines << "  using namespace script;";
   lines << QString();
-  lines << QString("  Enum %1 = %2.newEnum(\"%3\").setId(script::Type::%4)").arg(snake, enclosing_snake_name(), enmname, enum_info.id);
+  lines << QString("  Enum %1 = %2.newEnum(\"%3\").setId(script::Type::make<%4>().data())").arg(snake, enclosing_snake_name(), enmname, enum_info.name);
   if (enm->isEnumClass)
     lines.back().append(endl + "    .setEnumClass()");
   lines.back().append(".get();");
@@ -1155,7 +1157,8 @@ void Generator::generate(NamespaceRef ns)
   lines << QString();
   if (ns->is<File>())
   {
-    lines << QString("  Namespace %1 = %2;").arg(snake, enclosing_snake);
+    if(snake != enclosing_snake)
+      lines << QString("  Namespace %1 = %2;").arg(snake, enclosing_snake);
   }
   else
   {
