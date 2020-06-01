@@ -575,13 +575,15 @@ void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *
     
     if (act == mAddCopyCtorAction)
     {
-      ConstructorRef ctor = std::make_shared<Constructor>(cla.name);
+      FunctionRef ctor = std::make_shared<Function>(cla.name);
+      ctor->isConstructor = true;
       ctor->parameters.append("const " + cla.name + " &");
       cla.elements.append(ctor);
     }
     else if (act == mAddDestructorAction)
     {
-      DestructorRef dtor = std::make_shared<Destructor>("~" + cla.name);
+      FunctionRef dtor = std::make_shared<Function>("~" + cla.name);
+      dtor->isDestructor = true;
       cla.elements.append(dtor);
     }
     else if (act == mAddAssignmentAction)

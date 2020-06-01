@@ -39,6 +39,8 @@ public:
   bool isStatic;
   bool isConst;
   bool isDeleted;
+  bool isConstructor;
+  bool isDestructor;
   BindingMethod bindingMethod;
   QStringList defaultArguments;
 
@@ -137,35 +139,7 @@ public:
     return AutoBinding;
   }
 };
+
 typedef std::shared_ptr<Function> FunctionRef;
-
-
-struct Constructor : public Function
-{
-  Constructor(const QString & n, Qt::CheckState cs = Qt::Checked);
-  ~Constructor() = default;
-
-  QString typeName() const override { return "constructor"; }
-  static const NodeType staticTypeCode = NodeType::Constructor;
-  NodeType typeCode() const override { return staticTypeCode; }
-
-  QString display() const override;
-
-};
-typedef std::shared_ptr<Constructor> ConstructorRef;
-
-struct Destructor : public Function
-{
-  Destructor(const QString & n, Qt::CheckState cs = Qt::Checked);
-  ~Destructor() = default;
-
-  QString typeName() const override { return "destructor"; }
-  static const NodeType staticTypeCode = NodeType::Destructor;
-  NodeType typeCode() const override { return staticTypeCode; }
-
-  QString display() const override;
-
-};
-typedef std::shared_ptr<Destructor> DestructorRef;
 
 #endif // METAGONK_FUNCTION_H

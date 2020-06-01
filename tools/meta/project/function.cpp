@@ -14,6 +14,8 @@ Function::Function(const QString & n, Qt::CheckState c)
   , isStatic(false)
   , isConst(false)
   , isDeleted(false)
+  , isConstructor(false)
+  , isDestructor(false)
   , bindingMethod(Function::AutoBinding)
 {
 
@@ -26,6 +28,42 @@ void Function::accept(NodeVisitor& visitor)
 
 QString Function::display() const
 {
+  if (isConstructor)
+  {
+    QString result;
+    if (isExplicit)
+      result += "explicit ";
+    result += name;
+    result += "(";
+    {
+      QStringList params = parameters;
+      for (int i(0); i < defaultArguments.size(); ++i)
+        params[params.size() - i - 1] += " = " + defaultArguments.at(i);
+      result += params.join(", ");
+    }
+    result += ")";
+
+    if (isDeleted)
+      result += " = delete";
+
+    result += ";";
+
+    return result;
+  }
+  else if (isDestructor)
+  {
+    QString result;
+
+    result += name;
+    result += "()";
+
+    if (isDeleted)
+      result += " = delete";
+
+    result += ";";
+    return result;
+  }
+
   QString result;
   if (isExplicit)
     result += "explicit ";
@@ -100,6 +138,10 @@ int Function::compareTo(const Node & o) const
 QStringList Function::getSpecifiers() const
 {
   QStringList specifiers;
+  if (isConstructor)
+    specifiers << "ctor";
+  if (isDestructor)
+    specifiers << "dtor";
   if (isConst)
     specifiers << "const";
   if (isDeleted)
@@ -117,54 +159,6 @@ void Function::setSpecifiers(const QStringList & specs)
   isDeleted = specs.contains("delete");
   isExplicit = specs.contains("explicit");
   isStatic = specs.contains("static");
-}
-
-Constructor::Constructor(const QString & n, Qt::CheckState cs)
-  : Function(n, cs)
-{
-
-}
-
-QString Constructor::display() const
-{
-  QString result;
-  if (isExplicit)
-    result += "explicit ";
-  result += name;
-  result += "(";
-  {
-    QStringList params = parameters;
-    for (int i(0); i < defaultArguments.size(); ++i)
-      params[params.size() - i - 1] += " = " + defaultArguments.at(i);
-    result += params.join(", ");
-  }
-  result += ")";
-
-  if (isDeleted)
-    result += " = delete";
-
-  result += ";";
-
-  return result;
-}
-
-
-Destructor::Destructor(const QString & n, Qt::CheckState cs)
-  : Function(n, cs)
-{
-
-}
-
-QString Destructor::display() const
-{
-  QString result;
-
-  result += name;
-  result += "()";
-
-  if (isDeleted)
-    result += " = delete";
-
-  result += ";";
-  return result;
+  isConstructor = specs.contains("ctor");
+  isDestructor = specs.contains("dtor");
 }

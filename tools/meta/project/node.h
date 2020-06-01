@@ -41,8 +41,6 @@ enum class NodeType
   Enum,
   Enumerator,
   Class,
-  Constructor,
-  Destructor,
   Function,
   Statement,
 };

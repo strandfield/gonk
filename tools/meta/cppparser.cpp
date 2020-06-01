@@ -140,20 +140,11 @@ struct FileVisitor
     {
       Class& cla = static_cast<Class&>(*curNode);
 
-      if (cxxfunc.isConstructor())
-      {
-        func = cla.add<Constructor>(QString::fromStdString(cxxfunc.name));
-      }
-      else if (cxxfunc.isDestructor())
-      {
-        func = cla.add<Destructor>(QString::fromStdString(cxxfunc.name));
-      }
-      else
-      {
-        func = cla.add<Function>(QString::fromStdString(cxxfunc.name));
-        func->isConst = cxxfunc.isConst();
-        func->isStatic = cxxfunc.isStatic();
-      }
+      func = cla.add<Function>(QString::fromStdString(cxxfunc.name));
+      func->isConst = cxxfunc.isConst();
+      func->isStatic = cxxfunc.isStatic();
+      func->isConstructor = cxxfunc.isConstructor();
+      func->isDestructor = cxxfunc.isDestructor();
     }
     else if (curNode->is<Namespace>())
     {

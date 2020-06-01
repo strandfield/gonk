@@ -796,7 +796,7 @@ Function::BindingMethod Generator::getBindingMethod(FunctionRef fun) const
 
 Function::BindingMethod Generator::guessBindingMethod(FunctionRef fun) const
 {
-  if (fun->is<Constructor>())
+  if (fun->isConstructor)
     return Function::ConstructorBinding;
 
   if (fun->name.startsWith("operator"))
