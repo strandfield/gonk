@@ -152,30 +152,12 @@ QStringList HeaderFile::generateBindingDefinitions()
   out << "namespace script {";
   for (const auto & t : types)
   {
-    if (!t.condition.empty())
-      out << QString("#if %1").arg(QString::fromStdString(t.condition));
+    if (!t.condition.isEmpty())
+      out << QString("#if %1").arg(t.condition);
 
     out << ("template<> struct make_type_helper<" + t.name + "> { inline static script::Type get() { return script::Type::" + t.id + "; } };");
 
-    if (!t.tag.isEmpty())
-    {
-      if (t.tag == "qobject_tag")
-      {
-        bindingIncludes.insert("yasl/common/qobject-values.h");
-        out << ("namespace details { template<> struct tag_resolver<" + t.name + "> { typedef qobject_tag tag_type; }; }");
-      }
-      else if (t.tag == "qevent_tag")
-      {
-        bindingIncludes.insert("yasl/core/qevent-binding.h");
-        out << ("namespace details { template<> struct tag_resolver<" + t.name + "> { typedef qevent_tag tag_type; }; }");
-      }
-      else
-      {
-        out << ("namespace details { template<> struct tag_resolver<" + t.name + "> { typedef " + t.tag + " tag_type; }; }");
-      }
-    }
-
-    if (!t.condition.empty())
+    if (!t.condition.isEmpty())
       out << QString("#endif");
   }
   out << "} // namespace script";

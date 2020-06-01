@@ -37,6 +37,7 @@ void ProjectLoader::loadTypes()
     result->id = query.value("typeid").toString();
 
     project->types.fundamentals.append(result);
+    project->type_map[result->database_id] = result;
   }
 
   query = database.exec("SELECT * FROM types WHERE is_enum = 1 AND is_class = 0");
@@ -47,8 +48,10 @@ void ProjectLoader::loadTypes()
     result->database_id = query.value("id").toInt();
     result->name = query.value("name").toString();
     result->id = query.value("typeid").toString();
+    result->is_enum = true;
 
     project->types.enums.append(result);
+    project->type_map[result->database_id] = result;
   }
 
   query = database.exec("SELECT * FROM types WHERE is_enum = 0 AND is_class = 1");
@@ -59,8 +62,10 @@ void ProjectLoader::loadTypes()
     result->database_id = query.value("id").toInt();
     result->name = query.value("name").toString();
     result->id = query.value("typeid").toString();
+    result->is_class = true;
 
     project->types.classes.append(result);
+    project->type_map[result->database_id] = result;
   }
 }
 
@@ -106,7 +111,7 @@ void ProjectLoader::loadEntities()
         f->entity_id = entity_id;
         project->entities[entity_id] = f;
 
-        f->condition = query.value(CONDITION).toString().toStdString();
+        f->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(NAMESPACE_ID).isNull())
       {
@@ -120,7 +125,7 @@ void ProjectLoader::loadEntities()
         c->entity_id = entity_id;
         project->entities[entity_id] = c;
 
-        c->condition = query.value(CONDITION).toString().toStdString();
+        c->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(FUNCTION_ID).isNull())
       {
@@ -128,7 +133,7 @@ void ProjectLoader::loadEntities()
         fun->entity_id = entity_id;
         project->entities[entity_id] = fun;
 
-        fun->condition = query.value(CONDITION).toString().toStdString();
+        fun->condition = query.value(CONDITION).toString();
         fun->bindingMethod = Function::deserialize<Function::BindingMethod>(query.value(BINDING).toString());
       }
       else if (!query.value(ENUM_ID).isNull())
@@ -137,7 +142,7 @@ void ProjectLoader::loadEntities()
         enm->entity_id = entity_id;
         project->entities[entity_id] = enm;
 
-        enm->condition = query.value(CONDITION).toString().toStdString();
+        enm->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(ENUMERATOR_ID).isNull())
       {
@@ -145,7 +150,7 @@ void ProjectLoader::loadEntities()
         enm->entity_id = entity_id;
         project->entities[entity_id] = enm;
 
-        enm->condition = query.value(CONDITION).toString().toStdString();
+        enm->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(STATEMENT_ID).isNull())
       {
@@ -153,7 +158,7 @@ void ProjectLoader::loadEntities()
         s->entity_id = entity_id;
         project->entities[entity_id] = s;
 
-        s->condition = query.value(CONDITION).toString().toStdString();
+        s->condition = query.value(CONDITION).toString();
       }
     }
   }

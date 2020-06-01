@@ -20,19 +20,13 @@ NewTypeDialog::NewTypeDialog(QWidget *parent)
 
   mNameLineEdit = new QLineEdit();
   mIdLineEdit = new QLineEdit();
-  mRenameLineEdit = new QLineEdit();
   mHeaderLineEdit = new QLineEdit();
-  mTagLineEdit = new QLineEdit();
-  mLinksLineEdit = new QLineEdit();
 
   auto *form = new QFormLayout();
   form->addRow("Category:", mTypeCategoryComboBox);
   form->addRow("C++ type:", mNameLineEdit);
-  form->addRow("Rename:", mRenameLineEdit);
   form->addRow("Id:", mIdLineEdit);
   form->addRow("Header:", mHeaderLineEdit);
-  form->addRow("Tag:", mTagLineEdit);
-  form->addRow("Links:", mLinksLineEdit);
 
   auto *okButton = new QPushButton("OK");
   connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
@@ -55,8 +49,5 @@ std::shared_ptr<Type> NewTypeDialog::getType() const
 {
   auto ret =std::make_shared<Type>( mNameLineEdit->text(), mIdLineEdit->text());
   ret->header = mHeaderLineEdit->text();
-  ret->rename = mRenameLineEdit->text();
-  ret->tag = mTagLineEdit->text();
-  ret->links = mLinksLineEdit->text();
   return ret;
 }

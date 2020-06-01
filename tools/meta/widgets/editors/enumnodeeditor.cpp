@@ -41,7 +41,7 @@ void EnumNodeEditor::write()
 {
   auto enm = getEnum();
 
-  enm->condition = mCondition->text().toStdString();
+  enm->condition = mCondition->text();
   enm->name = mName->text();
   enm->isEnumClass = mToEnumClass->isChecked();
   enm->isCppEnumClass = mFromEnumClass->isChecked();
@@ -51,7 +51,7 @@ void EnumNodeEditor::read(EnumRef enm)
 {
   setNode(enm);
 
-  mCondition->setText(QString::fromStdString(enm->condition));
+  mCondition->setText(enm->condition);
   mName->setText(enm->name);
   mToEnumClass->setChecked(enm->isEnumClass);
   mFromEnumClass->setChecked(enm->isCppEnumClass);

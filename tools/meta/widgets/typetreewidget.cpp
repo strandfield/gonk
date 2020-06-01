@@ -11,9 +11,8 @@
 TypeTreeWidget::TypeTreeWidget(const ProjectRef & pro)
   : mProject(pro)
 {
-  setColumnCount(7);
-  setHeaderLabels(QStringList() << "C++ type" << "Yasl name"
-    << "Id" << "Header" << "Tag" << "Links" << "Metatype");
+  setColumnCount(3);
+  setHeaderLabels(QStringList() << "C++ type" << "Id" << "Header");
 
   fillTreeWidget(pro);
 
@@ -65,18 +64,10 @@ QString & TypeTreeWidget::getField(Type & t, int col)
   {
   case NameColumn:
     return t.name;
-  case RenameColumn:
-    return t.rename;
   case IdColumn:
     return t.id;
   case HeaderColumn:
     return t.header;
-  case TagColumn:
-    return t.tag;
-  case LinksColumn:
-    return t.links;
-  case MetatypeColumn:
-    return t.metatype;
   }
 
   throw std::runtime_error{ "TypeTreeWidget::getField() : invalid column" };
@@ -182,11 +173,7 @@ QTreeWidgetItem* TypeTreeWidget::createItem(const Type & t)
   QTreeWidgetItem *item = new QTreeWidgetItem();
   item->setFlags(item->flags() | Qt::ItemIsEditable);
   item->setText(NameColumn, t.name);
-  item->setText(RenameColumn, t.rename);
   item->setText(IdColumn, t.id);
   item->setText(HeaderColumn, t.header);
-  item->setText(TagColumn, t.tag);
-  item->setText(LinksColumn, t.links);
-  item->setText(MetatypeColumn, t.metatype);
   return item;
 }

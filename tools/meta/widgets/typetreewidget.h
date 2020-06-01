@@ -25,12 +25,8 @@ public:
 protected:
   enum Columns {
     NameColumn = 0,
-    RenameColumn,
     IdColumn,
     HeaderColumn,
-    TagColumn,
-    LinksColumn,
-    MetatypeColumn,
   };
 
   QList<std::shared_ptr<Type>> & getTypeList(QTreeWidgetItem *item);

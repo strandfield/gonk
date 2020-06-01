@@ -38,12 +38,14 @@ public:
   std::map<int, EnumeratorRef> enumerators;
   std::map<int, StatementRef> statements;
   std::map<int, NodeRef> entities;
+  std::map<int, std::shared_ptr<Type>> type_map;
 
   void removeUncheckedSymbols();
 
   bool hasEnumType(const QString & name) const;
   bool hasClassType(const QString & name) const;
   Type & getType(const QString & name);
+  std::shared_ptr<Type> getType(int id) const;
 
   template<typename T>
   std::shared_ptr<T> get(const QString & name)

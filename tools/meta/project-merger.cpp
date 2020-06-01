@@ -33,6 +33,7 @@ void ProjectMerger::merge()
         c->type_id = t->database_id;
 
         project->types.classes.append(t);
+        project->type_map[t->database_id] = t;
       }
     }
     else if (e.first->is<Enum>())
@@ -48,6 +49,7 @@ void ProjectMerger::merge()
         enm->type_id = t->database_id;
 
         project->types.enums.append(t);
+        project->type_map[t->database_id] = t;
       }
     }
   }
@@ -293,6 +295,7 @@ void ProjectMerger::fetch_types_recursively(Project& pro, std::vector<NodeRef>& 
 
     const QString name = Node::nameQualification(stack) + node->name;
     auto type = std::make_shared<Type>(name, QString{ name }.remove("::"));
+    type->is_class = true;
     m_types_map[node] = type;
 
     stack.push_back(node);
@@ -306,6 +309,7 @@ void ProjectMerger::fetch_types_recursively(Project& pro, std::vector<NodeRef>& 
 
     const QString name = Node::nameQualification(stack) + node->name;
     auto type = std::make_shared<Type>(name, QString{ name }.remove("::"));
+    type->is_enum = true;
     m_types_map[node] = type;
 
     pro.types.enums.append(std::make_shared<Type>(name, QString{ name }.remove("::")));

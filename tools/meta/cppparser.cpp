@@ -126,14 +126,14 @@ struct FileVisitor
 
   void visit(const cxx::FunctionDeclaration& decl)
   {
+    if (decl.function->parent()->is<cxx::Class>())
+      return;
+
     visit(*decl.function);
   }
 
   void visit(const cxx::Function& cxxfunc)
   {
-    if (cxxfunc.parent()->is<cxx::Class>())
-      return;
-
     FunctionRef func = nullptr;
 
     if (curNode->is<Class>())

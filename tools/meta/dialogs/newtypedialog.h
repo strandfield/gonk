@@ -26,10 +26,7 @@ private:
   QComboBox *mTypeCategoryComboBox;
   QLineEdit *mNameLineEdit;
   QLineEdit *mIdLineEdit;
-  QLineEdit *mRenameLineEdit;
   QLineEdit *mHeaderLineEdit;
-  QLineEdit *mTagLineEdit;
-  QLineEdit *mLinksLineEdit;
 };
 
 #endif // YASL_META_NEWTYPEDIALOG_H

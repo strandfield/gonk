@@ -44,7 +44,7 @@ void ClassNodeEditor::write()
 {
   auto cla = getClass();
 
-  cla->condition = mCondition->text().toStdString();
+  cla->condition = mCondition->text();
   cla->name = mName->text();
   cla->isFinal = mFinal->isChecked();
   cla->base = mBase->text();
@@ -54,7 +54,7 @@ void ClassNodeEditor::read(ClassRef cla)
 {
   setNode(cla);
 
-  mCondition->setText(QString::fromStdString(cla->condition));
+  mCondition->setText(cla->condition);
   mName->setText(cla->name);
   mFinal->setChecked(cla->isFinal);
   mBase->setText(cla->base);

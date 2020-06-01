@@ -89,7 +89,7 @@ public:
   int order = -1;
   QString name;
   Qt::CheckState checkState;
-  std::string condition;
+  QString condition;
 
 protected:
   virtual int compareTo(const Node & other) const;

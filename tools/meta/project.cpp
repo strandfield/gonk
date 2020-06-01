@@ -16,6 +16,8 @@
 
 #include <QDebug>
 
+#include <algorithm>
+
 template<typename T>
 void remove_unchekced_recursively(QList<T> & nodes)
 {
@@ -105,6 +107,12 @@ Type & Project::getType(const QString & name)
   }
 
   throw std::runtime_error{ "Project::getType() : Unsupported type" };
+}
+
+std::shared_ptr<Type> Project::getType(int id) const
+{
+  auto it = type_map.find(id);  
+  return it != type_map.end() ? it->second : nullptr;
 }
 
 void Project::sort(QList<Type> & types)

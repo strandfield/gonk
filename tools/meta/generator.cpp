@@ -6,6 +6,8 @@
 
 #include "gen/headerfile.h"
 #include "gen/sourcefile.h"
+#include "gen/cppfile.h"
+#include "gen/format.h"
 
 #include "project/statement.h"
 
@@ -18,11 +20,9 @@
 #include <QDebug>
 
 const QString Generator::endl = "\n";
-const QString Generator::ClassBinderInclude = "yasl/common/binding/class.h";
-const QString Generator::QClassBinderInclude = "yasl/common/binding/qclass.h";
-const QString Generator::QEventBinderInclude = "yasl/core/qevent-binder.h";
-const QString Generator::EnumBinderInclude = "yasl/common/enums.h";;
-const QString Generator::NamespaceBinderInclude = "yasl/common/binding/namespace.h";;
+const QString Generator::ClassBinderInclude = "gonk/common/binding/class.h";
+const QString Generator::EnumBinderInclude = "gonk/common/enums.h";;
+const QString Generator::NamespaceBinderInclude = "gonk/common/binding/namespace.h";;
 const QString Generator::ClassBuilderInclude = "<script/classbuilder.h>";;
 const QString Generator::EnumBuilderInclude = "<script/enumbuilder.h>";;
 
@@ -32,7 +32,9 @@ class StateGuard
 public:
   Generator *gen;
   NodeRef node;
-  QString current_module;
+  QString current_module_name;
+  ModuleRef current_module;
+  FileRef current_file;
   HeaderFile *header;
   SourceFile *source;
 
@@ -40,19 +42,29 @@ public:
     : gen(g)
     , node(n)
   {
-    current_module = gen->mCurrentModule;
+    current_module = gen->m_current_module;
+    current_file = gen->m_current_file;
+    current_module_name = gen->mCurrentModuleName;
     header = gen->mCurrentHeader;
     source = gen->mCurrentSource;
 
     if (node != nullptr)
     {
       gen->mProcessingStack.append(n);
+
       if (node->is<Module>())
       {
-        if (gen->mCurrentModule.isEmpty())
-          gen->mCurrentModule = node->name;
+        gen->m_current_module = std::static_pointer_cast<Module>(node);
+
+        if (gen->mCurrentModuleName.isEmpty())
+          gen->mCurrentModuleName = node->name;
         else
-          gen->mCurrentModule += "." + node->name;
+          gen->mCurrentModuleName += "." + node->name;
+      }
+
+      if (node->is<File>())
+      {
+        gen->m_current_file = std::static_pointer_cast<File>(node);
       }
     }
   }
@@ -61,7 +73,9 @@ public:
   {
     if (node != nullptr)
       gen->mProcessingStack.pop();
-    gen->mCurrentModule = current_module;
+    gen->m_current_module = current_module;
+    gen->mCurrentModuleName = current_module_name;
+    gen->m_current_file = current_file;
     gen->mCurrentHeader = header;
     gen->mCurrentSource = source;
   }
@@ -88,26 +102,23 @@ void Generator::generate(const ProjectRef & p)
   QElapsedTimer timer;
   timer.start();
 
+  m_generated_files.clear();
+  m_generated_types.clear();
+
   mProject = p;
+
   buildTypeInfo();
+
+  fetchTypesHeaders();
 
   {
     QDir dir{ mRootDirectory };
-    if (!dir.exists("src"))
-      dir.mkdir("src");
-
-    if (!dir.exists("include"))
-      dir.mkdir("include");
-
-    dir.cd("include");
-    if (!dir.exists("yasl"))
-      dir.mkdir("yasl");
+    if (!dir.exists("plugins"))
+      dir.mkdir("plugins");
   }
 
   for (const auto & m : p->modules)
     generate(m);
-
-  //generateInjectedTypeList();
 
   auto elapsed = timer.elapsed();
   qDebug() << "Generation done in" << elapsed;
@@ -229,33 +240,65 @@ static const OperatorInfo static_operator_infos[]{
 };
 
 
+void Generator::fetchTypesHeaders()
+{
+  m_types_headers.clear();
+
+  for (ModuleRef m : project()->modules)
+    fetchTypesHeaders(m);
+
+  for (auto t : project()->types.fundamentals)
+  {
+    if (!t->header.isEmpty())
+      m_types_headers[t->name] = t->header;
+  }
+
+  for (auto t : project()->types.enums)
+  {
+    if (!t->header.isEmpty())
+      m_types_headers[t->name] = t->header;
+  }
+
+  for (auto t : project()->types.classes)
+  {
+    if (!t->header.isEmpty())
+      m_types_headers[t->name] = t->header;
+  }
+}
+
+void Generator::fetchTypesHeaders(NodeRef node)
+{
+  if (node->is<Module>() || node->is<File>() || node->is<Namespace>())
+  {
+    StateGuard guard{ this, node };
+
+    for (size_t i(0); i < node->childCount(); ++i)
+      fetchTypesHeaders(node->childAt(i));
+  }
+  else if (node->is<Class>() || node->is<Enum>())
+  {
+    StateGuard guard{ this, node };
+
+    m_types_headers[Node::nameQualification(this->mProcessingStack)] = m_current_module->module_dir_name() + "/" + m_current_file->name + ".h";
+
+    for (size_t i(0); i < node->childCount(); ++i)
+      fetchTypesHeaders(node->childAt(i));
+  }
+}
+
 void Generator::generate(ModuleRef mod)
 {
-  //HeaderFile header;
-  SourceFile source;
-  source.file = QFileInfo{ currentSourceDirectory() + "/" + mod->name + "module.cpp" };
-
-  {
-    QDir dir{ currentSourceDirectory() };
-    if (!dir.exists(mod->name))
-      dir.mkdir(mod->name);
-  }
-  {
-    QDir dir{ currentHeaderDirectory() };
-    if (!dir.exists(mod->name))
-      dir.mkdir(mod->name);
-  }
+  m_generated_files.clear();
+  m_generated_types.clear();
 
   StateGuard state{ this, mod };
 
-  source.generalIncludes.insert("<script/engine.h>");
-  source.generalIncludes.insert("<script/module.h>");
-  source.generalIncludes.insert("<script/namespace.h>");
+  {
+    QDir dir{ currentSourceDirectory() };
+    if (!dir.exists())
+      QDir(mRootDirectory + "/plugins").mkdir(mod->module_dir_name());
+  }
 
-  QString load_func = "void load_" + mod->name + "_module(script::Module " + mod->name + ")" + endl;
-  load_func += "{" + endl;
-
-  QString decls;
   for (const auto & n : mod->elements)
   {
     if (n->checkState == Qt::Unchecked)
@@ -270,9 +313,6 @@ void Generator::generate(ModuleRef mod)
         if (!mProgressCallback(std::static_pointer_cast<File>(n)->name))
           return;
       }
-
-      decls += "void register_" + n->name + "_file(script::Namespace n); // defined in " + n->name + ".cpp" + endl;
-      load_func += "  register_" + n->name + "_file(" + mod->name + ".root());" + endl;
     }
     else
     {
@@ -280,42 +320,193 @@ void Generator::generate(ModuleRef mod)
     }
   }
 
-  load_func += "}" + endl;
+  generateModuleDefsFile();
+  generateModuleFile();
+}
 
-  source.functions.append(decls);
-  source.functions.append(load_func);
+void Generator::generateModuleDefsFile()
+{
+  // Generate defs.h
+  CppFile defs;
 
-  // Module cleanup function
-  QString cleanup_func = "void cleanup_" + mod->name + "_module(script::Module " + mod->name + ")" + endl;
-  cleanup_func += "{" + endl;
-  cleanup_func += "  (void) " + mod->name + ";" + endl;
-  cleanup_func += "}" + endl;
-  source.functions.append(cleanup_func);
+  QString module_snake = m_current_module->module_snake_name();
+  QString module_snake_upper = m_current_module->module_snake_name().toUpper();
 
-  // Module registration function
-  const QString load_func_name = QString("load_%1_module").arg(mod->name);
-  const QString cleanup_func_name = QString("cleanup_%1_module").arg(mod->name);
-  QString register_func = "void register_" + mod->name + "_module(script::Engine *e)" + endl;
-  register_func += "{" + endl;
-  register_func += "  script::Module gui = e->newModule(\"" + mod->name + "\", " + load_func_name + ", " + cleanup_func_name + ");" + endl;
-  register_func += "}" + endl;
-  source.functions.append(register_func);
+  defs.header_guard = "GONK_" + module_snake_upper + "_DEFS_H";
 
-  //source.write();
+  defs.lines.push_back(format("#if (defined(WIN32) || defined(_WIN32))"));
+  defs.lines.push_back(format("#if defined(GONK_%1_COMPILE_LIBRARY)", module_snake_upper));
+  defs.lines.push_back(format("#  define GONK_%1_API __declspec(dllexport)", module_snake_upper));
+  defs.lines.push_back(format("#else"));
+  defs.lines.push_back(format("#  define GONK_%1_API __declspec(dllimport)", module_snake_upper));
+  defs.lines.push_back(format("#endif"));
+  defs.lines.push_back(format("#else"));
+  defs.lines.push_back(format("#define GONK_%1_API", module_snake_upper));
+  defs.lines.push_back(format("#endif"));
+  defs.lines.push_back(format(""));
+  defs.lines.push_back(format("namespace gonk"));
+  defs.lines.push_back(format("{"));
+  defs.lines.push_back(format(""));
+  defs.lines.push_back(format("namespace %1", module_snake));
+  defs.lines.push_back(format("{"));
+  defs.lines.push_back(format(""));
+  defs.lines.push_back(format("enum class EnumTypeIds"));
+  defs.lines.push_back(format("{"));
+  defs.lines.push_back(format("  FirstTypeId,"));
+
+  for (auto t : m_generated_types)
+  {
+    if (t->is_enum)
+    {
+      defs.lines.push_back("  " + t->id + ",");
+    }
+  }
+
+  defs.lines.push_back(format("  LastTypeId,"));
+  defs.lines.push_back(format("};"));
+  defs.lines.push_back(format(""));
+
+  defs.lines.push_back(format("enum class ClassTypeIds"));
+  defs.lines.push_back(format("{"));
+  defs.lines.push_back(format("  FirstTypeId,"));
+
+  for (auto t : m_generated_types)
+  {
+    if (t->is_class)
+    {
+      defs.lines.push_back("  " + t->id + ",");
+    }
+  }
+
+  defs.lines.push_back(format("  LastTypeId,"));
+  defs.lines.push_back(format("};"));
+  defs.lines.push_back(format(""));
+  defs.lines.push_back(format("GONK_%1_API int enum_type_id_offset();", module_snake_upper));
+  defs.lines.push_back(format("GONK_%1_API int class_type_id_offset();", module_snake_upper));
+  defs.lines.push_back(format(""));
+  defs.lines.push_back(format("} // namespace %1", module_snake));
+  defs.lines.push_back(format(""));
+  defs.lines.push_back(format("} // namespace gonk"));
+  defs.lines.push_back(format(""));
+
+  defs.write(QFileInfo{ currentHeaderDirectory() + "/" + m_current_module->module_dir_name() + "-defs.h" });
+}
+
+void Generator::generateModuleFile()
+{
+  QString module_snake = m_current_module->module_snake_name();
+  QString module_snake_upper = m_current_module->module_snake_name().toUpper();
+  QString module_camel_case = m_current_module->module_camel_case();
+  QString module_dir_name = m_current_module->module_dir_name();
+
+  {
+    CppFile header;
+
+    header.header_guard = "GONK_" + module_snake_upper + "_H";
+
+    header.main_include = module_dir_name + "-defs.h";
+
+    header.include("gonk", "gonk/plugin.h");
+
+    header.lines.push_back(format("extern \"C\""));
+    header.lines.push_back(format("{"));
+    header.lines.push_back(format(""));
+    header.lines.push_back(format("  GONK_%1_API gonk::Plugin* gonk_%2_module();", module_snake_upper, module_snake));
+    header.lines.push_back(format(""));
+    header.lines.push_back(format("} // extern \"C\""));
+    header.lines.push_back(format(""));
+
+    header.write(QFileInfo{ currentHeaderDirectory() + "/" + m_current_module->module_dir_name() + ".h" });
+  }
+
+  {
+    CppFile source;
+
+    source.main_include = module_dir_name + ".h";
+
+    source.include("libscript", "<script/engine.h>");
+    source.include("libscript", "<script/namespace.h>");
+    source.include("libscript", "<script/typesystem.h>");
+
+    for (QString f : m_generated_files)
+      source.lines.push_back(format("extern register_%1_file(script::Namespace ns); // defined in %1.cpp", f));
+
+    source.lines.push_back("");
+
+    source.lines.push_back(format("namespace gonk"));
+    source.lines.push_back(format("{"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("namespace %1", module_snake));
+    source.lines.push_back(format("{"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("int class_type_id_offset_value = 0;"));
+    source.lines.push_back(format("int enum_type_id_offset_value = 0;"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("int class_type_id_offset()"));
+    source.lines.push_back(format("{"));
+    source.lines.push_back(format("  return class_type_id_offset_value;"));
+    source.lines.push_back(format("}"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("int enum_type_id_offset()"));
+    source.lines.push_back(format("{"));
+    source.lines.push_back(format("  return enum_type_id_offset_value;"));
+    source.lines.push_back(format("}"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("} // namespace %1", module_snake));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("} // namespace gonk"));
+
+    source.lines.push_back("");
+
+    source.lines.push_back(format("class %1Plugin : public gonk::Plugin", module_camel_case));
+    source.lines.push_back(format("{"));
+    source.lines.push_back(format("public:"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("  void load(script::Module m) override"));
+    source.lines.push_back(format("  {"));
+    source.lines.push_back(format("    script::Engine* e = m.engine();"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("    int nb_enum_types = static_cast<int>(gonk::%1::EnumTypeIds::LastTypeId) - static_cast<int>(gonk::%1::EnumTypeIds::FirstTypeId);", module_snake));
+    source.lines.push_back(format("    int nb_class_types = static_cast<int>(gonk::%1::ClassTypeIds::LastTypeId) - static_cast<int>(gonk::%1::ClassTypeIds::FirstTypeId);", module_snake));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("    gonk::%1::enum_type_id_offset_value = static_cast<int>(e->typeSystem()->reserve(script::Type::EnumFlag, nb_enum_types));", module_snake));
+    source.lines.push_back(format("    gonk::%1::class_type_id_offset_value = static_cast<int>(e->typeSystem()->reserve(script::Type::ObjectFlag, nb_class_types));", module_snake));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("    script::Namespace ns = m.root();"));
+    source.lines.push_back(format(""));
+
+    for (QString f : m_generated_files)
+      source.lines.push_back(format("    register_%1_file(ns);", f));
+
+    source.lines.push_back(format("  }"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("  void unload(script::Module m) override"));
+    source.lines.push_back(format("  {"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("  }"));
+    source.lines.push_back(format("};"));
+    source.lines.push_back(format(""));
+    source.lines.push_back(format("gonk::Plugin* gonk_%1_module()", module_snake));
+    source.lines.push_back(format("{"));
+    source.lines.push_back(format("  return new %1Plugin();", module_camel_case));
+    source.lines.push_back(format("}"));
+
+    source.write(QFileInfo{ currentHeaderDirectory() + "/" + module_dir_name + ".cpp" });
+  }
 }
 
 void Generator::generate(FileRef file)
 {
-  StateGuard state{ this, nullptr };
+  StateGuard state{ this, file };
 
   HeaderFile header;
   header.file = QFileInfo{ currentHeaderDirectory() + "/" + file->name + ".h" };
-  header.moduleName = mCurrentModule;
+  header.moduleName = mCurrentModuleName;
   for (const auto & inc : file->hincludes)
     header.generalIncludes.insert(inc);
   SourceFile source;
   source.file = QFileInfo{ currentSourceDirectory() + "/" + file->name + ".cpp" };
-  source.header = "yasl/" + QString{ mCurrentModule }.replace(".", "/") + "/" + file->name + ".h";
+  source.header = file->name + ".h";
   for (const auto & inc : file->cppincludes)
     source.generalIncludes.insert(inc);
 
@@ -324,10 +515,10 @@ void Generator::generate(FileRef file)
 
   generate(NamespaceRef{ file });
 
-
-
   header.write();
   source.write();
+
+  m_generated_files.push_back(file->name);
 }
 
 QString Generator::generate(FunctionRef fun)
@@ -717,11 +908,9 @@ void Generator::generate(ClassRef cla)
 
   StateGuard state{ this, cla };
 
-
   QString snake = to_snake_case(cla->name);
   Type class_info = typeinfo(qual + cla->name);
-  QString claname = class_info.rename.isEmpty() ? class_info.name : class_info.rename;
-  const bool is_qclass = class_info.tag == "qobject_tag";
+  QString claname = class_info.name;
 
   for (const auto n : cla->elements)
   {
@@ -731,8 +920,8 @@ void Generator::generate(ClassRef cla)
 
   QStringList lines;
 
-  if (!cla->condition.empty())
-    lines << QString("#if %1").arg(QString::fromStdString(cla->condition));
+  if (!cla->condition.isEmpty())
+    lines << QString("#if %1").arg(cla->condition);
 
   lines << QString("static void register_%1%2_class(script::%3 %4)").arg(pre, snake, enclosing_entity, enclosing_snake);
   lines << "{";
@@ -770,56 +959,6 @@ void Generator::generate(ClassRef cla)
 
   lines << QString();
 
-  Links links = extractLinks(class_info.links);
-  for (const auto & l : links)
-  {
-    if (l.first == "ref")
-    {
-      Type ref_info = typeinfo(l.second);
-      currentSource().bindingIncludes.insert("yasl/common/ref.h");
-      const QString format = "  register_ref_specialization(%1.engine(), script::Type::%2, script::Type::%3);";
-      lines << format.arg(snake, class_info.id, ref_info.id);
-      recordGeneratedClass(ref_info.name, cla->condition);
-    }
-    else if (l.first == "proxy")
-    {
-      Type proxy_info = typeinfo(l.second);
-      currentHeader().bindingIncludes.insert("yasl/common/proxy.h");
-      const QString format = "  register_proxy_specialization<%1>(%2.engine());";
-      QString proxyelem = proxy_info.name;
-      proxyelem.chop(QString(">").length());
-      proxyelem.remove(0, proxyelem.indexOf('<') + 1);
-      lines << format.arg(proxyelem, snake);
-      recordGeneratedClass(proxy_info.name, cla->condition);
-    }
-    else if (l.first == "list")
-    {
-      Type list_info = typeinfo(l.second);
-      currentSource().bindingIncludes.insert("yasl/common/listspecializations.h");
-      const QString format = "  register_list_specialization<%1>(%2.engine());";
-      QString listelement = list_info.name;
-      listelement.chop(QString(">").length());
-      listelement.remove(0, QString("QList<").length());
-      lines << format.arg(listelement, snake);
-      recordGeneratedClass(list_info.name, cla->condition);
-      recordGeneratedClass(list_info.name + "::const_iterator", cla->condition);
-      recordGeneratedClass(list_info.name + "::iterator", cla->condition);
-    }
-    else if (l.first == "map")
-    {
-      Type map_info = typeinfo(l.second);
-      currentSource().bindingIncludes.insert("yasl/common/mapspecializations.h");
-      const QString format = "  register_map_specialization<%1>(%2.engine());";
-      QString listelement = map_info.name;
-      listelement.chop(QString(">").length());
-      listelement.remove(0, QString("QMap<").length());
-      lines << format.arg(listelement, snake);
-      recordGeneratedClass(map_info.name, cla->condition);
-      recordGeneratedClass(map_info.name + "::const_iterator", cla->condition);
-      recordGeneratedClass(map_info.name + "::iterator", cla->condition);
-    }
-  }
-
   for (const auto n : cla->elements)
   {
     if (n->checkState == Qt::Unchecked)
@@ -828,31 +967,19 @@ void Generator::generate(ClassRef cla)
     if (!n->is<Enum>() && !n->is<Class>())
       continue;
 
-    if (!n->condition.empty())
-      lines << QString("#if %1").arg(QString::fromStdString(n->condition));
+    if (!n->condition.isEmpty())
+      lines << QString("#if %1").arg(n->condition);
 
     if (n->is<Enum>())
       lines << QString("  register_%1%2_enum(%3);").arg(prefix(), to_snake_case(n->name), snake);
     else if (n->is<Class>())
       lines << QString("  register_%1%2_class(%3);").arg(prefix(), to_snake_case(n->name), snake);
 
-    if (!n->condition.empty())
+    if (!n->condition.isEmpty())
       lines << QString("#endif");
   }
 
-
-  if (is_qclass)
-  {
-    currentSource().bindingIncludes.insert(QClassBinderInclude);
-  }
-  else if (class_info.tag == "qevent_tag")
-  {
-    currentSource().bindingIncludes.insert(QEventBinderInclude);
-  }
-  else
-  {
-    currentSource().bindingIncludes.insert(ClassBinderInclude);
-  }
+  currentSource().bindingIncludes.insert(ClassBinderInclude);
 
   lines << QString();
 
@@ -864,8 +991,8 @@ void Generator::generate(ClassRef cla)
 
     FunctionRef fun = std::static_pointer_cast<Function>(n);
 
-    if (!fun->condition.empty())
-      lines << QString("#if %1").arg(QString::fromStdString(fun->condition));
+    if (!fun->condition.isEmpty())
+      lines << QString("#if %1").arg(fun->condition);
 
     lines << ("  // " + fundisplay(fun));
     try
@@ -877,28 +1004,13 @@ void Generator::generate(ClassRef cla)
       lines << ("  /// TODO: " + fundisplay(fun));
     }
 
-    if (!fun->condition.empty())
+    if (!fun->condition.isEmpty())
       lines << QString("#endif");
-  }
-
-  if (is_qclass)
-  {
-    lines << QString();
-    //out += "  " + snake + ".engine()->registerQtType(&" + cla->name + "::staticMetaObject, " + snake + ".id());" + endl;
-    lines << QString("  bind::link(%1, &%2::staticMetaObject);").arg(enclosing_snake_name(), enclosingName());
-  }
-
-  if (!class_info.metatype.isEmpty())
-  {
-    lines << QString();
-    currentSource().bindingIncludes.insert("yasl/common/genericvarianthandler.h");
-    const QString format = "  yasl::registerVariantHandler<yasl::GenericVariantHandler<%1, %2>>();";
-    lines << format.arg(class_info.name, class_info.metatype);
   }
 
   lines << "}";
 
-  if (!cla->condition.empty())
+  if (!cla->condition.isEmpty())
     lines << QString("#endif");
 
   lines << endl;
@@ -907,6 +1019,8 @@ void Generator::generate(ClassRef cla)
 
   currentSource().functions.append(body);
   recordGeneratedClass(qual + cla->name, cla->condition);
+
+  m_generated_types.push_back(project()->getType(cla->type_id));
 }
 
 void Generator::generate(EnumRef enm)
@@ -921,12 +1035,12 @@ void Generator::generate(EnumRef enm)
 
   QString snake = to_snake_case(enm->name);
   Type enum_info = typeinfo(nameQualification() + enm->name);
-  QString enmname = enum_info.rename.isEmpty() ? removeQualification(enum_info.name) : enum_info.rename;
+  QString enmname = removeQualification(enum_info.name);
 
   QStringList lines;
 
-  if (!enm->condition.empty())
-    lines << QString("#if %1").arg(QString::fromStdString(enm->condition));
+  if (!enm->condition.isEmpty())
+    lines << QString("#if %1").arg(enm->condition);
 
   lines << QString("static void register_%1%2_enum(script::%3 %4)").arg(pre, snake, enclosingEntity(), enclosing_snake_name());
   lines << "{";
@@ -937,20 +1051,6 @@ void Generator::generate(EnumRef enm)
     lines.back().append(endl + "    .setEnumClass()");
   lines.back().append(".get();");
   lines << QString();
-
-  Links links = extractLinks(enum_info.links);
-  for (const auto & l : links)
-  {
-    if (l.first == "flags")
-    {
-      Type flags_info = typeinfo(l.second);
-      const QString flagname = flags_info.rename.isEmpty() ? flags_info.name : flags_info.rename;
-      currentSource().bindingIncludes.insert("yasl/core/flags.h");
-      const QString format = "  register_qflags_type<%1>(%2, \"%3\", script::Type::%4);" + endl;
-      lines << format.arg(enum_info.name, enclosing_snake_name(), flagname, flags_info.id);
-      recordGeneratedClass(flags_info.name, enm->condition);
-    }
-  }
 
   QString format;
   if (enm->isCppEnumClass)
@@ -963,24 +1063,25 @@ void Generator::generate(EnumRef enm)
     if (v->checkState == Qt::Unchecked)
       continue;
 
-    if (!v->condition.empty())
-      lines << QString("#if %1").arg(QString::fromStdString(v->condition));
+    if (!v->condition.isEmpty())
+      lines << QString("#if %1").arg(v->condition);
 
     lines << format.arg(snake, v->name, nameQualification() + v->name);
 
-    if (!v->condition.empty())
+    if (!v->condition.isEmpty())
       lines << QString("#endif");
   }
 
   lines << "}";
 
-  if (!enm->condition.empty())
+  if (!enm->condition.isEmpty())
     lines << QString("#endif");
 
   lines << endl;
 
   currentSource().functions.append(lines.join(endl));
   recordGeneratedEnum(nameQualification() + enm->name, enm->condition);
+  m_generated_types.push_back(project()->getType(enm->type_id));
 }
 
 void Generator::generate(NamespaceRef ns)
@@ -1035,8 +1136,8 @@ void Generator::generate(NamespaceRef ns)
     if (!n->is<Enum>() && !n->is<Class>() && !n->is<Namespace>())
       continue;
 
-    if (!n->condition.empty())
-      lines << QString("#if %1").arg(QString::fromStdString(n->condition));
+    if (!n->condition.isEmpty())
+      lines << QString("#if %1").arg(n->condition);
 
     if (n->is<Enum>())
       lines << QString("  register_%1%2_enum(%3);").arg(prefix(), to_snake_case(n->name), snake);
@@ -1045,7 +1146,7 @@ void Generator::generate(NamespaceRef ns)
     else if (n->is<Namespace>())
       lines << QString("  register_%1%2_namespace(%3);").arg(prefix(), to_snake_case(n->name), snake);
 
-    if (!n->condition.empty())
+    if (!n->condition.isEmpty())
       lines << QString("#endif");
   }
 
@@ -1059,8 +1160,8 @@ void Generator::generate(NamespaceRef ns)
     if (n->is<Function>())
     {
       FunctionRef fun = std::static_pointer_cast<Function>(n);
-      if (!fun->condition.empty())
-        lines << QString("#if %1").arg(QString::fromStdString(fun->condition));
+      if (!fun->condition.isEmpty())
+        lines << QString("#if %1").arg(fun->condition);
 
       lines << ("  // " + fundisplay(fun));
       try
@@ -1072,7 +1173,7 @@ void Generator::generate(NamespaceRef ns)
         lines << ("  /// TODO: " + fundisplay(fun));
       }
 
-      if (!fun->condition.empty())
+      if (!fun->condition.isEmpty())
         lines << QString("#endif");
     }
     else if (n->is<Statement>())
@@ -1179,69 +1280,41 @@ SourceFile & Generator::currentSource()
   return *mCurrentSource;
 }
 
+QString Generator::pluginDirectory() const
+{
+  return mRootDirectory + "/plugins";
+}
+
 QString Generator::currentHeaderDirectory()
 {
-  return mRootDirectory + "/include/yasl/" + QString{ mCurrentModule }.replace(".", "/");
+  return currentSourceDirectory();
 }
 
 QString Generator::currentSourceDirectory()
 {
-  return mRootDirectory + "/src/" + QString{ mCurrentModule }.replace(".", "/");
+  return mRootDirectory + "/plugins/" + m_current_module->module_dir_name();
 }
 
-void Generator::recordGeneratedEnum(const QString & name, std::string condition)
+void Generator::recordGeneratedEnum(const QString & name, QString condition)
 {
   TypeInfo & info = typeinfo(name);
   info.condition = condition;
   currentHeader().types[name] = info;
 
-  mProject->getType(name).header = +"yasl/" + QString{ mCurrentModule }.replace(".", "/") + "/" + currentHeader().file.fileName();
+  mProject->getType(name).header = +"yasl/" + QString{ mCurrentModuleName }.replace(".", "/") + "/" + currentHeader().file.fileName();
 
-  mGeneratedTypes.enums[mCurrentModule].insert(info.id);
+  mGeneratedTypes.enums[mCurrentModuleName].insert(info.id);
 }
 
-void Generator::recordGeneratedClass(const QString & name, std::string condition)
+void Generator::recordGeneratedClass(const QString & name, QString condition)
 {
   TypeInfo & info = typeinfo(name);
   info.condition = condition;
   currentHeader().types[name] = info;
 
-  mProject->getType(name).header = +"yasl/" + QString{ mCurrentModule }.replace(".", "/") + "/" + currentHeader().file.fileName();
+  mProject->getType(name).header = +"yasl/" + QString{ mCurrentModuleName }.replace(".", "/") + "/" + currentHeader().file.fileName();
 
-  mGeneratedTypes.classes[mCurrentModule].insert(info.id);
-}
-
-void Generator::generateInjectedTypeList()
-{
-  QFile file{ mRootDirectory + "/types.injected" };
-  if (!file.open(QIODevice::WriteOnly))
-  {
-    qDebug() << "Generator::generateInjectedTypeList() failed to open file";
-    return;
-  }
-
-  QTextStream out{ &file };
-
-  out << "FirstEnumType = 66 | EnumTypeFlag," << endl;
-  for (auto it = mGeneratedTypes.enums.begin(); it != mGeneratedTypes.enums.end(); ++it)
-  {
-    out << "/* " << it.key() << " module */" << endl;
-    for (const auto & t : it.value())
-      out << t << "," << endl;
-  }
-  out << "LastEnumType," << endl;
-
-  out << "FirstClassType = 66 | ObjectTypeFlag," << endl;
-  for (auto it = mGeneratedTypes.classes.begin(); it != mGeneratedTypes.classes.end(); ++it)
-  {
-    out << "/* " << it.key() << " module */" << endl;
-    for (const auto & t : it.value())
-      out << t << "," << endl;
-  }
-  out << "LastClassType," << endl;
-
-  out.flush();
-  file.close();
+  mGeneratedTypes.classes[mCurrentModuleName].insert(info.id);
 }
 
 void Generator::buildTypeInfo()

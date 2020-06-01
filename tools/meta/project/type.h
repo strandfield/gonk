@@ -15,12 +15,10 @@ public:
   int database_id = -1;
   QString name;
   QString id;
-  QString rename;
   QString header;
-  QString tag;
-  QString links;
-  QString metatype;
-  std::string condition;
+  QString condition;
+  bool is_enum = false;
+  bool is_class = false;
 
 public:
   Type() = default;

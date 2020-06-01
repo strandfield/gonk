@@ -23,8 +23,8 @@ QString Class::display() const
   if (!base.isEmpty())
     ret += " : " + base;
 
-  if (!condition.empty())
-    ret += " [" + QString::fromStdString(condition) + "]";
+  if (!condition.isEmpty())
+    ret += " [" + condition + "]";
 
   return ret;
 }

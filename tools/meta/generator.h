@@ -15,6 +15,7 @@
 #include <QStack>
 
 #include <functional>
+#include <map>
 
 class HeaderFile;
 class SourceFile;
@@ -43,8 +44,6 @@ private:
   static const QString endl;
 
   static const QString ClassBinderInclude;
-  static const QString QClassBinderInclude;
-  static const QString QEventBinderInclude;
   static const QString EnumBinderInclude;
   static const QString NamespaceBinderInclude;
   static const QString ClassBuilderInclude;
@@ -99,7 +98,13 @@ private:
   static OperatorSymbol getOperatorSymbol(const QString & str);
 
 private:
+
+  void fetchTypesHeaders();
+  void fetchTypesHeaders(NodeRef node);
+
   void generate(ModuleRef mod);
+  void generateModuleDefsFile();
+  void generateModuleFile();
   void generate(FileRef file);
   QString generate(FunctionRef fun);
   QString generate(FunctionRef fun, Function::BindingMethod bm);
@@ -137,12 +142,12 @@ private:
 
   HeaderFile & currentHeader();
   SourceFile & currentSource();
+  QString pluginDirectory() const;
   QString currentHeaderDirectory();
   QString currentSourceDirectory();
 
-  void recordGeneratedEnum(const QString & name, std::string condition);
-  void recordGeneratedClass(const QString & name, std::string condition);
-  void generateInjectedTypeList();
+  void recordGeneratedEnum(const QString & name, QString condition);
+  void recordGeneratedClass(const QString & name, QString condition);
 
 private:
   struct UnsupportedType { QString name; };
@@ -157,7 +162,9 @@ private:
 
   QString mRootDirectory;
   QStack<NodeRef> mProcessingStack;
-  QString mCurrentModule;
+  QString mCurrentModuleName;
+  ModuleRef m_current_module;
+  FileRef m_current_file;
   HeaderFile *mCurrentHeader;
   SourceFile *mCurrentSource;
 
@@ -167,6 +174,10 @@ private:
     QMap<QString, QSet<QString>> classes;
   };
   GeneratedTypes mGeneratedTypes;
+
+  std::map<QString, QString> m_types_headers; // QByteArray -> bytearray.h
+  std::vector<std::shared_ptr<Type>> m_generated_types;
+  std::vector<QString> m_generated_files;
 
   std::function<bool(const QString &)> mProgressCallback;
 };

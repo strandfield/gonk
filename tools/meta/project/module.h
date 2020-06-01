@@ -44,7 +44,11 @@ public:
     return ret;
   }
 
+  QString module_snake_name() const;
+  QString module_camel_case() const;
+  QString module_dir_name() const;
 };
+
 typedef std::shared_ptr<Module> ModuleRef;
 
 #endif // YASL_META_MODULE_H

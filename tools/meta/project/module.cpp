@@ -46,29 +46,36 @@ QList<std::shared_ptr<Node>> Module::children() const
   return elements;
 }
 
-//yaml::Value Module::toYaml() const
-//{
-//  yaml::Array elems;
-//  for (const auto & e : elements)
-//  {
-//    elems.push(e->toYaml());
-//  }
-//
-//  yaml::Object ret;
-//  ret[name] = elems;
-//  return ret;
-//}
-//
-//QSharedPointer<Module> Module::fromYaml(const yaml::Object & inputobj)
-//{
-//  auto it = inputobj.underlyingMap().begin();
-//
-//  ModuleRef ret = ModuleRef::create(it.key(), Qt::Checked);
-//
-//  yaml::Array elements = it.value().toArray();
-//  ret->elements.reserve(elements.size());
-//  for (const auto & item : elements)
-//    ret->elements.push_back(Node::fromYaml(item.toObject()));
-//
-//  return ret;
-//}
+QString Module::module_snake_name() const
+{
+  return this->name.toLower().replace(".", "_");
+}
+
+QString Module::module_camel_case() const
+{
+  QString result = module_snake_name();
+  
+  if (result.isEmpty())
+    return result;
+
+  result[0] = result[0].toUpper();
+
+  int offset = result.indexOf("_");
+
+  while (offset != -1)
+  {
+    result.remove(offset, 1);
+
+    if(offset < result.length())
+      result[offset] = result[offset].toUpper();
+
+    offset = result.indexOf("_");
+  }
+
+  return result;
+}
+
+QString Module::module_dir_name() const
+{
+  return module_snake_name().replace("_", "-");
+}
