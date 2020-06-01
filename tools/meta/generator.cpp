@@ -102,9 +102,6 @@ void Generator::generate(const ProjectRef & p)
   QElapsedTimer timer;
   timer.start();
 
-  m_generated_files.clear();
-  m_generated_types.clear();
-
   mProject = p;
 
   buildTypeInfo();
@@ -288,7 +285,6 @@ void Generator::fetchTypesHeaders(NodeRef node)
 
 void Generator::generate(ModuleRef mod)
 {
-  m_generated_files.clear();
   m_generated_types.clear();
 
   StateGuard state{ this, mod };
@@ -322,6 +318,26 @@ void Generator::generate(ModuleRef mod)
 
   generateModuleDefsFile();
   generateModuleFile();
+}
+
+static void get_generated_files(std::vector<QString>& result, NodeRef n)
+{
+  if (n->is<File>())
+  {
+    result.push_back(n->name);
+  }
+  else
+  {
+    for (size_t i(0); i < n->childCount(); ++i)
+      get_generated_files(result, n->childAt(i));
+  }
+}
+
+std::vector<QString> Generator::getGeneratedFiles(ModuleRef m)
+{
+  std::vector<QString> result;
+  get_generated_files(result, m);
+  return result;
 }
 
 void Generator::generateModuleDefsFile()
@@ -419,6 +435,8 @@ void Generator::generateModuleFile()
     header.write(QFileInfo{ currentHeaderDirectory() + "/" + m_current_module->module_dir_name() + ".h" });
   }
 
+  auto generated_files = getGeneratedFiles(m_current_module);
+
   {
     CppFile source;
 
@@ -428,7 +446,7 @@ void Generator::generateModuleFile()
     source.include("libscript", "<script/namespace.h>");
     source.include("libscript", "<script/typesystem.h>");
 
-    for (QString f : m_generated_files)
+    for (QString f : generated_files)
       source.lines.push_back(format("extern register_%1_file(script::Namespace ns); // defined in %1.cpp", f));
 
     source.lines.push_back("");
@@ -475,7 +493,7 @@ void Generator::generateModuleFile()
     source.lines.push_back(format("    script::Namespace ns = m.root();"));
     source.lines.push_back(format(""));
 
-    for (QString f : m_generated_files)
+    for (QString f : generated_files)
       source.lines.push_back(format("    register_%1_file(ns);", f));
 
     source.lines.push_back(format("  }"));
@@ -517,8 +535,6 @@ void Generator::generate(FileRef file)
 
   header.write();
   source.write();
-
-  m_generated_files.push_back(file->name);
 }
 
 QString Generator::generate(FunctionRef fun)
