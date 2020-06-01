@@ -1018,7 +1018,6 @@ void Generator::generate(ClassRef cla)
   QString body = lines.join(endl);
 
   currentSource().functions.append(body);
-  recordGeneratedClass(qual + cla->name, cla->condition);
 
   m_generated_types.push_back(project()->getType(cla->type_id));
 }
@@ -1080,7 +1079,7 @@ void Generator::generate(EnumRef enm)
   lines << endl;
 
   currentSource().functions.append(lines.join(endl));
-  recordGeneratedEnum(nameQualification() + enm->name, enm->condition);
+
   m_generated_types.push_back(project()->getType(enm->type_id));
 }
 
@@ -1295,28 +1294,6 @@ QString Generator::currentSourceDirectory()
   return mRootDirectory + "/plugins/" + m_current_module->module_dir_name();
 }
 
-void Generator::recordGeneratedEnum(const QString & name, QString condition)
-{
-  TypeInfo & info = typeinfo(name);
-  info.condition = condition;
-  currentHeader().types[name] = info;
-
-  mProject->getType(name).header = +"yasl/" + QString{ mCurrentModuleName }.replace(".", "/") + "/" + currentHeader().file.fileName();
-
-  mGeneratedTypes.enums[mCurrentModuleName].insert(info.id);
-}
-
-void Generator::recordGeneratedClass(const QString & name, QString condition)
-{
-  TypeInfo & info = typeinfo(name);
-  info.condition = condition;
-  currentHeader().types[name] = info;
-
-  mProject->getType(name).header = +"yasl/" + QString{ mCurrentModuleName }.replace(".", "/") + "/" + currentHeader().file.fileName();
-
-  mGeneratedTypes.classes[mCurrentModuleName].insert(info.id);
-}
-
 void Generator::buildTypeInfo()
 {
   mTypeInfos.clear();
@@ -1330,6 +1307,10 @@ void Generator::buildTypeInfo()
   for (const auto & t : mProject->types.classes)
     mTypeInfos[t->name] = *t;
 
+  for (const auto& e : m_types_headers)
+  {
+    mTypeInfos[e.first].header = e.second;
+  }
 }
 
 Generator::TypeInfo & Generator::typeinfo(const QString & t)

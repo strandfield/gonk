@@ -146,9 +146,6 @@ private:
   QString currentHeaderDirectory();
   QString currentSourceDirectory();
 
-  void recordGeneratedEnum(const QString & name, QString condition);
-  void recordGeneratedClass(const QString & name, QString condition);
-
 private:
   struct UnsupportedType { QString name; };
 
@@ -167,13 +164,6 @@ private:
   FileRef m_current_file;
   HeaderFile *mCurrentHeader;
   SourceFile *mCurrentSource;
-
-  struct GeneratedTypes
-  {
-    QMap<QString, QSet<QString>> enums;
-    QMap<QString, QSet<QString>> classes;
-  };
-  GeneratedTypes mGeneratedTypes;
 
   std::map<QString, QString> m_types_headers; // QByteArray -> bytearray.h
   std::vector<std::shared_ptr<Type>> m_generated_types;
