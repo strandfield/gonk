@@ -229,6 +229,8 @@ void ProjectLoader::loadFunctions()
     fun->isStatic = specifiers.contains("static");
     fun->isDeleted = specifiers.contains("delete");
     fun->isExplicit = specifiers.contains("explicit");
+    fun->isConstructor = specifiers.contains("ctor");
+    fun->isDestructor = specifiers.contains("dtor");
 
     project->functions[fun->function_id] = fun;
   }

@@ -518,6 +518,10 @@ void Generator::generate(FileRef file)
   CppFile header;
   header.header_guard = "GONK_" + m_current_module->module_snake_name().toUpper() + "_" + file->name.toUpper() + "_H";
 
+  header.include("binding", "gonk/common/types.h");
+
+  header.include("module-defs", m_current_module->module_dir_name() + "-defs.h");
+
   for (const auto & inc : file->hincludes)
     header.include("general", inc);
 
@@ -530,7 +534,12 @@ void Generator::generate(FileRef file)
   m_current_source = &source;
   m_current_header = &header;
 
+  currentHeader().lines.push_back("namespace script");
+  currentHeader().lines.push_back("{");
+
   generate(NamespaceRef{ file });
+
+  currentHeader().lines.push_back("} // namespace script");
 
   header.write(QFileInfo{ currentHeaderDirectory() + "/" + file->name + ".h" });
   source.write(QFileInfo{ currentSourceDirectory() + "/" + file->name + ".cpp" });
@@ -727,6 +736,43 @@ QString Generator::generateNewFunction(FunctionRef fn)
   QString ret = "  ";
   ret += QString("bind::new_function<%2>(%3, \"%4\");").arg(targs.join(", "), enclosing_snake_name(), fn->name);
   return ret;
+}
+
+QString Generator::generateMakeTypeHelper(std::shared_ptr<Type> t)
+{
+  QStringList lines;
+
+  if (!t->condition.isEmpty())
+    lines << QString("#if %1").arg(t->condition);
+
+  if (t->is_class)
+  {
+    lines << format("template<> struct make_type_helper<%3> { inline static script::Type get()"
+    "{ return (gonk::%1::class_type_id_offset() + gonk::%1::ClassTypeIds::%2) | script::Type::ObjectFlag; } };",
+      m_current_module->module_snake_name(), t->id, t->name);
+  }
+  else
+  {
+    lines << format("template<> struct make_type_helper<%3> { inline static script::Type get()"
+      "{ return (gonk::%1::enum_type_id_offset() + gonk::%1::EnumTypeIds::%2) | script::Type::EnumFlag; } };",
+      m_current_module->module_snake_name(), t->id, t->name);
+  }
+
+  if (!t->condition.isEmpty())
+    lines << QString("#endif");
+
+  return lines.join(endl);
+}
+
+void Generator::recordGeneratedType(int type_database_id)
+{
+  auto t = project()->getType(type_database_id);
+
+  m_generated_types.push_back(t);
+
+  QString lines = generateMakeTypeHelper(t);
+
+  currentHeader().lines.push_back(lines);
 }
 
 QString Generator::fparam(FunctionRef fun, int n)
@@ -1014,7 +1060,7 @@ void Generator::generate(ClassRef cla)
 
   currentSource().lines.push_back(body);
 
-  m_generated_types.push_back(project()->getType(cla->type_id));
+  recordGeneratedType(cla->type_id);
 }
 
 void Generator::generate(EnumRef enm)
@@ -1075,7 +1121,7 @@ void Generator::generate(EnumRef enm)
 
   currentSource().lines.push_back(lines.join(endl));
 
-  m_generated_types.push_back(project()->getType(enm->type_id));
+  recordGeneratedType(enm->type_id);
 }
 
 void Generator::generate(NamespaceRef ns)
