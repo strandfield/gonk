@@ -65,7 +65,7 @@ add_subdirectory(plugins)
 ###### Tests, tools & examples
 ##################################################################
 
-#add_subdirectory(tests)
+add_subdirectory(tests)
 #add_subdirectory(tools)
 #add_subdirectory(examples)
 
