@@ -254,13 +254,29 @@ void test_simple_bindind(script::Engine& e)
   ASSERT_EQ(invert.prototype().size(), 1);
   ASSERT(!invert.isConst());
 
-  //Function rx = bind::non_const_getter<Point, int&, &Point::rx>(pt, "rx").get();
-  //ASSERT(rx.isMemberFunction());
-  //ASSERT_EQ(rx.memberOf(), pt);
-  //ASSERT_EQ(rx.name(), "rx");
-  //ASSERT_EQ(rx.returnType(), Type::Proxyint);
-  //ASSERT_EQ(rx.prototype().size(), 1);
-  //ASSERT(!rx.isConst());
+  Function rx = bind::member_function<Point, int&, &Point::rx>(pt, "rx").get();
+  ASSERT(rx.isMemberFunction());
+  ASSERT_EQ(rx.memberOf(), pt);
+  ASSERT_EQ(rx.name(), "rx");
+  ASSERT_EQ(rx.returnType(), Type::ref(Type::Int));
+  ASSERT_EQ(rx.prototype().size(), 1);
+  ASSERT(!rx.isConst());
+
+  {
+    Point pt{ 7, 13 };
+    script::Value self = e.expose(pt);
+
+    script::Locals locals;
+    locals.push(self);
+    
+    script::Value x = rx.invoke(locals.data());
+    ASSERT(x.type() == Type::Int);
+    ASSERT(x.isReference());
+    ASSERT(script::get<int>(x) == 7);
+
+    script::get<int>(x) = 11;
+    ASSERT(pt.x() == 11);
+  }
 
   Function max = bind::static_member_function<Point, Point, const Point &, const Point &, &Point::max>(pt, "max").get();
   ASSERT(max.isMemberFunction());

@@ -26,7 +26,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_add(script::Namespace & ns)
 {
   return ns.newOperator(script::AdditionOperator, wrapper::add_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -35,7 +35,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_sub(script::Namespace & ns)
 {
   return ns.newOperator(script::SubstractionOperator, wrapper::sub_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -44,7 +44,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_mul(script::Namespace & ns)
 {
   return ns.newOperator(script::MultiplicationOperator, wrapper::mul_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -53,7 +53,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_div(script::Namespace & ns)
 {
   return ns.newOperator(script::DivisionOperator, wrapper::div_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -116,7 +116,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_lshift(script::Namespace & ns)
 {
   return ns.newOperator(script::LeftShiftOperator, wrapper::left_shift_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -125,7 +125,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_rshift(script::Namespace & ns)
 {
   return ns.newOperator(script::RightShiftOperator, wrapper::right_shift_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -152,7 +152,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_bitor(script::Namespace & ns)
 {
   return ns.newOperator(script::BitwiseOrOperator, wrapper::or_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -161,7 +161,7 @@ template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_bitand(script::Namespace & ns)
 {
   return ns.newOperator(script::BitwiseAndOperator, wrapper::and_wrapper<LHS, RHS>)
-    .returns(make_return_type<ReturnType>())
+    .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
 }
@@ -295,7 +295,7 @@ script::Function memop_add(script::Class & cla)
 {
   return cla.newOperator(script::AdditionOperator, wrapper::add_wrapper<const T &, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -305,7 +305,7 @@ script::Function memop_sub(script::Class & cla)
 {
   return cla.newOperator(script::SubstractionOperator, wrapper::sub_wrapper<const T &, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -315,7 +315,7 @@ script::Function memop_mul(script::Class & cla)
 {
   return cla.newOperator(script::MultiplicationOperator, wrapper::mul_wrapper<const T &, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -325,7 +325,7 @@ script::Function memop_div(script::Class & cla)
 {
   return cla.newOperator(script::DivisionOperator, wrapper::div_wrapper<const T &, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -395,7 +395,7 @@ script::Function memop_lshift(script::Class & cla)
 {
   return cla.newOperator(script::LeftShiftOperator, wrapper::left_shift_wrapper<const T &, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -405,7 +405,7 @@ script::Function memop_rshift(script::Class & cla)
 {
   return cla.newOperator(script::RightShiftOperator, wrapper::right_shift_wrapper<const T &, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -433,7 +433,7 @@ script::Function memop_bitor(script::Class & cla)
 {
   return cla.newOperator(script::BitwiseOrOperator, wrapper::or_wrapper<const T&, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -443,7 +443,7 @@ script::Function memop_bitand(script::Class & cla)
 {
   return cla.newOperator(script::BitwiseAndOperator, wrapper::and_wrapper<const T&, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }
@@ -453,7 +453,7 @@ script::Function memop_bitxor(script::Class & cla)
 {
   return cla.newOperator(script::BitwiseXorOperator, wrapper::xor_wrapper<const T&, RHS>)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<RHS>())
     .get();
 }

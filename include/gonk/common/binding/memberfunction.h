@@ -24,14 +24,14 @@ template<typename T, typename R, R(T::*F)()>
 script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
-    .returns(make_return_type<R>());
+    .returns(make_type<R>());
 }
 
 template<typename T, typename R, typename A1, R(T::*F)(A1)>
 script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>());
 }
 
@@ -39,7 +39,7 @@ template<typename T, typename R, typename A1, typename A2, R(T::*F)(A1, A2)>
 script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>());
 }
 
@@ -47,7 +47,7 @@ template<typename T, typename R, typename A1, typename A2, typename A3, R(T::*F)
 script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>());
 }
 
@@ -55,7 +55,7 @@ template<typename T, typename R, typename A1, typename A2, typename A3, typename
 script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>());
 }
 
@@ -63,7 +63,7 @@ template<typename T, typename R, typename A1, typename A2, typename A3, typename
 script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
 
@@ -71,7 +71,7 @@ template<typename T, typename R, typename A1, typename A2, typename A3, typename
 script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>(), make_type<A6>());
 }
 
@@ -82,7 +82,7 @@ script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
-    .returns(make_return_type<R>());
+    .returns(make_type<R>());
 }
 
 template<typename T, typename R, typename A1, R(T::*F)(A1)const>
@@ -90,7 +90,7 @@ script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>());
 }
 
@@ -99,7 +99,7 @@ script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>());
 }
 
@@ -108,7 +108,7 @@ script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>());
 }
 
@@ -117,7 +117,7 @@ script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>());
 }
 
@@ -126,7 +126,7 @@ script::FunctionBuilder member_function(Class & cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
 

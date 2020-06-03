@@ -35,7 +35,7 @@ template<typename R, typename ClassType, R(ClassType::*F)()>
 struct member_wrapper_t<R(ClassType::*)(), F> {
   static script::Value wrap(script::FunctionCall *c) {
     ClassType & ref = value_cast<ClassType&>(c->arg(0));
-    return make_value(((ref).*(F))(), c->engine());
+    return make_value_perfect<R>(((ref).*(F))(), c->engine());
   }
 };
 
