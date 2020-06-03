@@ -18,6 +18,7 @@
 #include <script/class.h>
 #include <script/classbuilder.h>
 #include <script/engine.h>
+#include <script/enumbuilder.h>
 #include <script/locals.h>
 #include <script/namespace.h>
 #include <script/operator.h>
@@ -55,12 +56,24 @@ enum class ClassTypeIds
 enum class EnumTypeIds
 {
   FirstTypeId,
+  CoordinateSystem,
   LastTypeId,
 };
 
 int add(int a, int b)
 {
   return a + b;
+}
+
+enum CoordinateSystem
+{
+  Cartesian,
+  Polar,
+};
+
+CoordinateSystem favoriteCoordinateSystem()
+{
+  return Cartesian;
 }
 
 struct Point {
@@ -105,6 +118,7 @@ int point_y(const Point & pt)
 }
 
 namespace script {
+template<> struct make_type_helper<CoordinateSystem> { inline static script::Type get() { return (enum_type_id_offset + static_cast<int>(EnumTypeIds::CoordinateSystem)) | script::Type::EnumFlag; } };
 template<> struct make_type_helper<Point> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::Point)) | script::Type::ObjectFlag; } };
 template<> struct make_type_helper<Point*> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::PointPointer)) | script::Type::ObjectFlag; } };
 template<> struct make_type_helper<gonk::Pointer<Point>> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::PointPointer)) | script::Type::ObjectFlag; } };
@@ -280,6 +294,27 @@ void test_simple_bindind(script::Engine& e)
   ASSERT_EQ(assign.memberOf(), pt);
 }
 
+void test_enum_binding(script::Engine& e)
+{
+  using namespace script;
+
+  Namespace ns = e.rootNamespace();
+
+  Enum cs = ns.newEnum("CoordinateSystem").setId(script::make_type<CoordinateSystem>().data()).get();
+  cs.addValue("Cartesian", Cartesian);
+  cs.addValue("Polar", Polar);
+
+  script::Value val = make_value_perfect<CoordinateSystem>(Polar, &e);
+
+  ASSERT(val.type() == script::make_type<CoordinateSystem>());
+  ASSERT(value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
+
+  script::Function favcoord = bind::function<CoordinateSystem, &favoriteCoordinateSystem>(ns, "favoriteCoordinateSystem").get();
+
+  val = favcoord.invoke({});
+  ASSERT(value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
+}
+
 int main(int argc, char* argv[])
 {
   script::Engine engine;
@@ -291,6 +326,8 @@ int main(int argc, char* argv[])
   enum_type_id_offset = engine.typeSystem()->reserve(script::Type::EnumFlag, 256);
 
   test_simple_bindind(engine);
+
+  test_enum_binding(engine);
 
   return 0;
 }
