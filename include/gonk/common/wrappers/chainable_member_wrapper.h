@@ -26,8 +26,9 @@ template<typename ClassType, typename A1, ClassType&(ClassType::*F)(A1)>
 struct chainable_member_wrapper_t<ClassType&(ClassType::*)(A1), F> {
   static script::Value wrap(script::FunctionCall *c) {
     ClassType & ref = *value_cast<ClassType*>(c->arg(0));
-    ((ref).*(F))(value_cast<A1>(c->arg(1)));
-    return c->thisObject();
+    //((ref).*(F))(value_cast<A1>(c->arg(1)));
+    //     return c->thisObject();
+    return make_value_perfect<ClassType&>(((ref).*(F))(value_cast<A1>(c->arg(1))), c->engine());
   }
 };
 

@@ -2,19 +2,23 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
+#include "gonk/common/binding/chainable-memfn.h"
 #include "gonk/common/binding/constructor.h"
 #include "gonk/common/binding/destructor.h"
+#include "gonk/common/binding/fn-memfn.h"
 #include "gonk/common/binding/function.h"
 #include "gonk/common/binding/memberfunction.h"
-#include "gonk/common/binding/fn-memfn.h"
-#include "gonk/common/binding/chainable-memfn.h"
 #include "gonk/common/binding/getter.h"
 #include "gonk/common/binding/staticmemberfunction.h"
 #include "gonk/common/binding/operators.h"
+#include "gonk/common/binding/pointer.h"
 
-#include <script/engine.h>
+#include "gonk/templates/pointer-template.h"
+
 #include <script/class.h>
 #include <script/classbuilder.h>
+#include <script/engine.h>
+#include <script/locals.h>
 #include <script/namespace.h>
 #include <script/operator.h>
 
@@ -44,6 +48,7 @@ enum class ClassTypeIds
 {
   FirstTypeId,
   Point,
+  PointPointer,
   LastTypeId,
 };
 
@@ -52,7 +57,6 @@ enum class EnumTypeIds
   FirstTypeId,
   LastTypeId,
 };
-
 
 int add(int a, int b)
 {
@@ -77,6 +81,8 @@ struct Point {
 
   Point& incrX(int n) { x_ += n; return *this; }
 
+  Point* address_if_true(bool b) { return b ? this : nullptr; }
+
   void invert() { std::swap(x_, y_); }
 
   static Point max(const Point & a, const Point & b)
@@ -100,6 +106,8 @@ int point_y(const Point & pt)
 
 namespace script {
 template<> struct make_type_helper<Point> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::Point)) | script::Type::ObjectFlag; } };
+template<> struct make_type_helper<Point*> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::PointPointer)) | script::Type::ObjectFlag; } };
+template<> struct make_type_helper<gonk::Pointer<Point>> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::PointPointer)) | script::Type::ObjectFlag; } };
 } // namespace script
 
 void test_simple_bindind(script::Engine& e)
@@ -114,7 +122,20 @@ void test_simple_bindind(script::Engine& e)
   ASSERT(add_func.parameter(0) == Type::Int);
   ASSERT(add_func.parameter(1) == Type::Int);
 
+  {
+    script::Locals locals;
+    locals.push(e.newInt(6));
+    locals.push(e.newInt(7));
+
+    script::Value val = add_func.invoke(locals.data());
+    locals.push(val);
+
+    ASSERT(val.type() == Type::Int);
+    ASSERT(val.toInt() == 13);
+  }
+
   Class pt = ns.newClass("Point").setId(script::make_type<Point>().data()).get();
+  gonk::bind::pointer<Point>(&e);
 
   Function ctor = bind::default_constructor<Point>(pt).get();
   ASSERT(ctor.isConstructor());
@@ -142,6 +163,16 @@ void test_simple_bindind(script::Engine& e)
   ASSERT(x.prototype().size() == 1);
   ASSERT(x.isConst());
 
+  {
+    Point pt{ 4, 8 };
+    script::Value val = e.expose(pt);
+
+    script::Value val_x = x.invoke({ val });
+
+    ASSERT(val_x.type() == Type::Int);
+    ASSERT(val_x.toInt() == 4);
+  }
+
   Function y = bind::fn_as_memfn<Point, int, &point_y>(pt, "y").get();
   ASSERT(y.isMemberFunction());
   ASSERT(y.memberOf() == pt);
@@ -149,6 +180,35 @@ void test_simple_bindind(script::Engine& e)
   ASSERT(y.returnType() == Type::Int);
   ASSERT(y.prototype().size() == 1);
   ASSERT(y.isConst());
+
+  Function address_if_true = bind::member_function<Point, Point*, bool, &Point::address_if_true>(pt, "address_if_true").get();
+  ASSERT(address_if_true.isMemberFunction());
+  ASSERT(address_if_true.memberOf() == pt);
+  ASSERT(address_if_true.name() == "address_if_true");
+  ASSERT(address_if_true.returnType() == Type::make<Point*>());
+  ASSERT(address_if_true.prototype().size() == 2);
+  ASSERT(!address_if_true.isConst());
+
+  {
+    Point pt{ 6, 6 };
+    script::Value self = e.expose(pt);
+
+    script::Locals locals;
+    locals.push(self);
+    locals.push(e.newBool(false));
+
+    script::Value result = address_if_true.invoke(locals.data());
+
+    ASSERT(result.type() == Type::make<Point*>());
+    ASSERT(script::get<gonk::Pointer<Point>>(result) == nullptr);
+    e.destroy(result);
+
+    script::get<bool>(locals.at(1)) = true;
+
+    result = address_if_true.invoke(locals.data());
+    ASSERT(script::get<gonk::Pointer<Point>>(result) == &pt);
+    e.destroy(result);
+  }
 
   Function incr_x = bind::chainable_memfn<Point, int, &Point::incrX>(pt, "incrX").get();
   ASSERT(incr_x.isMemberFunction());
@@ -158,6 +218,19 @@ void test_simple_bindind(script::Engine& e)
   ASSERT_EQ(incr_x.prototype().size(), 2);
   ASSERT_EQ(incr_x.parameter(1), Type::Int);
   ASSERT(!incr_x.isConst());
+
+  {
+    Point pt{ 4, 8 };
+    script::Value self = e.expose(pt);
+
+    script::Locals locals;
+    locals.push(self);
+    locals.push(e.newInt(6));
+
+    script::Value other_self = incr_x.invoke(locals.data());
+    ASSERT(other_self.type() == script::Type::make<Point>());
+    ASSERT(std::addressof(pt) == std::addressof(script::get<Point>(other_self)));
+  }
 
   Function invert = bind::void_member_function<Point, &Point::invert>(pt, "invert").get();
   ASSERT(invert.isMemberFunction());
@@ -174,7 +247,6 @@ void test_simple_bindind(script::Engine& e)
   //ASSERT_EQ(rx.returnType(), Type::Proxyint);
   //ASSERT_EQ(rx.prototype().size(), 1);
   //ASSERT(!rx.isConst());
-
 
   Function max = bind::static_member_function<Point, Point, const Point &, const Point &, &Point::max>(pt, "max").get();
   ASSERT(max.isMemberFunction());
@@ -208,11 +280,12 @@ void test_simple_bindind(script::Engine& e)
   ASSERT_EQ(assign.memberOf(), pt);
 }
 
-
 int main(int argc, char* argv[])
 {
   script::Engine engine;
   engine.setup();
+
+  gonk::register_pointer_template(engine.rootNamespace());
 
   class_type_id_offset = engine.typeSystem()->reserve(script::Type::ObjectFlag, 256);
   enum_type_id_offset = engine.typeSystem()->reserve(script::Type::EnumFlag, 256);

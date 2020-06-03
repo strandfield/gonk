@@ -63,7 +63,6 @@ script::Value print_string(script::FunctionCall *c)
 
 } // namespace callbacks
 
-
 // from https://stackoverflow.com/questions/1528298/get-path-of-executable
 static std::filesystem::path getexepath()
 {
@@ -92,25 +91,18 @@ static std::string executable_dir()
   return path;
 }
 
+namespace gonk
+{
+extern void register_pointer_template(script::Namespace ns); // defined in pointer-template.cpp
+} // namespace gonk
+
 Gonk::Gonk(int & argc, char **argv)
   : m_argc(argc),
     m_argv(argv)
 {
   m_instance = this;
 
-  m_engine.setup();
-
-  m_engine.rootNamespace().newFunction("print", callbacks::print_int)
-    .params(script::Type::Int).create();
-
-  m_engine.rootNamespace().newFunction("print", callbacks::print_bool)
-    .params(script::Type::Boolean).create();
-
-  m_engine.rootNamespace().newFunction("print", callbacks::print_double)
-    .params(script::Type::Double).create();
-
-  m_engine.rootNamespace().newFunction("print", callbacks::print_string)
-    .params(script::Type::cref(script::Type::String)).create();
+  setupEngine();
 
   m_module_manager.reset(new gonk::ModuleManager(&m_engine));
 }
@@ -169,6 +161,25 @@ Gonk& Gonk::Instance()
 gonk::ModuleManager& Gonk::moduleManager() const
 {
   return *m_module_manager;
+}
+
+void Gonk::setupEngine()
+{
+  m_engine.setup();
+
+  m_engine.rootNamespace().newFunction("print", callbacks::print_int)
+    .params(script::Type::Int).create();
+
+  m_engine.rootNamespace().newFunction("print", callbacks::print_bool)
+    .params(script::Type::Boolean).create();
+
+  m_engine.rootNamespace().newFunction("print", callbacks::print_double)
+    .params(script::Type::Double).create();
+
+  m_engine.rootNamespace().newFunction("print", callbacks::print_string)
+    .params(script::Type::cref(script::Type::String)).create();
+
+  gonk::register_pointer_template(m_engine.rootNamespace());
 }
 
 int Gonk::interactiveSession()

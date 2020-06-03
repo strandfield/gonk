@@ -34,6 +34,9 @@ public:
   script::Engine * scriptEngine() { return &m_engine; }
 
 protected:
+  void setupEngine();
+
+protected:
   int interactiveSession();
   void listModules();
   void eval(std::string cmd);
