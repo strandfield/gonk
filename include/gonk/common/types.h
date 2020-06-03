@@ -8,4 +8,15 @@
 #include <script/string.h>
 #include <script/types.h>
 
+namespace gonk
+{
+
+template<typename T>
+script::Type make_type()
+{
+  return script::make_type<T>();
+}
+
+} // namespace gonk
+
 #endif // GONK_COMMONS_TYPES_H

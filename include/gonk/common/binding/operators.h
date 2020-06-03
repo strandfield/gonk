@@ -14,7 +14,7 @@
 #include <script/operator.h>
 #include <script/operatorbuilder.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
@@ -526,6 +526,6 @@ script::Function memop_postdecr(script::Class & cla)
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_OPERATORS_H

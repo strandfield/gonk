@@ -42,14 +42,14 @@ void pointer(script::Engine* e)
     .setFinal().get();
 
   // Pointer<T>();
-  script::bind::default_constructor<PointerType>(ptr_type).create();
+  gonk::bind::default_constructor<PointerType>(ptr_type).create();
   // Pointer<T>(const Pointer<T> &);
-  script::bind::copy_constructor<Pointer<T>>(ptr_type).create();
+  gonk::bind::copy_constructor<Pointer<T>>(ptr_type).create();
   // ~Pointer<T>();
-  script::bind::destructor<Pointer<T>>(ptr_type).create();
+  gonk::bind::destructor<Pointer<T>>(ptr_type).create();
 
   // Pointer<T>(T&);
-  script::bind::constructor<Pointer<T>, T&>(ptr_type).create();
+  gonk::bind::constructor<Pointer<T>, T&>(ptr_type).create();
 
   // operator T&() const;
   gonk::bind::conversion<const Pointer<T>, T&>(ptr_type);

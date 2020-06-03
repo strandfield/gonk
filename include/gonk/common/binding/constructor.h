@@ -12,34 +12,34 @@
 #include <script/class.h>
 #include <script/constructorbuilder.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
 {
 
 template<typename T>
-script::ConstructorBuilder default_constructor(Class & c)
+script::ConstructorBuilder default_constructor(script::Class& c)
 {
-  return c.newConstructor(constructor_binder<T, typename details::tag_resolver<T>::tag_type>::default_ctor);
+  return c.newConstructor(constructor_binder<T>::default_ctor);
 }
 
 template<typename T>
-script::ConstructorBuilder copy_constructor(Class & c)
+script::ConstructorBuilder copy_constructor(script::Class& c)
 {
-  return c.newConstructor(constructor_binder<T, typename details::tag_resolver<T>::tag_type>::copy_ctor)
+  return c.newConstructor(constructor_binder<T>::copy_ctor)
     .params(script::Type::cref(make_type<T>()));
 }
 
 template<typename T, typename... Args>
-script::ConstructorBuilder constructor(Class & c)
+script::ConstructorBuilder constructor(script::Class& c)
 {
-  return c.newConstructor(constructor_binder<T, typename details::tag_resolver<T>::tag_type>::template generic_ctor<Args...>)
+  return c.newConstructor(constructor_binder<T>::template generic_ctor<Args...>)
     .params(make_type<Args>()...);
 }
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_CONSTRUCTOR_H

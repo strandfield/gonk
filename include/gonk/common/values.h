@@ -15,7 +15,7 @@
 
 #include <string>
 
-namespace script
+namespace gonk
 {
 
 template<typename T>
@@ -55,9 +55,9 @@ script::Value make_value(T&& val, script::Engine* e)
   }
 }
 
-} // namespace script
+} // namespace gonk
 
-namespace script
+namespace gonk
 {
 
 template<typename T>
@@ -97,6 +97,6 @@ T value_cast(const script::Value& val)
   }
 }
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_COMMONS_VALUES_H

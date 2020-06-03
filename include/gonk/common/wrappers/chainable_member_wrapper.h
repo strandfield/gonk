@@ -9,7 +9,7 @@
 
 #include <script/interpreter/executioncontext.h>
 
-namespace script
+namespace gonk
 {
 
 namespace wrapper
@@ -79,6 +79,6 @@ struct chainable_member_wrapper_t<ClassType&(ClassType::*)(A1, A2, A3, A4, A5, A
 
 } // namespace wrapper
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_WRAPPERS_CHAINABLE_MEMBER_FUN_WRAPPER_H

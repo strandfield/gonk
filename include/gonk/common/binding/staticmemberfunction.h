@@ -10,7 +10,7 @@
 #include <script/namespace.h>
 #include <script/functionbuilder.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
@@ -140,6 +140,6 @@ script::FunctionBuilder static_void_member_function(script::Class & cla, std::st
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_STATICMEMFUN_H

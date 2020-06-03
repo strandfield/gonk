@@ -7,7 +7,7 @@
 
 #include "gonk/common/values.h"
 
-namespace script
+namespace gonk
 {
 
 namespace bind
@@ -92,6 +92,6 @@ default_arguments_t<Args...> default_arguments(const Args &... args)
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_DEFAULT_ARGUMENTS_H

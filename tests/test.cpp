@@ -129,7 +129,7 @@ void test_simple_bindind(script::Engine& e)
 
   Namespace ns = e.rootNamespace();
   
-  Function add_func = bind::function<int, int, int, &add>(ns, "add").get();
+  Function add_func = gonk::bind::function<int, int, int, &add>(ns, "add").get();
   ASSERT(add_func.returnType() == Type::Int);
   ASSERT(add_func.prototype().size() == 2);
   ASSERT(add_func.parameter(0) == Type::Int);
@@ -150,25 +150,25 @@ void test_simple_bindind(script::Engine& e)
   Class pt = ns.newClass("Point").setId(script::make_type<Point>().data()).get();
   gonk::bind::pointer<Point>(&e);
 
-  Function ctor = bind::default_constructor<Point>(pt).get();
+  Function ctor = gonk::bind::default_constructor<Point>(pt).get();
   ASSERT(ctor.isConstructor());
   ASSERT(ctor.memberOf() == pt);
   ASSERT(ctor.prototype().size() == 1);
 
-  ctor = bind::constructor<Point, int, int>(pt).get();
+  ctor = gonk::bind::constructor<Point, int, int>(pt).get();
   ASSERT(ctor.isConstructor());
   ASSERT(ctor.memberOf() == pt);
   ASSERT(ctor.prototype().size() == 3);
   ASSERT(ctor.parameter(1) == Type::Int);
   ASSERT(ctor.parameter(2) == Type::Int);
 
-  Function dtor = bind::destructor<Point>(pt).get();
+  Function dtor = gonk::bind::destructor<Point>(pt).get();
   ASSERT(!dtor.isNull());
   ASSERT(dtor.isDestructor());
   ASSERT(dtor.memberOf() == pt);
 
 
-  Function x = bind::member_function<Point, int, &Point::x>(pt, "x").get();
+  Function x = gonk::bind::member_function<Point, int, &Point::x>(pt, "x").get();
   ASSERT(x.isMemberFunction());
   ASSERT(x.memberOf() == pt);
   ASSERT(x.name() == "x");
@@ -186,7 +186,7 @@ void test_simple_bindind(script::Engine& e)
     ASSERT(val_x.toInt() == 4);
   }
 
-  Function y = bind::fn_as_memfn<Point, int, &point_y>(pt, "y").get();
+  Function y = gonk::bind::fn_as_memfn<Point, int, &point_y>(pt, "y").get();
   ASSERT(y.isMemberFunction());
   ASSERT(y.memberOf() == pt);
   ASSERT(y.name() == "y");
@@ -194,7 +194,7 @@ void test_simple_bindind(script::Engine& e)
   ASSERT(y.prototype().size() == 1);
   ASSERT(y.isConst());
 
-  Function address_if_true = bind::member_function<Point, Point*, bool, &Point::address_if_true>(pt, "address_if_true").get();
+  Function address_if_true = gonk::bind::member_function<Point, Point*, bool, &Point::address_if_true>(pt, "address_if_true").get();
   ASSERT(address_if_true.isMemberFunction());
   ASSERT(address_if_true.memberOf() == pt);
   ASSERT(address_if_true.name() == "address_if_true");
@@ -223,7 +223,7 @@ void test_simple_bindind(script::Engine& e)
     e.destroy(result);
   }
 
-  Function incr_x = bind::chainable_memfn<Point, int, &Point::incrX>(pt, "incrX").get();
+  Function incr_x = gonk::bind::chainable_memfn<Point, int, &Point::incrX>(pt, "incrX").get();
   ASSERT(incr_x.isMemberFunction());
   ASSERT_EQ(incr_x.memberOf(), pt);
   ASSERT_EQ(incr_x.name(), "incrX");
@@ -245,7 +245,7 @@ void test_simple_bindind(script::Engine& e)
     ASSERT(std::addressof(pt) == std::addressof(script::get<Point>(other_self)));
   }
 
-  Function invert = bind::void_member_function<Point, &Point::invert>(pt, "invert").get();
+  Function invert = gonk::bind::void_member_function<Point, &Point::invert>(pt, "invert").get();
   ASSERT(invert.isMemberFunction());
   ASSERT_EQ(invert.memberOf(), pt);
   ASSERT_EQ(invert.name(), "invert");
@@ -253,7 +253,7 @@ void test_simple_bindind(script::Engine& e)
   ASSERT_EQ(invert.prototype().size(), 1);
   ASSERT(!invert.isConst());
 
-  Function rx = bind::member_function<Point, int&, &Point::rx>(pt, "rx").get();
+  Function rx = gonk::bind::member_function<Point, int&, &Point::rx>(pt, "rx").get();
   ASSERT(rx.isMemberFunction());
   ASSERT_EQ(rx.memberOf(), pt);
   ASSERT_EQ(rx.name(), "rx");
@@ -277,7 +277,7 @@ void test_simple_bindind(script::Engine& e)
     ASSERT(pt.x() == 11);
   }
 
-  Function max = bind::static_member_function<Point, Point, const Point &, const Point &, &Point::max>(pt, "max").get();
+  Function max = gonk::bind::static_member_function<Point, Point, const Point &, const Point &, &Point::max>(pt, "max").get();
   ASSERT(max.isMemberFunction());
   ASSERT(max.isStatic());
   ASSERT_EQ(max.memberOf(), pt);
@@ -287,7 +287,7 @@ void test_simple_bindind(script::Engine& e)
   ASSERT_EQ(max.parameter(0), Type::cref(pt.id()));
   ASSERT(!max.isConst());
 
-  Function print = bind::static_void_member_function<Point, const Point &, &Point::print>(pt, "print").get();
+  Function print = gonk::bind::static_void_member_function<Point, const Point &, &Point::print>(pt, "print").get();
   ASSERT(print.isMemberFunction());
   ASSERT(print.isStatic());
   ASSERT_EQ(print.memberOf(), pt);
@@ -297,7 +297,7 @@ void test_simple_bindind(script::Engine& e)
   ASSERT_EQ(print.parameter(0), Type::cref(pt.id()));
   ASSERT(!print.isConst());
 
-  Function assign = bind::memop_assign<Point, const Point &>(pt);
+  Function assign = gonk::bind::memop_assign<Point, const Point &>(pt);
   ASSERT(assign.isOperator());
   ASSERT_EQ(assign.toOperator().operatorId(), AssignmentOperator);
   ASSERT_EQ(assign.returnType(), Type::ref(pt.id()));
@@ -319,15 +319,15 @@ void test_enum_binding(script::Engine& e)
   cs.addValue("Cartesian", Cartesian);
   cs.addValue("Polar", Polar);
 
-  script::Value val = make_value<CoordinateSystem>(Polar, &e);
+  script::Value val = gonk::make_value<CoordinateSystem>(Polar, &e);
 
   ASSERT(val.type() == script::make_type<CoordinateSystem>());
-  ASSERT(value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
+  ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
 
-  script::Function favcoord = bind::function<CoordinateSystem, &favoriteCoordinateSystem>(ns, "favoriteCoordinateSystem").get();
+  script::Function favcoord = gonk::bind::function<CoordinateSystem, &favoriteCoordinateSystem>(ns, "favoriteCoordinateSystem").get();
 
   val = favcoord.invoke({});
-  ASSERT(value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
+  ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
 }
 
 int main(int argc, char* argv[])

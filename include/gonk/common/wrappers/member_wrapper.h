@@ -9,7 +9,7 @@
 
 #include <script/interpreter/executioncontext.h>
 
-namespace script
+namespace gonk
 {
 
 namespace wrapper
@@ -232,6 +232,6 @@ struct const_void_member_wrapper_t<void(ClassType::*)(A1)const, F> {
 
 } // namespace wrapper
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_WRAPPERS_MEMBER_FUN_WRAPPER_H
