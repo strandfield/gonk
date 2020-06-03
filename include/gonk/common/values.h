@@ -112,158 +112,41 @@ template<> inline script::Value make_value<script::String>(const script::String 
 namespace script
 {
 
-struct value_storage_tag {};
-struct reference_storage_tag {};
-struct pointer_storage_tag {};
-
 template<typename T>
-struct value_storage
+T value_cast(const script::Value& val)
 {
-  typedef value_storage_tag type;
-};
-
-template<typename T>
-struct reference_storage
-{
-  typedef reference_storage_tag type;
-};
-
-template<typename T>
-struct pointer_storage
-{
-  typedef pointer_storage_tag type;
-};
-
-template<typename T, typename Tag = typename details::tag_resolver<T>::tag_type>
-struct storage_type_default_impl;
-
-template<typename T>
-struct storage_type_default_impl<T, details::small_object_tag> : reference_storage<T> { };
-
-template<typename T>
-struct storage_type_default_impl<T, details::large_object_tag> : reference_storage<T> { };
-
-template<typename T>
-struct storage_type_default_impl<T, details::enum_tag> : value_storage<T> { };
-
-template<typename T>
-struct storage_type
-{
-  typedef typename storage_type_default_impl<T>::type type;
-};
-
-template<typename T>
-struct decay
-{
-  typedef typename std::decay<typename std::remove_pointer<T>::type>::type type;
-};
-
-template<typename T, typename StorageType = typename storage_type<typename decay<T>::type>::type>
-struct value_cast_helper;
-
-template<typename T>
-struct value_cast_helper<T, value_storage_tag>
-{
-  static T impl(const script::Value & val)
+  if constexpr (!std::is_const<T>::value && !std::is_reference<T>::value && !std::is_pointer<T>::value)
   {
-    return get<typename decay<T>::type>(val);
+    if constexpr (std::is_enum<T>::value)
+      return static_cast<T>(val.toEnumerator().value());
+    else
+      return script::get<T>(val);
   }
-};
-
-template<typename T>
-struct value_cast_helper<T, reference_storage_tag>
-{
-  static T impl(const script::Value & val)
+  else if constexpr (std::is_lvalue_reference<T>::value)
   {
-    return get<T>(val);
+    if constexpr (std::is_enum<typename std::remove_reference<T>::type>::value)
+      static_assert(gonk::dependent_false<T>::value, "references to enum not supported by value_cast()");
+    else
+      return script::get<typename std::remove_reference<typename std::remove_const<T>::type>::type>(val);
   }
-};
-
-template<typename T>
-struct value_cast_helper<T&, reference_storage_tag>
-{
-  static T& impl(const script::Value& val)
+  else if constexpr (std::is_rvalue_reference<T>::value)
   {
-    return get<T>(val);
+    if constexpr (std::is_enum<typename std::remove_reference<T>::type>::value)
+      static_assert(gonk::dependent_false<T>::value, "references to enum not supported by value_cast()");
+    else
+      return std::move(std::get<typename std::remove_reference<T>::type>(val));
   }
-};
-
-template<typename T>
-struct value_cast_helper<T*, reference_storage_tag>
-{
-  static T* impl(const script::Value & val)
+  else if constexpr (std::is_pointer<T>::value && !std::is_const<typename std::remove_pointer<T>::type>::value)
   {
-    return std::addressof(get<T>(val));
+    if constexpr (std::is_enum<typename std::remove_pointer<T>::type>::value)
+      static_assert(gonk::dependent_false<T>::value, "pointer to enum not supported by value_cast()");
+    else
+      return script::get<gonk::Pointer<typename std::remove_pointer<T>::type>>(val).ptr;
   }
-};
-
-template<typename T>
-struct value_cast_helper<const T*, reference_storage_tag>
-{
-  static const T* impl(const script::Value & val)
+  else
   {
-    return std::addressof(get<T>(val));
+    static_assert(gonk::dependent_false<T>::value, "type not supported by value_cast()");
   }
-};
-
-template<typename T>
-struct value_cast_helper<T&&, reference_storage_tag>
-{
-  static T&& impl(const script::Value & val)
-  {
-    return std::move(get<T>(val));
-  }
-};
-
-template<typename T>
-struct value_cast_helper<const T&, reference_storage_tag>
-{
-  static const T& impl(const script::Value & val)
-  {
-    return get<T>(val);
-  }
-};
-
-template<typename T>
-struct value_cast_helper<T&, pointer_storage_tag>
-{
-  static T& impl(const script::Value & val)
-  {
-    return *get<T>(val);
-  }
-};
-
-template<typename T>
-struct value_cast_helper<const T&, pointer_storage_tag>
-{
-  static const T& impl(const script::Value& val)
-  {
-    return *get<T>(val);
-  }
-};
-
-template<typename T>
-struct value_cast_helper<T*, pointer_storage_tag>
-{
-  static T* impl(const script::Value& val)
-  {
-    return get<T>(val);
-  }
-};
-
-template<typename T>
-struct value_cast_helper<const T*, pointer_storage_tag>
-{
-  static const T* impl(const script::Value & val)
-  {
-    return get<T>(val);
-  }
-};
-
-template<typename T>
-T value_cast(const script::Value & val)
-{
-  return value_cast_helper<T>::impl(val);
 }
 
 } // namespace script
