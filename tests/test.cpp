@@ -320,7 +320,7 @@ void test_enum_binding(script::Engine& e)
   cs.addValue("Cartesian", Cartesian);
   cs.addValue("Polar", Polar);
 
-  script::Value val = make_value_perfect<CoordinateSystem>(Polar, &e);
+  script::Value val = make_value<CoordinateSystem>(Polar, &e);
 
   ASSERT(val.type() == script::make_type<CoordinateSystem>());
   ASSERT(value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);

@@ -43,7 +43,7 @@ struct function_wrapper_t<R(*)(Arg), f> {
 template<typename R, typename A1, typename A2, R(*f)(A1, A2)>
 struct function_wrapper_t<R(*)(A1, A2), f> {
   static script::Value wrap(script::FunctionCall *c) {
-    return make_value_perfect<R>(f(value_cast<A1>(c->arg(0)), value_cast<A2>(c->arg(1))), c->engine());
+    return make_value<R>(f(value_cast<A1>(c->arg(0)), value_cast<A2>(c->arg(1))), c->engine());
   }
 };
 

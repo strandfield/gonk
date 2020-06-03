@@ -19,7 +19,7 @@ template<typename Src, typename Dst>
 script::Value conversion(script::FunctionCall *c)
 {
   using namespace script;
-  return make_value_perfect<Dst>(value_cast<Src>(c->arg(0)), c->engine());
+  return make_value<Dst>(value_cast<Src>(c->arg(0)), c->engine());
 }
 
 } // namespace wrapper
