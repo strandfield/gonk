@@ -8,7 +8,6 @@
 #include "gonk/common/binding/fn-memfn.h"
 #include "gonk/common/binding/function.h"
 #include "gonk/common/binding/memberfunction.h"
-#include "gonk/common/binding/getter.h"
 #include "gonk/common/binding/staticmemberfunction.h"
 #include "gonk/common/binding/operators.h"
 #include "gonk/common/binding/pointer.h"
