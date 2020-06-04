@@ -4,6 +4,8 @@
 
 #include "project-merger.h"
 
+#include "database.h"
+
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -26,7 +28,7 @@ void ProjectMerger::merge()
 
       if (!project->hasClassType(t->name))
       {
-        QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 0, 1)")
+        QSqlQuery query = Database::exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 0, 1)")
           .arg(t->name, t->id, t->header));
 
         t->database_id = query.lastInsertId().toInt();
@@ -42,7 +44,7 @@ void ProjectMerger::merge()
 
       if (!project->hasEnumType(t->name))
       {
-        QSqlQuery query = database.exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 1, 0)")
+        QSqlQuery query = Database::exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 1, 0)")
           .arg(t->name, t->id, t->header));
 
         t->database_id = query.lastInsertId().toInt();
@@ -82,10 +84,11 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     ModuleRef m = std::static_pointer_cast<Module>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO modules(name) VALUES('%1')").arg(m->name));
+    QSqlQuery query = Database::exec(QString("INSERT INTO modules(name) VALUES('%1')").arg(m->name));
     m->module_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, module_id) VALUES(%1, %2)").arg(parentId(), QString::number(m->module_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, module_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(m->module_id), QString::number(m->order)));
     m->entity_id = query.lastInsertId().toInt();
 
     project->modules_map[m->module_id] = m;
@@ -94,10 +97,11 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     FileRef f = std::static_pointer_cast<File>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO files(name) VALUES('%1')").arg(f->name));
+    QSqlQuery query = Database::exec(QString("INSERT INTO files(name) VALUES('%1')").arg(f->name));
     f->file_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, file_id) VALUES(%1, %2)").arg(parentId(), QString::number(f->file_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, file_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(f->file_id), QString::number(f->order)));
     f->entity_id = query.lastInsertId().toInt();
 
     project->files[f->file_id] = f;
@@ -106,10 +110,11 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     NamespaceRef ns = std::static_pointer_cast<Namespace>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO namespaces(name) VALUES('%1')").arg(ns->name));
+    QSqlQuery query = Database::exec(QString("INSERT INTO namespaces(name) VALUES('%1')").arg(ns->name));
     ns->namespace_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, namespace_id) VALUES(%1, %2)").arg(parentId(), QString::number(ns->namespace_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, namespace_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(ns->namespace_id), QString::number(ns->order)));
     ns->entity_id = query.lastInsertId().toInt();
 
     project->namespaces[ns->namespace_id] = ns;
@@ -118,10 +123,12 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     ClassRef c = std::static_pointer_cast<Class>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO classes(name, type) VALUES('%1', %2)").arg(c->name, QString::number(c->type_id)));
+    QSqlQuery query = Database::exec(QString("INSERT INTO classes(name, type, base) VALUES('%1', %2, '%3')")
+      .arg(c->name, QString::number(c->type_id), c->base));
     c->class_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, class_id) VALUES(%1, %2)").arg(parentId(), QString::number(c->class_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, class_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(c->class_id), QString::number(c->order)));
     c->entity_id = query.lastInsertId().toInt();
 
     project->classes[c->class_id] = c;
@@ -130,10 +137,11 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     EnumRef e = std::static_pointer_cast<Enum>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO enums(name, type) VALUES('%1', %2)").arg(e->name, QString::number(e->type_id)));
+    QSqlQuery query = Database::exec(QString("INSERT INTO enums(name, type) VALUES('%1', %2)").arg(e->name, QString::number(e->type_id)));
     e->enum_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, enum_id) VALUES(%1, %2)").arg(parentId(), QString::number(e->enum_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, enum_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(e->enum_id), QString::number(e->order)));
     e->entity_id = query.lastInsertId().toInt();
 
     project->enums[e->enum_id] = e;
@@ -143,10 +151,11 @@ void ProjectMerger::getIds(NodeRef elem)
     EnumeratorRef e = std::static_pointer_cast<Enumerator>(elem);
     EnumRef parent = std::static_pointer_cast<Enum>(m_parent);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO enumerators(name, enum_id) VALUES('%1', %2)").arg(e->name, QString::number(parent->enum_id)));
+    QSqlQuery query = Database::exec(QString("INSERT INTO enumerators(name, enum_id) VALUES('%1', %2)").arg(e->name, QString::number(parent->enum_id)));
     e->enumerator_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, enumerator_id) VALUES(%1, %2)").arg(parentId(), QString::number(e->enumerator_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, enumerator_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(e->enumerator_id), QString::number(e->order)));
     e->entity_id = query.lastInsertId().toInt();
 
     project->enumerators[e->enumerator_id] = e;
@@ -155,11 +164,12 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     FunctionRef f = std::static_pointer_cast<Function>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO functions(name, return_type, parameters, specifiers) VALUES('%1', '%2', '%3', '%4')")
+    QSqlQuery query = Database::exec(QString("INSERT INTO functions(name, return_type, parameters, specifiers) VALUES('%1', '%2', '%3', '%4')")
       .arg(f->name, f->returnType, f->parameters.join(';'), f->getSpecifiers().join(',')));
     f->function_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, function_id) VALUES(%1, %2)").arg(parentId(), QString::number(f->function_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, function_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(f->function_id), QString::number(f->order)));
     f->entity_id = query.lastInsertId().toInt();
 
     project->functions[f->function_id] = f;
@@ -168,10 +178,11 @@ void ProjectMerger::getIds(NodeRef elem)
   {
     StatementRef s = std::static_pointer_cast<Statement>(elem);
 
-    QSqlQuery query = database.exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(s->name));
+    QSqlQuery query = Database::exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(s->name));
     s->statement_id = query.lastInsertId().toInt();
 
-    query = database.exec(QString("INSERT INTO entities(parent, statement_id) VALUES(%1, %2)").arg(parentId(), QString::number(s->statement_id)));
+    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, 'order') VALUES(%1, %2, %3)")
+      .arg(parentId(), QString::number(s->statement_id), QString::number(s->order)));
     s->entity_id = query.lastInsertId().toInt();
 
     project->statements[s->statement_id] = s;

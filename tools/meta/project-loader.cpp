@@ -4,6 +4,8 @@
 
 #include "project-loader.h"
 
+#include "database.h"
+
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -80,7 +82,7 @@ void ProjectLoader::loadEntities()
   loadModules();
 
   {
-    QSqlQuery query = database.exec("SELECT id, module_id, file_id, namespace_id, class_id, function_id, enum_id, enumerator_id, statement_id, condition, renaming, binding FROM entities ORDER BY 'order' ASC");
+    QSqlQuery query = database.exec("SELECT id, module_id, file_id, namespace_id, class_id, function_id, enum_id, enumerator_id, statement_id, 'order' FROM entities ORDER BY 'order' ASC");
 
     int ID = 0;
     int MODULE_ID = 1;
@@ -91,9 +93,7 @@ void ProjectLoader::loadEntities()
     int ENUM_ID = 6;
     int ENUMERATOR_ID = 7;
     int STATEMENT_ID = 8;
-    int CONDITION = 9;
-    int RENAMING = 10;
-    int BINDING = 11;
+    int ORDER = 9;
 
     while (query.next())
     {
@@ -103,15 +103,15 @@ void ProjectLoader::loadEntities()
       {
         ModuleRef m = project->modules_map[query.value(MODULE_ID).toInt()];
         m->entity_id = entity_id;
+        m->order = query.value(ORDER).toInt();
         project->entities[entity_id] = m;
       }
       else if (!query.value(FILE_ID).isNull())
       {
         FileRef f = project->files[query.value(FILE_ID).toInt()];
         f->entity_id = entity_id;
+        f->order = query.value(ORDER).toInt();
         project->entities[entity_id] = f;
-
-        f->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(NAMESPACE_ID).isNull())
       {
@@ -123,42 +123,36 @@ void ProjectLoader::loadEntities()
       {
         ClassRef c = project->classes[query.value(CLASS_ID).toInt()];
         c->entity_id = entity_id;
+        c->order = query.value(ORDER).toInt();
         project->entities[entity_id] = c;
-
-        c->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(FUNCTION_ID).isNull())
       {
         FunctionRef fun = project->functions[query.value(FUNCTION_ID).toInt()];
         fun->entity_id = entity_id;
+        fun->order = query.value(ORDER).toInt();
         project->entities[entity_id] = fun;
-
-        fun->condition = query.value(CONDITION).toString();
-        fun->bindingMethod = Function::deserialize<Function::BindingMethod>(query.value(BINDING).toString());
       }
       else if (!query.value(ENUM_ID).isNull())
       {
         EnumRef enm = project->enums[query.value(ENUM_ID).toInt()];
         enm->entity_id = entity_id;
+        enm->order = query.value(ORDER).toInt();
         project->entities[entity_id] = enm;
-
-        enm->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(ENUMERATOR_ID).isNull())
       {
         EnumeratorRef enm = project->enumerators[query.value(ENUMERATOR_ID).toInt()];
         enm->entity_id = entity_id;
+        enm->order = query.value(ORDER).toInt();
         project->entities[entity_id] = enm;
-
-        enm->condition = query.value(CONDITION).toString();
       }
       else if (!query.value(STATEMENT_ID).isNull())
       {
         StatementRef s = project->statements[query.value(STATEMENT_ID).toInt()];
         s->entity_id = entity_id;
+        s->order = query.value(ORDER).toInt();
         project->entities[entity_id] = s;
-
-        s->condition = query.value(CONDITION).toString();
       }
     }
   }
@@ -212,13 +206,16 @@ void ProjectLoader::loadFunctions()
 {
   setState("loading functions");
 
-  QSqlQuery query = database.exec("SELECT id, name, return_type, parameters, specifiers FROM functions");
+  QSqlQuery query = Database::exec("SELECT id, name, return_type, parameters, specifiers, binding, implementation, condition FROM functions");
 
   int ID = 0;
   int NAME = 1;
   int RETURN_TYPE = 2;
   int PARAMETERS = 3;
   int SPECIFIERS = 4;
+  int BINDING = 5;
+  int IMPL = 6;
+  int CONDITION = 7;
 
   while (query.next())
   {
@@ -227,14 +224,11 @@ void ProjectLoader::loadFunctions()
     fun->name = query.value(NAME).toString();
     fun->returnType = query.value(RETURN_TYPE).toString();
     fun->parameters = query.value(PARAMETERS).toString().split(';', QString::SkipEmptyParts);
-    
+    fun->condition = query.value(CONDITION).toString();
+    fun->bindingMethod = Function::deserialize<Function::BindingMethod>(query.value(BINDING).toString());
+
     QStringList specifiers = query.value(SPECIFIERS).toString().split(',');
-    fun->isConst = specifiers.contains("const");
-    fun->isStatic = specifiers.contains("static");
-    fun->isDeleted = specifiers.contains("delete");
-    fun->isExplicit = specifiers.contains("explicit");
-    fun->isConstructor = specifiers.contains("ctor");
-    fun->isDestructor = specifiers.contains("dtor");
+    fun->setSpecifiers(specifiers);
 
     project->functions[fun->function_id] = fun;
   }
@@ -244,11 +238,12 @@ void ProjectLoader::loadClasses()
 {
   setState("loading classes");
 
-  QSqlQuery query = database.exec("SELECT id, name, type FROM classes");
+  QSqlQuery query = database.exec("SELECT id, name, type, base FROM classes");
 
   int ID = 0;
   int NAME = 1;
   int TYPE = 2;
+  int BASE = 3;
 
   while (query.next())
   {
@@ -256,6 +251,7 @@ void ProjectLoader::loadClasses()
     c->class_id = query.value(ID).toInt();
     c->name = query.value(NAME).toString();
     c->type_id = query.value(TYPE).toInt();
+    c->base = query.value(BASE).toString();
 
     project->classes[c->class_id] = c;
   }
@@ -304,16 +300,18 @@ void ProjectLoader::loadEnumerators()
   //  }
   //}
 
-  QSqlQuery query = database.exec("SELECT id, name FROM enumerators");
+  QSqlQuery query = database.exec("SELECT id, name, condition FROM enumerators");
 
   int ID = 0;
   int NAME = 1;
+  int CONDITION = 2;
 
   while (query.next())
   {
     auto enm = std::make_shared<Enumerator>("");
     enm->enumerator_id = query.value(ID).toInt();
     enm->name = query.value(NAME).toString();
+    enm->condition = query.value(CONDITION).toString();
 
     project->enumerators[enm->enumerator_id] = enm;
   }
@@ -323,16 +321,18 @@ void ProjectLoader::loadStatements()
 {
   setState("loading statements");
 
-  QSqlQuery query = database.exec("SELECT id, content FROM statements");
+  QSqlQuery query = database.exec("SELECT id, content, outofline FROM statements");
 
   int ID = 0;
   int CONTENT = 1;
+  int OUT_OF_LINE = 2;
 
   while (query.next())
   {
     auto s = std::make_shared<Statement>("");
     s->statement_id = query.value(ID).toInt();
     s->name = query.value(CONTENT).toString();
+    s->out_of_line = query.value(OUT_OF_LINE).toBool();
 
     project->statements[s->statement_id] = s;
   }
