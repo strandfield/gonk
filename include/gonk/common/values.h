@@ -49,6 +49,13 @@ script::Value make_value(T&& val, script::Engine* e)
     else
       return e->construct<gonk::Pointer<std::remove_pointer_t<T>>>(std::forward<T>(val));
   }
+  else if constexpr (std::is_const<T>::value && !std::is_reference<T>::value && !std::is_pointer<T>::value) // const U
+  {
+    if constexpr (std::is_enum<typename std::remove_pointer<T>::type>::value)
+      return make_enum(e, make_type<typename std::remove_pointer<T>::type>(), val);
+    else
+      return e->construct<typename std::remove_const<T>::type>(std::forward<T>(val));
+  }
   else
   {
     static_assert(gonk::dependent_false<T>::value, "type not supported by make_value()");
@@ -82,7 +89,7 @@ T value_cast(const script::Value& val)
     if constexpr (std::is_enum<typename std::remove_reference<T>::type>::value)
       static_assert(gonk::dependent_false<T>::value, "references to enum not supported by value_cast()");
     else
-      return std::move(std::get<typename std::remove_reference<T>::type>(val));
+      return std::move(script::get<typename std::remove_reference<T>::type>(val));
   }
   else if constexpr (std::is_pointer<T>::value && !std::is_const<typename std::remove_pointer<T>::type>::value)
   {
