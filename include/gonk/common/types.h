@@ -8,53 +8,15 @@
 #include <script/string.h>
 #include <script/types.h>
 
-namespace script
+namespace gonk
 {
 
 template<typename T>
-struct make_return_type_t
+script::Type make_type()
 {
-  inline static script::Type get()
-  {
-    return make_type_helper<T>::get();
-  }
-};
-
-template<typename T>
-struct make_return_type_t<const T>
-{
-  inline static script::Type get()
-  {
-    return make_type_helper<T>::get().withFlag(script::Type::ConstFlag);
-  }
-};
-
-template<typename T>
-struct make_return_type_t<T&>
-{
-
-};
-
-template<typename T>
-struct make_return_type_t<const T&>
-{
-  inline static script::Type get()
-  {
-    return make_return_type_t<T>::get();
-  }
-};
-
-template<typename T>
-script::Type make_return_type()
-{
-  return make_return_type_t<T>::get();
+  return script::make_type<T>();
 }
 
-/// TODO 
-
-template<> struct make_type_helper<short> { inline static script::Type get() { return script::Type::Int; } };
-
-} // namespace script
-
+} // namespace gonk
 
 #endif // GONK_COMMONS_TYPES_H

@@ -12,7 +12,7 @@
 #include <script/class.h>
 #include <script/functionbuilder.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
@@ -21,14 +21,14 @@ namespace bind
 /* Non-void non-static non-const member functions */
 
 template<typename T, typename R, R(*F)(T &)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>());
 }
 
 template<typename T, typename R, typename A1, R(*F)(T &, A1)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -36,7 +36,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, R(*F)(T &, A1, A2)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -44,7 +44,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, R(*F)(T &, A1, A2, A3)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -52,7 +52,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, R(*F)(T &, A1, A2, A3, A4)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -60,7 +60,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, R(*F)(T &, A1, A2, A3, A4, A5)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -68,7 +68,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, R(*F)(T &, A1, A2, A3, A4, A5, A6)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -79,7 +79,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 /* Non-void non-static const member functions */
 
 template<typename T, typename R, R(*F)(const T &)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .setConst()
@@ -87,7 +87,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, R(*F)(const T &, A1)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .setConst()
@@ -96,7 +96,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, R(*F)(const T &, A1, A2)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .setConst()
@@ -105,7 +105,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, R(*F)(const T &, A1, A2, A3)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .setConst()
@@ -114,7 +114,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, R(*F)(const T &, A1, A2, A3, A4)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .setConst()
@@ -123,7 +123,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, R(*F)(const T &, A1, A2, A3, A4, A5)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .setConst()
@@ -132,7 +132,7 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, R(*F)(const T &, A1, A2, A3, A4, A5, A6)>
-script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .setConst()
@@ -144,48 +144,48 @@ script::FunctionBuilder fn_as_memfn(Class & cla, std::string && name)
 /* void non-static non-const member functions */
 
 template<typename T, void(*F)(T &)>
-script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder void_fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::void_function_wrapper_t<decltype(F), F>::wrap);
 }
 
 template<typename T, typename A1, void(*F)(T &, A1)>
-script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder void_fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>());
 }
 
 template<typename T, typename A1, typename A2, void(*F)(T &, A1, A2)>
-script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder void_fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(), make_type<A2>());
 }
 
 template<typename T, typename A1, typename A2, typename A3, void(*F)(T &, A1, A2, A3)>
-script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder void_fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>());
 }
 
 template<typename T, typename A1, typename A2, typename A3, typename A4, void(*F)(T &, A1, A2, A3, A4)>
-script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder void_fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>());
 }
 
 template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, void(*F)(T &, A1, A2, A3, A4, A5)>
-script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder void_fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
 
 template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, void(*F)(T &, A1, A2, A3, A4, A5, A6)>
-script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
+script::FunctionBuilder void_fn_as_memfn(script::Class& cla, std::string && name)
 {
   return cla.newMethod(std::move(name), wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>(), make_type<A6>());
@@ -193,6 +193,6 @@ script::FunctionBuilder void_fn_as_memfn(Class & cla, std::string && name)
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_FN_AS_MEMFN_H

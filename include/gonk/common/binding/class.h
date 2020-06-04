@@ -11,7 +11,7 @@
 #include "gonk/common/binding/chainable-memfn.h"
 #include "gonk/common/binding/staticmemberfunction.h"
 #include "gonk/common/binding/operators.h"
+#include "gonk/common/binding/conversion.h"
 #include "gonk/common/binding/fn-memfn.h"
-#include "gonk/common/binding/getter.h"
 
 #endif // GONK_BINDING_CLASS_H

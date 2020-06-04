@@ -12,20 +12,20 @@
 #include <script/class.h>
 #include <script/destructorbuilder.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
 {
 
 template<typename T>
-script::DestructorBuilder destructor(Class & c)
+script::DestructorBuilder destructor(script::Class& c)
 {
-  return c.newDestructor(destructor_binder<T, typename details::tag_resolver<T>::tag_type>::destructor);
+  return c.newDestructor(destructor_binder<T>::destructor);
 }
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_DESTRUCTOR_H

@@ -10,7 +10,7 @@
 #include <script/namespace.h>
 #include <script/functionbuilder.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
@@ -23,7 +23,7 @@ script::FunctionBuilder static_member_function(script::Class & cla, std::string 
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<FT, F>::wrap)
     .setStatic()
-    .returns(make_return_type<R>());
+    .returns(make_type<R>());
 }
 
 template<typename T, typename R, typename A1, R(*F)(A1), typename FT = decltype(F)>
@@ -31,7 +31,7 @@ script::FunctionBuilder static_member_function(script::Class & cla, std::string 
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<FT, F>::wrap)
     .setStatic()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>());
 }
 
@@ -40,7 +40,7 @@ script::FunctionBuilder static_member_function(script::Class & cla, std::string 
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<FT, F>::wrap)
     .setStatic()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>());
 }
 
@@ -49,7 +49,7 @@ script::FunctionBuilder static_member_function(script::Class & cla, std::string 
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<FT, F>::wrap)
     .setStatic()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>());
 }
 
@@ -58,7 +58,7 @@ script::FunctionBuilder static_member_function(script::Class & cla, std::string 
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<FT, F>::wrap)
     .setStatic()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>());
 }
 
@@ -67,7 +67,7 @@ script::FunctionBuilder static_member_function(script::Class & cla, std::string 
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<FT, F>::wrap)
     .setStatic()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
 
@@ -76,7 +76,7 @@ script::FunctionBuilder static_member_function(script::Class & cla, std::string 
 {
   return cla.newMethod(std::move(name), wrapper::function_wrapper_t<FT, F>::wrap)
     .setStatic()
-    .returns(make_return_type<R>())
+    .returns(make_type<R>())
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>(), make_type<A6>());
 }
 
@@ -140,6 +140,6 @@ script::FunctionBuilder static_void_member_function(script::Class & cla, std::st
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_STATICMEMFUN_H

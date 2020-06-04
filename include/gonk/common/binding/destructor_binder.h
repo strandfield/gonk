@@ -9,17 +9,14 @@
 
 #include <script/interpreter/executioncontext.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
 {
 
-template<typename T, typename Tag>
-struct destructor_binder;
-
 template<typename T>
-struct destructor_binder<T, details::small_object_tag>
+struct destructor_binder
 {
   static script::Value destructor(script::FunctionCall *c) 
   {
@@ -28,18 +25,8 @@ struct destructor_binder<T, details::small_object_tag>
   }
 };
 
-template<typename T>
-struct destructor_binder<T, details::large_object_tag>
-{
-  static script::Value destructor(script::FunctionCall *c)
-  {
-    c->thisObject().destroy<T>();
-    return script::Value::Void;
-  }
-};
-
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_DESTRUCTOR_BINDER_H

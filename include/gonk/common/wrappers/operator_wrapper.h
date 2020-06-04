@@ -9,7 +9,7 @@
 
 #include <script/interpreter/executioncontext.h>
 
-namespace script
+namespace gonk
 {
 
 namespace wrapper
@@ -233,6 +233,6 @@ script::Value postdecr_wrapper(script::FunctionCall *c)
 
 } // namespace wrapper
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_WRAPPERS_OPERATOR_WRAPPER_H

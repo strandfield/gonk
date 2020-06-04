@@ -12,7 +12,7 @@
 #include <script/namespace.h>
 #include <script/functionbuilder.h>
 
-namespace script
+namespace gonk
 {
 
 namespace bind
@@ -113,6 +113,6 @@ script::FunctionBuilder void_function(script::Namespace & ns, std::string && nam
 
 } // namespace bind
 
-} // namespace script
+} // namespace gonk
 
 #endif // GONK_BINDING_FUNCTION_H

@@ -18,13 +18,13 @@ static void register_regex_class(script::Namespace ns)
   Class regex = ns.newClass("regex").setId(script::Type::make<std::regex>().data()).get();
 
   // regex()
-  bind::default_constructor<std::regex>(regex).create();
+  gonk::bind::default_constructor<std::regex>(regex).create();
   // regex(const std::string& str);
-  bind::constructor<std::regex, const std::string&>(regex).create();
+  gonk::bind::constructor<std::regex, const std::string&>(regex).create();
   // ~regex();
-  bind::destructor<std::regex>(regex).create();
+  gonk::bind::destructor<std::regex>(regex).create();
   // regex& operator=(const regex& other);
-  bind::memop_assign<std::regex, const std::regex&>(regex);
+  gonk::bind::memop_assign<std::regex, const std::regex&>(regex);
 }
 
 static bool regex_match(const std::string& s, const std::regex& e)
@@ -39,5 +39,5 @@ void register_regex_file(script::Namespace ns)
   register_regex_class(ns);
 
   // bool regex_match(const std::string& s, const std::regex& e);
-  bind::function<bool, const std::string&, const std::regex&, &regex_match>(ns, "regex_match").create();
+  gonk::bind::function<bool, const std::string&, const std::regex&, &regex_match>(ns, "regex_match").create();
 }
