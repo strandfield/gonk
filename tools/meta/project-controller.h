@@ -26,6 +26,8 @@ public:
 
   bool update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes);
 
+  bool update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition);
+
   void remove(NodeRef node);
 
   void remove(std::shared_ptr<Type> t, ProjectRef pro);

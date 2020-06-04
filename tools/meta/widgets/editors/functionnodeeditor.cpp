@@ -4,6 +4,9 @@
 
 #include "functionnodeeditor.h"
 
+#include "controller.h"
+#include "project-controller.h"
+
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QFontMetrics>
@@ -27,11 +30,11 @@ FunctionNodeEditor::FunctionNodeEditor(const FunctionRef & func, QWidget *p)
   mReturnType->setFixedWidth(fm.width("return-type") + 8);
 
   mName = new QLineEdit();
-  mName->setPlaceholderText("name[->rename]");
-  mName->setFixedWidth(fm.width("name[->rename]") + 8);
+  mName->setPlaceholderText("name");
+  mName->setFixedWidth(fm.width("name") + 20);
 
   mParameters = new QLineEdit;
-  mParameters->setPlaceholderText("param1[=value1];...");
+  mParameters->setPlaceholderText("param1;...");
 
   mSpecifiers = new QLineEdit;
   mSpecifiers->setPlaceholderText("const,static,...");
@@ -55,30 +58,14 @@ void FunctionNodeEditor::write()
 {
   auto mFunction = getFunction();
 
-  mFunction->bindingMethod = static_cast<Function::BindingMethod>(mBindingMethod->currentIndex() + Function::FirstBindingMethod);
-  mFunction->returnType = mReturnType->text();
-  mFunction->name = mName->text();
-  if (mFunction->name.indexOf("->") != -1)
-  {
-    const int index = mFunction->name.indexOf("->");
-    mFunction->rename = mFunction->name.mid(index + 2);
-    mFunction->name.chop(mFunction->name.size() - index);
-  }
-
-  QStringList params = mParameters->text().split(';');
-  QStringList defaultargs;
-  for (int i(params.size() - 1); i >= 0; --i)
-  {
-    const int index = params.at(i).indexOf("=");
-    if (index == -1)
-      break;
-    defaultargs.push_back(params.at(i).mid(index + 1));
-    params[i] = params[i].mid(0, index);
-  }
-  mFunction->parameters = params;
-  mFunction->defaultArguments = defaultargs;
-
-  mFunction->setSpecifiers(mSpecifiers->text().split(','));
+  Controller::Instance().projectController().update(*mFunction,
+    mName->text(),
+    mReturnType->text(),
+    mParameters->text().split(';'),
+    mSpecifiers->text().split(','),
+    static_cast<Function::BindingMethod>(mBindingMethod->currentIndex() + Function::FirstBindingMethod),
+    "",
+    "");
 }
 
 void FunctionNodeEditor::read(FunctionRef fun)

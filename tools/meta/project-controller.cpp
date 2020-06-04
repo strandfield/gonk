@@ -32,6 +32,39 @@ bool ProjectController::update(File& file, const QString& name, const QStringLis
   return true;
 }
 
+bool ProjectController::update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition)
+{
+  if (fun.function_id != -1)
+  {
+    QString bm = Function::serialize(method);
+    
+    if (bm == "auto")
+    {
+      Database::exec(QString("UPDATE functions SET name='%1', return_type='%2', parameters='%3', "
+        "specifiers='%4', binding=NULL, implementation='%6', condition='%7' "
+        "WHERE id = %8")
+        .arg(name, return_type, parameters.join(';'), specifiers.join(','), impl, condition, QString::number(fun.function_id)));
+    }
+    else
+    {
+      Database::exec(QString("UPDATE functions SET name='%1', return_type='%2', parameters='%3', "
+        "specifiers='%4', binding='%5', implementation='%6', condition='%7' "
+        "WHERE id = %8")
+        .arg(name, return_type, parameters.join(';'), specifiers.join(','), bm, impl, condition, QString::number(fun.function_id)));
+    }
+  }
+
+  fun.name = name;
+  fun.returnType = return_type;
+  fun.parameters = parameters;
+  fun.setSpecifiers(specifiers);
+  fun.bindingMethod = method;
+  fun.condition = condition;
+  // @TODO: fun.impl
+
+  return true;
+}
+
 struct NodeDeleter : public NodeVisitor
 {
   QSqlDatabase& database;
