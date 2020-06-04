@@ -16,6 +16,26 @@
 
 #include <list>
 
+void ProjectController::addStatement(Node& node, const QString& content)
+{
+  auto stmt = std::make_shared<Statement>(content);
+  stmt->order = node.childCount();
+
+  if (node.entity_id != -1)
+  {
+    QSqlQuery query = Database::exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(stmt->name));
+    stmt->statement_id = query.lastInsertId().toInt();
+
+    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, 'order') VALUES(%1, %2, %3)")
+      .arg(QString::number(node.entity_id), QString::number(stmt->statement_id), QString::number(stmt->order)));
+    stmt->entity_id = query.lastInsertId().toInt();
+
+    project->statements[stmt->statement_id] = stmt;
+  }
+
+  node.appendChild(stmt);
+}
+
 bool ProjectController::update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes)
 {
   QSqlQuery query = database.exec(QString("UPDATE files SET name='%1', hincludes='%2', cppincludes='%3' WHERE id = %4").arg(
@@ -63,6 +83,28 @@ bool ProjectController::update(Function& fun, const QString& name, const QString
   // @TODO: fun.impl
 
   return true;
+}
+
+void ProjectController::update(Node& node, const QString& name, const QString& condition)
+{
+  if (node.entity_id != -1)
+  {
+    if (node.is<Statement>())
+    {
+      Database::exec(QString("UPDATE statements SET content='%1'"
+        "WHERE id = %2")
+        .arg(name, QString::number(node.as<Statement>().statement_id)));
+    }
+    else if (node.is<Enumerator>())
+    {
+      Database::exec(QString("UPDATE enumerators SET name='%1'"
+        "WHERE id = %2")
+        .arg(name, QString::number(node.as<Enumerator>().enumerator_id)));
+    }
+  }
+
+  node.name = name;
+  node.condition = condition;
 }
 
 struct NodeDeleter : public NodeVisitor

@@ -22,6 +22,7 @@
 #include "widgets/editors/filenodeeditor.h"
 #include "widgets/editors/functionnodeeditor.h"
 #include "widgets/editors/namespacenodeeditor.h"
+#include "widgets/editors/simplenodeeditor.h"
 
 #include <QAction>
 #include <QKeyEvent>
@@ -48,6 +49,8 @@ public:
       return new ClassNodeEditor(std::static_pointer_cast<Class>(node), parent);
     else if (node->is<Enum>() && index.column() == 0)
       return new EnumNodeEditor(std::static_pointer_cast<Enum>(node), parent);
+    else if (node->is<Statement>() && index.column() == 0)
+      return new SimpleNodeEditor(node, parent);
     return QStyledItemDelegate::createEditor(parent, option, index);
   }
 
@@ -60,7 +63,8 @@ public:
     FileNodeEditor *fileedit = qobject_cast<FileNodeEditor*>(editor);
     FunctionNodeEditor *funedit = qobject_cast<FunctionNodeEditor*>(editor);
     ClassNodeEditor *classedit = qobject_cast<ClassNodeEditor*>(editor);
-    NamespaceNodeEditor *nsedit = qobject_cast<NamespaceNodeEditor*>(editor);
+    NamespaceNodeEditor* nsedit = qobject_cast<NamespaceNodeEditor*>(editor);
+    SimpleNodeEditor* simple_edit = qobject_cast<SimpleNodeEditor*>(editor);
     if (funedit != nullptr)
     {
       funedit->read(std::static_pointer_cast<Function>(node));
@@ -84,6 +88,11 @@ public:
     else if (nsedit != nullptr)
     {
       nsedit->read(std::static_pointer_cast<Namespace>(node));
+      return;
+    }
+    else if (simple_edit != nullptr)
+    {
+      simple_edit->read(node);
       return;
     }
     else
@@ -563,6 +572,7 @@ void ModuleTreeWidget::createContextMenus()
   mAddDestructorAction = mClassMenu->addAction("Add destructor");
   mAddAssignmentAction = mClassMenu->addAction("Add assignment");
   mSortClassMembersAction = mClassMenu->addAction("Sort");
+  mAddClassStatementAction = mClassMenu->addAction("Add statement");
 
   mAddStatementAction = mFileNodeMenu->addAction("Add statement");
 }
@@ -600,14 +610,17 @@ void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *
         item->removeChild(item->child(item->childCount() - 1));
       fetchNewNodes(item);
     }
+    else if (act == mAddClassStatementAction)
+    {
+      Controller::Instance().projectController().addStatement(cla, "(void) 0;");
+    }
   }
   else if (node->is<File>())
   {
     File & file = node->as<File>();
     if (act == mAddStatementAction)
     {
-      auto stmt = std::make_shared<Statement>("(void) 0;");
-      file.elements.append(stmt);
+      Controller::Instance().projectController().addStatement(file, "(void) 0;");
     }
   }
 

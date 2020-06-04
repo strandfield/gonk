@@ -968,26 +968,33 @@ void Generator::generate(ClassRef cla)
 
   for (const auto n : cla->elements)
   {
-    if (n->checkState == Qt::Unchecked || !n->is<Function>())
+    if (n->checkState == Qt::Unchecked)
       continue;
 
-    FunctionRef fun = std::static_pointer_cast<Function>(n);
-
-    if (!fun->condition.isEmpty())
-      lines << QString("#if %1").arg(fun->condition);
-
-    lines << ("  // " + fundisplay(fun));
-    try
+    if (n->is<Function>())
     {
-      lines << generate(fun);
-    }
-    catch (...)
-    {
-      lines << ("  /// TODO: " + fundisplay(fun));
-    }
+      FunctionRef fun = std::static_pointer_cast<Function>(n);
 
-    if (!fun->condition.isEmpty())
-      lines << QString("#endif");
+      if (!fun->condition.isEmpty())
+        lines << QString("#if %1").arg(fun->condition);
+
+      lines << ("  // " + fundisplay(fun));
+      try
+      {
+        lines << generate(fun);
+      }
+      catch (...)
+      {
+        lines << ("  /// TODO: " + fundisplay(fun));
+      }
+
+      if (!fun->condition.isEmpty())
+        lines << QString("#endif");
+    }
+    else if (n->is<Statement>())
+    {
+      lines << n->name;
+    }
   }
 
   lines << "}";

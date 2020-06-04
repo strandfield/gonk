@@ -20,7 +20,6 @@ public:
   void accept(NodeVisitor& visitor) override;
 
   int statement_id = -1;
-  bool out_of_line = false;
 };
 typedef std::shared_ptr<Statement> StatementRef;
 

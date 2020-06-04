@@ -321,18 +321,16 @@ void ProjectLoader::loadStatements()
 {
   setState("loading statements");
 
-  QSqlQuery query = database.exec("SELECT id, content, outofline FROM statements");
+  QSqlQuery query = database.exec("SELECT id, content FROM statements");
 
   int ID = 0;
   int CONTENT = 1;
-  int OUT_OF_LINE = 2;
 
   while (query.next())
   {
     auto s = std::make_shared<Statement>("");
     s->statement_id = query.value(ID).toInt();
     s->name = query.value(CONTENT).toString();
-    s->out_of_line = query.value(OUT_OF_LINE).toBool();
 
     project->statements[s->statement_id] = s;
   }
