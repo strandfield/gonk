@@ -556,11 +556,11 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 {
   if (bm == Function::ConstructorBinding && fun->parameters.isEmpty())
   {
-    return QString("  bind::default_constructor<%1>(%2).create();").arg(enclosingName(), enclosing_snake_name());
+    return QString("  gonk::bind::default_constructor<%1>(%2).create();").arg(enclosingName(), enclosing_snake_name());
   }
   else if (bm == Function::DestructorBinding)
   {
-    return QString("  bind::destructor<%1>(%2).create();").arg(enclosingName(), enclosing_snake_name());
+    return QString("  gonk::bind::destructor<%1>(%2).create();").arg(enclosingName(), enclosing_snake_name());
   }
   else if (bm == Function::OperatorBinding)
   {
@@ -574,29 +574,29 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 
   QString ret = [&]() -> QString {
     if (bm == Function::ConstructorBinding)
-      return QString("  bind::constructor<%1%2>(%3)").arg(enclosingName(), ", " + fparams(fun->parameters), enclosing_snake_name());
+      return QString("  gonk::bind::constructor<%1%2>(%3)").arg(enclosingName(), ", " + fparams(fun->parameters), enclosing_snake_name());
     else if (bm == Function::StaticVoidBinding)
-      return QString("  bind::static_void_member_function<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::static_void_member_function<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::ConstVoidBinding && enclosingEntity() == "Namespace")
-      return QString("  bind::void_function<%2%3>(%4, \"%5\")").arg(params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::void_function<%2%3>(%4, \"%5\")").arg(params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::ConstVoidBinding && enclosingEntity() == "Class")
-      return QString("  bind::const_void_member_function<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::const_void_member_function<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::VoidBinding && enclosingEntity() == "Namespace")
-      return QString("  bind::void_function<%2%3>(%4, \"%5\")").arg(params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::void_function<%2%3>(%4, \"%5\")").arg(params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::VoidBinding && enclosingEntity() == "Class")
-      return QString("  bind::void_member_function<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::void_member_function<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::ChainableBinding)
-      return QString("  bind::chainable_memfn<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::chainable_memfn<%1, %2%3>(%4, \"%5\")").arg(enclosingName(), params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::StaticBinding)
-      return QString("  bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::SimpleBinding && enclosingEntity() == "Namespace")
-      return QString("  bind::function<%1, %2%3>(%4, \"%5\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::function<%1, %2%3>(%4, \"%5\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::SimpleBinding && enclosingEntity() == "Class")
-      return QString("  bind::member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionBinding)
-      return QString("  bind::fn_as_memfn<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, "&" + fun->name, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::fn_as_memfn<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, "&" + fun->name, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionAsStaticBinding)
-      return QString("  bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, "&" + fun->name, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, "&" + fun->name, enclosing_snake_name(), funname);
 
     throw std::runtime_error{ "Unsupported bind method !" };
   }();
@@ -615,7 +615,7 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 
 QString Generator::generateOperator(FunctionRef fun, OperatorSymbol op)
 {
-  QString out = enclosingEntity() == "Class" ? "  bind::mem" : "  bind::";
+  QString out = enclosingEntity() == "Class" ? "  gonk::bind::mem" : "  gonk::bind::";
   out += "op_";
 
   const int implicit_param_count = isMember() ? 1 : 0;
@@ -645,9 +645,9 @@ QString Generator::generateOperator(FunctionRef fun, OperatorSymbol op)
   {
     // operator[] cannot be non-member
     if (fun->isConst)
-      return QString("  bind::memop_const_subscript<%1, %2, %3>(%4);").arg(enclosingName(), fparam(fun->returnType), fparam(fun, 0), enclosing_snake_name());
+      return QString("  gonk::bind::memop_const_subscript<%1, %2, %3>(%4);").arg(enclosingName(), fparam(fun->returnType), fparam(fun, 0), enclosing_snake_name());
     else
-      return QString("  bind::memop_subscript<%1, %2, %3>(%4);").arg(enclosingName(), fparam(fun->returnType), fparam(fun, 0), enclosing_snake_name());
+      return QString("  gonk::bind::memop_subscript<%1, %2, %3>(%4);").arg(enclosingName(), fparam(fun->returnType), fparam(fun, 0), enclosing_snake_name());
   }
   else
   {
