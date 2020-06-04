@@ -4,6 +4,9 @@
 
 #include "typetreewidget.h"
 
+#include "controller.h"
+#include "project-controller.h"
+
 #include "project/type.h"
 
 #include <QKeyEvent>
@@ -86,15 +89,24 @@ void TypeTreeWidget::keyPressEvent(QKeyEvent *e)
 void TypeTreeWidget::removeSelectedRows()
 {
   const QList<QTreeWidgetItem*> selecteds = selectedItems();
+
   for (auto item : selecteds)
   {
     const int item_index = item->parent()->indexOfChild(item);
-    if (item->parent() == mFundamentalTypes)
-      mProject->types.fundamentals.removeAt(item_index);
-    else if (item->parent() == mEnums)
-      mProject->types.enums.removeAt(item_index);
-    else
-      mProject->types.classes.removeAt(item_index);
+
+    try
+    {
+      if (item->parent() == mFundamentalTypes)
+        Controller::Instance().projectController().remove(mProject->types.fundamentals.at(item_index), mProject);
+      else if (item->parent() == mEnums)
+        Controller::Instance().projectController().remove(mProject->types.enums.at(item_index), mProject);
+      else
+        Controller::Instance().projectController().remove(mProject->types.classes.at(item_index), mProject);
+    }
+    catch (...)
+    {
+      return;
+    }
 
     item->parent()->removeChild(item);
   }

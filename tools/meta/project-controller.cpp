@@ -6,6 +6,8 @@
 
 #include "project/node-visitor.h"
 
+#include "database.h"
+
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -157,4 +159,29 @@ void ProjectController::remove(NodeRef node)
       }
     }
   }
+}
+
+void ProjectController::remove(std::shared_ptr<Type> t, ProjectRef pro)
+{
+  auto& list = [&]() -> QList<std::shared_ptr<Type>>& {
+    if (t->is_class)
+      return pro->types.classes;
+    else if (t->is_enum)
+      return pro->types.enums;
+    else
+      return pro->types.fundamentals;
+  }();
+
+  int index = list.indexOf(t);
+
+  if (index == -1)
+    return;
+
+  if (t->database_id != -1)
+  {
+    Database::exec(QString("DELETE FROM types WHERE id = %1")
+      .arg(QString::number(t->database_id)));
+  }
+
+  list.removeAt(index);
 }

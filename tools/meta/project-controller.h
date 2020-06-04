@@ -28,6 +28,8 @@ public:
 
   void remove(NodeRef node);
 
+  void remove(std::shared_ptr<Type> t, ProjectRef pro);
+
 protected:
 };
 
