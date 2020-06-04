@@ -13,9 +13,7 @@ public:
   enum BindingMethod{
     FirstBindingMethod = 0,
     AutoBinding = FirstBindingMethod,
-    SignalBinding,
     ChainableBinding,
-    ReferenceBinding,
     StaticVoidBinding,
     ConstVoidBinding,
     VoidBinding,
@@ -26,8 +24,7 @@ public:
     OperatorBinding,
     FreeFunctionBinding,
     FreeFunctionAsStaticBinding,
-    NewFunctionBinding,
-    LastBindingMethod = NewFunctionBinding,
+    LastBindingMethod = FreeFunctionAsStaticBinding,
   };
 
 public:
@@ -67,12 +64,8 @@ public:
     {
     case Function::AutoBinding:
       break;
-    case Function::SignalBinding:
-      return "signals";
     case Function::ChainableBinding:
       return "chainable";
-    case Function::ReferenceBinding:
-      return "reference";
     case Function::StaticVoidBinding:
       return "static-void";
     case Function::ConstVoidBinding:
@@ -93,8 +86,6 @@ public:
       return "free";
     case Function::FreeFunctionAsStaticBinding:
       return "freestatic";
-    case Function::NewFunctionBinding:
-      return "newfunction";
     default:
       break;
     }
@@ -108,12 +99,8 @@ public:
   template<>
   static BindingMethod deserialize<BindingMethod>(const QString & str)
   {
-    if (str == "signals")
-      return SignalBinding;
-    else if (str == "chainable")
+    if (str == "chainable")
       return ChainableBinding;
-    else if (str == "reference")
-      return ReferenceBinding;
     else if (str == "static-void")
       return StaticVoidBinding;
     else if (str == "const-void")
@@ -134,8 +121,6 @@ public:
       return FreeFunctionBinding;
     else if (str == "freestatic")
       return FreeFunctionAsStaticBinding;
-    else if (str == "newfunction")
-      return NewFunctionBinding;
     return AutoBinding;
   }
 };

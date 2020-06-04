@@ -566,14 +566,6 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
   {
     return generateOperator(fun, getOperatorSymbol(fun->name));
   }
-  else if (fun->bindingMethod == Function::SignalBinding)
-  {
-    return generateSignal(fun);
-  }
-  else if (bm == Function::NewFunctionBinding)
-  {
-    return generateNewFunction(fun);
-  }
 
   const QString funname = fun->rename.isEmpty() ? fun->name : fun->rename;
   const QString params = fparamscomma(fun);
@@ -601,8 +593,6 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
       return QString("  bind::function<%1, %2%3>(%4, \"%5\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::SimpleBinding && enclosingEntity() == "Class")
       return QString("  bind::member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
-    else if (bm == Function::ReferenceBinding)
-      return QString("  bind::non_const_getter<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionBinding)
       return QString("  bind::fn_as_memfn<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, "&" + fun->name, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionAsStaticBinding)
@@ -621,24 +611,6 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 
   ret.append(".create();");
   return ret;
-}
-
-QString Generator::generateSignal(FunctionRef fun)
-{
-  const QString funname = fun->rename.isEmpty() ? fun->name : fun->rename;
-  const QString signature = fun->name + "(" + fun->parameters.join(",") + ")";
-
-  if (fun->parameters.size() == 0)
-  {
-    QString format = "  bind::signal<%1>(%2, \"%3\", \"%4\");";
-    return format.arg(enclosingName(), enclosing_snake_name(), funname, signature);
-  }
-  else
-  {
-    QString format = "  bind::signal<%1%5>(%2, \"%3\", \"%4\");";
-    const QString params = fparams(fun->parameters, ", ");
-    return format.arg(enclosingName(), enclosing_snake_name(), funname, signature, params);
-  }
 }
 
 QString Generator::generateOperator(FunctionRef fun, OperatorSymbol op)
@@ -720,24 +692,6 @@ QString Generator::generateOperator(FunctionRef fun, OperatorSymbol op)
     out += QString(">(%1);").arg(enclosing_snake_name());
     return out;
   }
-}
-
-QString Generator::generateNewFunction(FunctionRef fn)
-{
-  currentSource().include("binding", "gonk/common/binding/newfunction.h");
-
-  QString rettype = fn->returnType;
-  if (rettype.endsWith(" &"))
-    rettype.chop(2);
-  else if (rettype.endsWith("&"))
-    rettype.chop(1);
-
-  QStringList targs{ rettype };
-  targs.append(checkParams(fn->parameters));
-
-  QString ret = "  ";
-  ret += QString("bind::new_function<%2>(%3, \"%4\");").arg(targs.join(", "), enclosing_snake_name(), fn->name);
-  return ret;
 }
 
 QString Generator::generateMakeTypeHelper(std::shared_ptr<Type> t)
@@ -926,17 +880,6 @@ QString Generator::fundisplay(FunctionRef fun)
   return builder.join("");
 }
 
-static bool contains_any_signal(const QList<NodeRef> & nodes)
-{
-  for (const auto & n : nodes)
-  {
-    if (n->is<Function>() && n->as<Function>().bindingMethod == Function::SignalBinding)
-      return true;
-  }
-
-  return false;
-}
-
 void Generator::generate(ClassRef cla)
 {
   if (cla->checkState == Qt::Unchecked)
@@ -972,7 +915,7 @@ void Generator::generate(ClassRef cla)
   lines << QString();
 
   {
-    QString format = "  Class %1 = %2.%3(\"%4\").setId(script::Type::make<%5>().data())__DATA____BASE____FINAL__.get();";
+    QString format = "  Class %1 = %2.%3(\"%4\").setId(script::Type::make<%5>().data())__BASE____FINAL__.get();";
     QString arg3 = enclosing_entity == "Namespace" ? "newClass" : "newNestedClass";
     QString line = format.arg(snake, enclosing_snake, arg3, claname, class_info.name);
     if (!cla->base.isEmpty())
@@ -992,10 +935,6 @@ void Generator::generate(ClassRef cla)
     {
       line.remove("__FINAL__");
     }
-    if (contains_any_signal(cla->elements))
-      line.replace("__DATA__", endl + "    .setData(yasl::createSignalTable())");
-    else
-      line.remove("__DATA__");
 
     lines << line;
   }

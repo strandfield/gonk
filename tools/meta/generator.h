@@ -108,9 +108,7 @@ private:
   void generate(FileRef file);
   QString generate(FunctionRef fun);
   QString generate(FunctionRef fun, Function::BindingMethod bm);
-  QString generateSignal(FunctionRef fun);
   QString generateOperator(FunctionRef fun, OperatorSymbol op);
-  QString generateNewFunction(FunctionRef fn);
   QString generateMakeTypeHelper(std::shared_ptr<Type> t);
   void recordGeneratedType(int type_database_id);
   void generate(ClassRef cla);
