@@ -257,6 +257,7 @@ ModuleRef ProjectMerger::find_or_set(QList<ModuleRef>& list, const ModuleRef& el
       return item;
   }
 
+  elem->order = list.size();
   getIds(elem);
   list.append(elem);
   return elem;

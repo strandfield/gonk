@@ -53,6 +53,7 @@ protected:
         return item;
     }
 
+    elem->order = list.size();
     getIds(elem);
     list.append(elem);
     return elem;
@@ -68,8 +69,11 @@ protected:
   template<typename T>
   void assignIds(QList<T>& list)
   {
-    for (const auto& item : list)
+    for (int i(0); i < list.size(); ++i)
     {
+      auto item = list.at(i);
+      item->order = i;
+
       getIds(item);
 
       RAIINodeGuard guard{ m_parent };
