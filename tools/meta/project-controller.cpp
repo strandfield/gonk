@@ -173,45 +173,48 @@ struct NodeDeleter : public NodeVisitor
 
 };
 
-void ProjectController::remove(NodeRef node)
+void ProjectController::remove(NodeRef node, ProjectRef pro)
 {
-  std::vector<NodeRef> nodes_to_delete;
-
+  if (node->entity_id != -1)
   {
-    // Compute nodes to delete
+    std::vector<NodeRef> nodes_to_delete;
 
-    std::list<NodeRef> nodes_to_process;
-
-    nodes_to_process.push_back(node);
-
-    while (!nodes_to_process.empty())
     {
-      NodeRef n = nodes_to_process.front();
-      nodes_to_process.pop_front();
+      // Compute nodes to delete
 
-      nodes_to_delete.push_back(n);
+      std::list<NodeRef> nodes_to_process;
 
-      for (size_t i(0); i < n->childCount(); ++i)
-        nodes_to_process.push_back(n->childAt(i));
+      nodes_to_process.push_back(node);
+
+      while (!nodes_to_process.empty())
+      {
+        NodeRef n = nodes_to_process.front();
+        nodes_to_process.pop_front();
+
+        nodes_to_delete.push_back(n);
+
+        for (size_t i(0); i < n->childCount(); ++i)
+          nodes_to_process.push_back(n->childAt(i));
+      }
+
+      std::reverse(nodes_to_delete.begin(), nodes_to_delete.end());
     }
 
-    std::reverse(nodes_to_delete.begin(), nodes_to_delete.end());
-  }
+    for (NodeRef n : nodes_to_delete)
+    {
+      QSqlQuery query = database.exec(QString("DELETE FROM entities WHERE id = %1")
+        .arg(QString::number(n->entity_id)));
 
-  for (NodeRef n : nodes_to_delete)
-  {
-    QSqlQuery query = database.exec(QString("DELETE FROM entities WHERE id = %1")
-      .arg(QString::number(n->entity_id)));
+      if (database.lastError().isValid())
+        qDebug() << database.lastError().text();
+    }
 
-    if (database.lastError().isValid())
-      qDebug() << database.lastError().text();
-  }
+    NodeDeleter deleter{ database };
 
-  NodeDeleter deleter{ database };
-
-  for (NodeRef n : nodes_to_delete)
-  {
-    n->accept(deleter);
+    for (NodeRef n : nodes_to_delete)
+    {
+      n->accept(deleter);
+    }
   }
 
   {
@@ -220,7 +223,7 @@ void ProjectController::remove(NodeRef node)
     if (parent == nullptr)
     {
       ModuleRef m = std::static_pointer_cast<Module>(node);
-      project->modules.removeOne(m);
+      pro->modules.removeOne(m);
     }
     else
     {

@@ -212,7 +212,7 @@ void ModuleTreeWidget::removeSelectedRows()
   const QList<QTreeWidgetItem*> selecteds = selectedItems();
   for (auto item : selecteds)
   {
-    Controller::Instance().projectController().remove(getNode(item));
+    Controller::Instance().projectController().remove(getNode(item), mProject);
 
     QTreeWidgetItem *parent = item->parent();
     if (parent == nullptr)
