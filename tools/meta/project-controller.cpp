@@ -19,14 +19,14 @@
 void ProjectController::addStatement(Node& node, const QString& content)
 {
   auto stmt = std::make_shared<Statement>(content);
-  stmt->order = node.childCount();
+  stmt->order = static_cast<int>(node.childCount());
 
   if (node.entity_id != -1)
   {
     QSqlQuery query = Database::exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(stmt->name));
     stmt->statement_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, rank) VALUES(%1, %2, %3)")
       .arg(QString::number(node.entity_id), QString::number(stmt->statement_id), QString::number(stmt->order)));
     stmt->entity_id = query.lastInsertId().toInt();
 
@@ -219,6 +219,17 @@ void ProjectController::remove(NodeRef node, ProjectRef pro)
 
       if (database.lastError().isValid())
         qDebug() << database.lastError().text();
+    }
+
+    if (node->parent.lock())
+    {
+      NodeRef parent = node->parent.lock();
+
+      Database::exec(QString("UPDATE entities SET rank = rank - 1 WHERE parent = %1 AND rank > %2")
+        .arg(QString::number(parent->entity_id), QString::number(node->order)));
+
+      for (size_t i(static_cast<size_t>(node->order)); i < parent->childCount(); ++i)
+        parent->childAt(i)->order -= 1;
     }
 
     NodeDeleter deleter{ database };

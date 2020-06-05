@@ -82,7 +82,7 @@ void ProjectLoader::loadEntities()
   loadModules();
 
   {
-    QSqlQuery query = database.exec("SELECT id, module_id, file_id, namespace_id, class_id, function_id, enum_id, enumerator_id, statement_id, 'order' FROM entities ORDER BY 'order' ASC");
+    QSqlQuery query = database.exec("SELECT id, module_id, file_id, namespace_id, class_id, function_id, enum_id, enumerator_id, statement_id, rank FROM entities ORDER BY rank ASC");
 
     int ID = 0;
     int MODULE_ID = 1;
@@ -354,7 +354,7 @@ void ProjectLoader::buildEntityTree()
     NodeRef n = queue.front();
     queue.pop_front();
 
-    QSqlQuery query = database.exec(QString("SELECT id FROM entities WHERE parent = %1 ORDER BY 'order' ASC").arg(n->entity_id));
+    QSqlQuery query = database.exec(QString("SELECT id FROM entities WHERE parent = %1 ORDER BY rank ASC").arg(n->entity_id));
 
     int ID = 0;
 
