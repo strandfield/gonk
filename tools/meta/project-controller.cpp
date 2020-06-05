@@ -85,6 +85,18 @@ bool ProjectController::update(Function& fun, const QString& name, const QString
   return true;
 }
 
+void ProjectController::update(Statement& stmt, const QString& content)
+{
+  if (stmt.statement_id != -1)
+  {
+    Database::exec(QString("UPDATE statements SET content='%1'"
+      "WHERE id = %2")
+      .arg(content, QString::number(stmt.statement_id)));
+  }
+
+  stmt.name = content;
+}
+
 void ProjectController::update(Node& node, const QString& name, const QString& condition)
 {
   if (node.entity_id != -1)

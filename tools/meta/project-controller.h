@@ -31,6 +31,8 @@ public:
 
   bool update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition);
 
+  void update(Statement& stmt, const QString& content);
+
   void update(Node& node, const QString& name, const QString& condition);
 
   void remove(NodeRef node, ProjectRef pro);

@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "moduletreewidget.h"
@@ -8,6 +8,7 @@
 #include "project-controller.h"
 
 #include "dialogs/newfunctiondialog.h"
+#include "dialogs/statementeditor.h"
 
 #include "project/class.h"
 #include "project/enum.h"
@@ -28,6 +29,8 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QStyledItemDelegate>
+
+#include <QDebug>
 
 class ItemDelegate : public QStyledItemDelegate
 {
@@ -50,7 +53,7 @@ public:
     else if (node->is<Enum>() && index.column() == 0)
       return new EnumNodeEditor(std::static_pointer_cast<Enum>(node), parent);
     else if (node->is<Statement>() && index.column() == 0)
-      return new SimpleNodeEditor(node, parent);
+      return nullptr;
     return QStyledItemDelegate::createEditor(parent, option, index);
   }
 
@@ -144,6 +147,7 @@ ModuleTreeWidget::ModuleTreeWidget(const ProjectRef & pro)
   setShowCheckboxes(true);
 
   connect(this, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(updateItem(QTreeWidgetItem*, int)));
+  connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*, int)));
   connect(this, SIGNAL(collapsed(const QModelIndex&)), this, SLOT(resizeColumnsAuto()));
   connect(this, SIGNAL(expanded(const QModelIndex&)), this, SLOT(resizeColumnsAuto()));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(displayContextMenu(const QPoint &)));
@@ -555,6 +559,21 @@ void ModuleTreeWidget::displayContextMenu(const QPoint & p)
 
   QAction *act = menu->exec(this->mapToGlobal(p));
   execAction(item, node, act);
+}
+
+void ModuleTreeWidget::onItemDoubleClicked(QTreeWidgetItem* item, int column)
+{
+  NodeRef n = getNode(item);
+
+  if (n->is<Statement>())
+  {
+    auto stmt = std::static_pointer_cast<Statement>(n);
+
+    StatementEditorDialog dialog{ stmt, this };
+    
+    if (dialog.exec() == QDialog::Accepted)
+      item->setText(0, stmt->display());
+  }
 }
 
 NodeRef ModuleTreeWidget::getNode(QTreeWidgetItem *item) const

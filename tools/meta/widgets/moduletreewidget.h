@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_MODULETREEWIDGET_H
-#define YASL_META_MODULETREEWIDGET_H
+#ifndef METAGONK_MODULETREEWIDGET_H
+#define METAGONK_MODULETREEWIDGET_H
 
 #include <QTreeWidget>
 
@@ -48,6 +48,7 @@ protected Q_SLOTS:
   void updateCheckState(QTreeWidgetItem *item);
   void resizeColumnsAuto();
   void displayContextMenu(const QPoint & p);
+  void onItemDoubleClicked(QTreeWidgetItem* item, int column);
 
 protected:
   void handle_checkboxes(QTreeWidgetItem* item, bool on);
@@ -70,4 +71,4 @@ private:
   std::unordered_map<QTreeWidgetItem*, std::shared_ptr<Node>> m_nodes_map;
 };
 
-#endif // YASL_META_MODULETREEWIDGET_H
+#endif // METAGONK_MODULETREEWIDGET_H
