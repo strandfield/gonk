@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_NEWFUNCTIONDIALOG_H
-#define YASL_META_NEWFUNCTIONDIALOG_H
+#ifndef METAGONK_NEWFUNCTIONDIALOG_H
+#define METAGONK_NEWFUNCTIONDIALOG_H
 
 #include <QDialog>
 
@@ -28,12 +28,13 @@ private:
 
 private:
   QLineEdit *mNameLineEdit;
-  QLineEdit *mRenameLineEdit;
   QLineEdit *mReturnTypeLineEdit;
   QLineEdit *mParametersLineEdit;
   QLineEdit *mSpecifiersLineEdit;
   QComboBox *mBindingMethodComboBox;
+  QLineEdit* m_impl_lineedit;
+  QLineEdit* m_condition_lineedit;
   FunctionRef mFunction;
 };
 
-#endif // YASL_META_NEWFUNCTIONDIALOG_H
+#endif // METAGONK_NEWFUNCTIONDIALOG_H

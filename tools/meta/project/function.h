@@ -29,7 +29,6 @@ public:
 
 public:
   int function_id = -1;
-  QString rename;
   QString returnType;
   QStringList parameters;
   bool isExplicit;
@@ -53,6 +52,7 @@ public:
   void accept(NodeVisitor& visitor) override;
 
   QString display() const override;
+  QString signature() const;
 
   int compareTo(const Node & o) const;
 

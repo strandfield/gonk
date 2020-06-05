@@ -1,5 +1,5 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "dialogs/newfunctiondialog.h"
@@ -24,7 +24,6 @@ NewFunctionDialog::NewFunctionDialog(FunctionRef fun, QWidget *parent)
   mFunction = fun;
 
   mNameLineEdit->setText(fun->name);
-  mRenameLineEdit->setText(fun->rename);
   mReturnTypeLineEdit->setText(fun->returnType);
   mParametersLineEdit->setText(fun->parameters.join(";"));
   
@@ -32,12 +31,14 @@ NewFunctionDialog::NewFunctionDialog(FunctionRef fun, QWidget *parent)
   mSpecifiersLineEdit->setText(specifiers.join(","));
 
   mBindingMethodComboBox->setCurrentIndex(fun->bindingMethod - Function::FirstBindingMethod);
+
+  m_impl_lineedit->setText(fun->implementation);
+  m_condition_lineedit->setText(fun->condition);
 }
 
 void NewFunctionDialog::setup()
 {
   mNameLineEdit = new QLineEdit();
-  mRenameLineEdit = new QLineEdit();
   mReturnTypeLineEdit = new QLineEdit();
   mParametersLineEdit = new QLineEdit();
   mSpecifiersLineEdit = new QLineEdit();
@@ -46,13 +47,17 @@ void NewFunctionDialog::setup()
   for (int i(Function::FirstBindingMethod); i <= Function::LastBindingMethod; ++i)
     mBindingMethodComboBox->addItem(Function::serialize(static_cast<Function::BindingMethod>(i)));
 
+  m_impl_lineedit = new QLineEdit();
+  m_condition_lineedit = new QLineEdit();
+
   auto *form = new QFormLayout();
   form->addRow("Name:", mNameLineEdit);
-  form->addRow("Rename:", mRenameLineEdit);
   form->addRow("Return type:", mReturnTypeLineEdit);
   form->addRow("Parameters:", mParametersLineEdit);
   form->addRow("Specifiers:", mSpecifiersLineEdit);
   form->addRow("Binding:", mBindingMethodComboBox);
+  form->addRow("Impl:", m_impl_lineedit);
+  form->addRow("Condition:", m_condition_lineedit);
 
   auto *okButton = new QPushButton("OK");
   connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
@@ -65,10 +70,11 @@ void NewFunctionDialog::setup()
 void NewFunctionDialog::sync()
 {
   mFunction->name = mNameLineEdit->text();
-  mFunction->rename = mRenameLineEdit->text();
   mFunction->returnType = mReturnTypeLineEdit->text().simplified();
   mFunction->parameters = mParametersLineEdit->text().simplified().split(";", QString::SkipEmptyParts);
   mFunction->bindingMethod = Function::deserialize<Function::BindingMethod>(mBindingMethodComboBox->currentText());
+  mFunction->implementation = m_impl_lineedit->text();
+  mFunction->condition = m_condition_lineedit->text();
 
   QString specifiers = mSpecifiersLineEdit->text();
   mFunction->setSpecifiers(specifiers.split(','));

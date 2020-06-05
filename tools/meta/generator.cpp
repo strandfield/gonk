@@ -567,7 +567,7 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
     return generateOperator(fun, getOperatorSymbol(fun->name));
   }
 
-  const QString funname = fun->rename.isEmpty() ? fun->name : fun->rename;
+  const QString funname = fun->name;
   const QString params = fparamscomma(fun);
   const QString funaddr = fun->implementation.isEmpty() ? ("&" + nameQualification() + fun->name) : fun->implementation;
   const QString fret = bm == Function::ConstructorBinding ? QString() : fparam(fun->returnType);
@@ -846,40 +846,6 @@ Function::BindingMethod Generator::guessBindingMethod(FunctionRef fun) const
     return Function::SimpleBinding;
 }
 
-QString Generator::fundisplay(FunctionRef fun)
-{
-  QStringList builder;
-
-  if (fun->isExplicit)
-    builder << "explicit ";
-  if (fun->isStatic)
-    builder << "static ";
-
-  if (!fun->returnType.isEmpty())
-  {
-    builder << fun->returnType << " ";
-  }
-  builder << fun->name;
-  builder << "(";
-  {
-    QStringList params = fun->parameters;
-    for (int i(0); i < fun->defaultArguments.size(); ++i)
-      params[params.size() - i - 1] += " = " + fun->defaultArguments.at(i);
-    builder << params.join(", ");
-  }
-  builder << ")";
-
-  if (fun->isConst)
-    builder << " const";
-
-  if (fun->isDeleted)
-    builder << " = delete";
-
-  builder << ";";
-
-  return builder.join("");
-}
-
 void Generator::generate(ClassRef cla)
 {
   if (cla->checkState == Qt::Unchecked)
@@ -978,14 +944,14 @@ void Generator::generate(ClassRef cla)
       if (!fun->condition.isEmpty())
         lines << QString("#if %1").arg(fun->condition);
 
-      lines << ("  // " + fundisplay(fun));
+      lines << ("  // " + fun->signature());
       try
       {
         lines << generate(fun);
       }
       catch (...)
       {
-        lines << ("  /// TODO: " + fundisplay(fun));
+        lines << ("  /// TODO: " + fun->signature());
       }
 
       if (!fun->condition.isEmpty())
@@ -1152,14 +1118,14 @@ void Generator::generate(NamespaceRef ns)
       if (!fun->condition.isEmpty())
         lines << QString("#if %1").arg(fun->condition);
 
-      lines << ("  // " + fundisplay(fun));
+      lines << ("  // " + fun->signature());
       try
       {
         lines << generate(fun);
       }
       catch (...)
       {
-        lines << ("  /// TODO: " + fundisplay(fun));
+        lines << ("  /// TODO: " + fun->signature());
       }
 
       if (!fun->condition.isEmpty())

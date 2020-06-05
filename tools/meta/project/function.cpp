@@ -28,6 +28,22 @@ void Function::accept(NodeVisitor& visitor)
 
 QString Function::display() const
 {
+  QString result = signature();
+
+  if (bindingMethod != Function::AutoBinding)
+    result += " [" + serialize(bindingMethod) + "]";
+
+  if (!implementation.isEmpty())
+    result += " [&" + implementation + "]";
+
+  if (!condition.isEmpty())
+    result += " [?" + condition + "]";
+
+  return result;
+}
+
+QString Function::signature() const
+{
   if (isConstructor)
   {
     QString result;
@@ -88,12 +104,6 @@ QString Function::display() const
     result += " = delete";
 
   result += ";";
-
-  if (!rename.isEmpty())
-    result += " [" + rename + "]";
-
-  if (bindingMethod != Function::AutoBinding)
-    result += " [" + serialize(bindingMethod) + "]";
 
   return result;
 }

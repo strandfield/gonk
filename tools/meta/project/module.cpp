@@ -33,12 +33,12 @@ size_t Module::childCount() const
 
 std::shared_ptr<Node> Module::childAt(size_t index) const
 {
-  return elements.at(index);
+  return elements.at(static_cast<int>(index));
 }
 
 void Module::removeChild(size_t index)
 {
-  elements.removeAt(index);
+  elements.removeAt(static_cast<int>(index));
 }
 
 QList<std::shared_ptr<Node>> Module::children() const

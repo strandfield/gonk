@@ -125,8 +125,6 @@ private:
   Function::BindingMethod getBindingMethod(FunctionRef fun) const;
   Function::BindingMethod guessBindingMethod(FunctionRef fun) const;
 
-  static QString fundisplay(FunctionRef fun);
-
 private:
   QString prefix() const;
   QString enclosingEntity() const; // returns Namespace or Class

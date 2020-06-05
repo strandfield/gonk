@@ -84,7 +84,7 @@ void FunctionNodeEditor::read(FunctionRef fun)
 
   mBindingMethod->setCurrentIndex(fun->bindingMethod - Function::FirstBindingMethod);
   mReturnType->setText(fun->returnType);
-  mName->setText(fun->name + (fun->rename.isEmpty() ? QString() : (QString("->") + fun->rename)));
+  mName->setText(fun->name);
 
   QStringList params = fun->parameters;
   for (int i(0); i < fun->defaultArguments.size(); ++i)
