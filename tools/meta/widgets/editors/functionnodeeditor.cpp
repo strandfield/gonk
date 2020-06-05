@@ -66,7 +66,7 @@ void FunctionNodeEditor::write()
   Controller::Instance().projectController().update(*mFunction,
     mName->text(),
     mReturnType->text(),
-    mParameters->text().split(';'),
+    mParameters->text().simplified().split(';', QString::SkipEmptyParts),
     mSpecifiers->text().split(','),
     static_cast<Function::BindingMethod>(mBindingMethod->currentIndex() + Function::FirstBindingMethod),
     m_implementation->text(),

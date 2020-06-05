@@ -555,6 +555,63 @@ void Generator::generate(FileRef file)
   source.write(QFileInfo{ currentSourceDirectory() + "/" + file->name + ".cpp" });
 }
 
+QString Generator::generateWrapper(const Function& fun)
+{
+  NodeRef parent = fun.parent.lock();
+
+  QString result;
+
+  result += fun.returnType + " " + fun.implementation + "(";
+
+  QStringList params;
+
+  if (parent->is<Class>() && !fun.isStatic)
+    params.append((fun.isConst ? "const " : "") + parent->name + "& self");
+
+  for (int i(0); i < fun.parameters.size(); ++i)
+  {
+    params.push_back(fun.parameters.at(i) + " a" + QString::number(i + 1));
+  }
+
+  result += params.join(", ") + ")\n";
+  result += "{\n";
+  result += "  ";
+
+  if (fun.returnType != "void")
+    result += "return ";
+
+  params.clear();
+
+  if (fun.parent.lock()->is<Class>() && !fun.isStatic)
+  {
+    result += "self." + fun.name + "(";
+
+    for (int i(0); i < fun.parameters.size(); ++i)
+    {
+      params.push_back("a" + QString::number(i + 1));
+    }
+
+    result += params.join(", ") + ")";
+  }
+  else
+  {
+    result += fun.name + "(";
+
+    for (int i(0); i < fun.parameters.size(); ++i)
+    {
+      params.push_back("a" + QString::number(i + 1));
+    }
+
+    result += params.join(", ") + ")";
+  }
+
+  result += ";\n";
+
+  result += "}\n";
+
+  return result;
+}
+
 QString Generator::generate(FunctionRef fun)
 {
   return generate(fun, getBindingMethod(fun));
@@ -605,6 +662,12 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
       return QString("  gonk::bind::fn_as_memfn<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionAsStaticBinding)
       return QString("  gonk::bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
+    else if (bm == Function::GenWrapperBinding && enclosingEntity() == "Class")
+      return QString("  gonk::bind::fn_as_memfn<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
+    else if (bm == Function::GenWrapperBinding && enclosingEntity() == "Namespace" && fun->returnType == "void")
+      return QString("  gonk::bind::void_function<%3%4>(%5, \"%6\")").arg(params, funaddr, enclosing_snake_name(), funname);
+    else if (bm == Function::GenWrapperBinding && enclosingEntity() == "Namespace" && fun->returnType != "void")
+      return QString("  gonk::bind::function<%2, %3%4>(%5, \"%6\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
 
     throw std::runtime_error{ "Unsupported bind method !" };
   }();
@@ -872,16 +935,32 @@ void Generator::generate(ClassRef cla)
   Type class_info = typeinfo(qual + cla->name);
   QString claname = class_info.name;
 
+  bool has_any_gen_wrapper = false;
+
   for (const auto n : cla->elements)
   {
     if (n->is<Class>() || n->is<Enum>())
       generate(n);
+    else if (n->is<Function>() && n->as<Function>().bindingMethod == Function::GenWrapperBinding)
+      has_any_gen_wrapper = true;
   }
 
   QStringList lines;
 
   if (!cla->condition.isEmpty())
     lines << QString("#if %1").arg(cla->condition);
+
+
+  if (has_any_gen_wrapper)
+  {
+    lines << QString("namespace {");
+    for (const auto n : cla->elements)
+    {
+      if (n->is<Function>() && n->as<Function>().bindingMethod == Function::GenWrapperBinding)
+        lines << generateWrapper(n->as<Function>());
+    }
+    lines << QString("}\n");
+  }
 
   lines << QString("static void register_%1%2_class(script::%3 %4)").arg(pre, snake, enclosing_entity, enclosing_snake);
   lines << "{";
@@ -1063,13 +1142,29 @@ void Generator::generate(NamespaceRef ns)
 
   QString snake = ns->is<File>() ? "ns" : to_snake_case(ns->name);
 
+  bool has_any_gen_wrapper = false;
+
   for (const auto n : ns->elements)
   {
     if (n->is<Namespace>() || n->is<Class>() || n->is<Enum>())
       generate(n);
+    else if (n->is<Function>() && n->as<Function>().bindingMethod == Function::GenWrapperBinding)
+      has_any_gen_wrapper = true;
   }
 
   QStringList lines;
+
+  if (has_any_gen_wrapper)
+  {
+    lines << QString("namespace {");
+    for (const auto n : ns->elements)
+    {
+      if (n->is<Function>() && n->as<Function>().bindingMethod == Function::GenWrapperBinding)
+        lines << generateWrapper(n->as<Function>());
+    }
+    lines << QString("}\n");
+  }
+
   if (ns->is<File>())
     lines << QString("void register_%1%2_file(script::Namespace %3)").arg(pre, to_snake_case(ns->name), enclosing_snake);
   else
@@ -1289,7 +1384,7 @@ Generator::TypeInfo & Generator::typeinfo(const QString & t)
   auto it = mTypeInfos.find(t);
   if (it == mTypeInfos.end())
   {
-    //qDebug() << "Unsupported type: " << t;
+    qDebug() << "Unsupported type: " << t;
     throw UnsupportedType{ t };
   }
   return it.value();

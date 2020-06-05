@@ -24,7 +24,8 @@ public:
     OperatorBinding,
     FreeFunctionBinding,
     FreeFunctionAsStaticBinding,
-    LastBindingMethod = FreeFunctionAsStaticBinding,
+    GenWrapperBinding,
+    LastBindingMethod = GenWrapperBinding,
   };
 
 public:
@@ -87,6 +88,8 @@ public:
       return "free";
     case Function::FreeFunctionAsStaticBinding:
       return "freestatic";
+    case Function::GenWrapperBinding:
+      return "genwrapper";
     default:
       break;
     }
@@ -122,6 +125,8 @@ public:
       return FreeFunctionBinding;
     else if (str == "freestatic")
       return FreeFunctionAsStaticBinding;
+    else if (str == "genwrapper")
+      return GenWrapperBinding;
     return AutoBinding;
   }
 };

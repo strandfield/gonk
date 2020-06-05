@@ -79,10 +79,11 @@ CREATE TABLE IF NOT EXISTS "types" (
 	"is_class"	INTEGER DEFAULT 0,
 	"condition"	TEXT
 );
-INSERT INTO "types" VALUES (1,'bool','Int',NULL,0,0,NULL);
-INSERT INTO "types" VALUES (2,'char','Char',NULL,0,0,NULL);
-INSERT INTO "types" VALUES (3,'int','Int',NULL,0,0,NULL);
-INSERT INTO "types" VALUES (4,'float','Float',NULL,0,0,NULL);
-INSERT INTO "types" VALUES (5,'double','Double',NULL,0,0,NULL);
-INSERT INTO "types" VALUES (6,'std::string','String',NULL,0,1,NULL);
+INSERT INTO "types" VALUES (1,'void','Void',NULL,0,0,NULL);
+INSERT INTO "types" VALUES (2,'bool','Boolean',NULL,0,0,NULL);
+INSERT INTO "types" VALUES (3,'char','Char',NULL,0,0,NULL);
+INSERT INTO "types" VALUES (4,'int','Int',NULL,0,0,NULL);
+INSERT INTO "types" VALUES (5,'float','Float',NULL,0,0,NULL);
+INSERT INTO "types" VALUES (6,'double','Double',NULL,0,0,NULL);
+INSERT INTO "types" VALUES (7,'std::string','String',NULL,0,1,NULL);
 COMMIT;

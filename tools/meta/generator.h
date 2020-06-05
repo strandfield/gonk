@@ -106,6 +106,7 @@ private:
   void generateModuleDefsFile();
   void generateModuleFile();
   void generate(FileRef file);
+  QString generateWrapper(const Function& fun);
   QString generate(FunctionRef fun);
   QString generate(FunctionRef fun, Function::BindingMethod bm);
   QString generateOperator(FunctionRef fun, OperatorSymbol op);

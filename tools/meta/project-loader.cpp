@@ -243,7 +243,7 @@ void ProjectLoader::loadFunctions()
     fun->function_id = query.value(ID).toInt();
     fun->name = query.value(NAME).toString();
     fun->returnType = query.value(RETURN_TYPE).toString();
-    fun->parameters = query.value(PARAMETERS).toString().split(';', QString::SkipEmptyParts);
+    fun->parameters = query.value(PARAMETERS).toString().simplified().split(';', QString::SkipEmptyParts);
     write(fun->checkState, fun->condition, query.value(CONDITION).toString());
     fun->bindingMethod = Function::deserialize<Function::BindingMethod>(query.value(BINDING).toString());
     fun->implementation = query.value(IMPL).toString();

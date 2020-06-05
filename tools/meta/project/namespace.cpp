@@ -32,12 +32,12 @@ size_t Namespace::childCount() const
 
 std::shared_ptr<Node> Namespace::childAt(size_t index) const
 {
-  return elements.at(index);
+  return elements.at(static_cast<int>(index));
 }
 
 void Namespace::removeChild(size_t index)
 {
-  elements.removeAt(index);
+  elements.removeAt(static_cast<int>(index));
 }
 
 QList<std::shared_ptr<Node>> Namespace::children() const
