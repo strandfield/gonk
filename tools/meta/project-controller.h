@@ -27,6 +27,8 @@ public:
 
   void addStatement(Node& node, const QString& content);
 
+  void insert(FunctionRef func, NodeRef parent);
+
   bool update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes);
 
   bool update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition);

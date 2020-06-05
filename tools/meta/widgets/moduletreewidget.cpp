@@ -581,27 +581,27 @@ void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *
       FunctionRef ctor = std::make_shared<Function>(cla.name);
       ctor->isConstructor = true;
       ctor->parameters.append("const " + cla.name + " &");
-      cla.elements.append(ctor);
+      Controller::Instance().projectController().insert(ctor, node);
     }
     else if (act == mAddDestructorAction)
     {
       FunctionRef dtor = std::make_shared<Function>("~" + cla.name);
       dtor->isDestructor = true;
-      cla.elements.append(dtor);
+      Controller::Instance().projectController().insert(dtor, node);
     }
     else if (act == mAddAssignmentAction)
     {
       FunctionRef assign = std::make_shared<Function>("operator=");
       assign->returnType = cla.name + " &";
       assign->parameters.append("const " + cla.name + " &");
-      cla.elements.append(assign);
+      Controller::Instance().projectController().insert(assign, node);
     }
     else if (act == mSortClassMembersAction)
     {
-      sort(cla.elements);
-      while (item->childCount() > 0)
-        item->removeChild(item->child(item->childCount() - 1));
-      fetchNewNodes(item);
+      //sort(cla.elements);
+      //while (item->childCount() > 0)
+      //  item->removeChild(item->child(item->childCount() - 1));
+      //fetchNewNodes(item);
     }
     else if (act == mAddClassStatementAction)
     {

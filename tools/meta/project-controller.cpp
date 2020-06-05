@@ -36,6 +36,27 @@ void ProjectController::addStatement(Node& node, const QString& content)
   node.appendChild(stmt);
 }
 
+void ProjectController::insert(FunctionRef f, NodeRef parent)
+{
+  f->order = static_cast<int>(parent->childCount());
+
+  if (parent->entity_id != -1)
+  {
+    QSqlQuery query = Database::exec(QString("INSERT INTO functions(name, return_type, parameters, specifiers) VALUES('%1', '%2', '%3', '%4')")
+      .arg(f->name, f->returnType, f->parameters.join(';'), f->getSpecifiers().join(',')));
+    f->function_id = query.lastInsertId().toInt();
+
+    query = Database::exec(QString("INSERT INTO entities(parent, function_id, rank) VALUES(%1, %2, %3)")
+      .arg(QString::number(parent->entity_id), QString::number(f->function_id), QString::number(f->order)));
+    f->entity_id = query.lastInsertId().toInt();
+
+    project->functions[f->function_id] = f;
+    project->entities[f->entity_id] = f;
+  }
+
+  parent->appendChild(f);
+}
+
 bool ProjectController::update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes)
 {
   QSqlQuery query = database.exec(QString("UPDATE files SET name='%1', hincludes='%2', cppincludes='%3' WHERE id = %4").arg(
