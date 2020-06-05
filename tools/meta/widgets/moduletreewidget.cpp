@@ -449,7 +449,8 @@ void ModuleTreeWidget::updateItem(QTreeWidgetItem *item, int column)
   if (node == nullptr)
     return;
 
-  node->checkState = item->checkState(0);
+  if (node->checkState != item->checkState(0))
+    Controller::Instance().projectController().update(*node, item->checkState(0));
 
   if (node->is<Module>() || node->is<Statement>())
   {

@@ -140,6 +140,49 @@ void ProjectController::update(Node& node, const QString& name, const QString& c
   node.condition = condition;
 }
 
+void ProjectController::update(Node& node, Qt::CheckState cs)
+{
+  if (node.entity_id != -1)
+  {
+    if (node.is<Function>())
+    {
+      Function& f = node.as<Function>();
+      QString cond = f.condition;
+
+      if (cs == Qt::Unchecked)
+      {
+        if (cond.isEmpty())
+          cond = "0";
+        else 
+          cond.prepend("0 &&");
+      }
+
+      Database::exec(QString("UPDATE functions SET condition='%1'"
+        "WHERE id = %2")
+        .arg(cond, QString::number(f.function_id)));
+    }
+    else if (node.is<Enumerator>())
+    {
+      Enumerator& enm = node.as<Enumerator>();
+      QString cond = enm.condition;
+
+      if (cs == Qt::Unchecked)
+      {
+        if (cond.isEmpty())
+          cond = "0";
+        else
+          cond.prepend("0 &&");
+      }
+
+      Database::exec(QString("UPDATE enumerators SET condition='%1'"
+        "WHERE id = %2")
+        .arg(cond, QString::number(enm.enumerator_id)));
+    }
+  }
+
+  node.checkState = cs;
+}
+
 struct NodeDeleter : public NodeVisitor
 {
   QSqlDatabase& database;

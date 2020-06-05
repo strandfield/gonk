@@ -37,6 +37,8 @@ public:
 
   void update(Node& node, const QString& name, const QString& condition);
 
+  void update(Node& node, Qt::CheckState cs);
+
   void remove(NodeRef node, ProjectRef pro);
 
   void remove(std::shared_ptr<Type> t, ProjectRef pro);

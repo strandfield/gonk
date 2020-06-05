@@ -25,6 +25,25 @@ void ProjectLoader::setState(const QString& st)
   Q_EMIT stateChanged();
 }
 
+void ProjectLoader::write(Qt::CheckState& cs, QString& cond, QString db_cond)
+{
+  if (db_cond == "0")
+  {
+    cs = Qt::Unchecked;
+    cond.clear();
+  }
+  else if (db_cond.startsWith("0 &&"))
+  {
+    cs = Qt::Unchecked;
+    cond = db_cond.remove("0 &&");
+  }
+  else
+  {
+    cs = Qt::Checked;
+    cond = db_cond;
+  }
+}
+
 void ProjectLoader::loadTypes()
 {
   setState("loading types");
@@ -225,7 +244,7 @@ void ProjectLoader::loadFunctions()
     fun->name = query.value(NAME).toString();
     fun->returnType = query.value(RETURN_TYPE).toString();
     fun->parameters = query.value(PARAMETERS).toString().split(';', QString::SkipEmptyParts);
-    fun->condition = query.value(CONDITION).toString();
+    write(fun->checkState, fun->condition, query.value(CONDITION).toString());
     fun->bindingMethod = Function::deserialize<Function::BindingMethod>(query.value(BINDING).toString());
     fun->implementation = query.value(IMPL).toString();
 
@@ -313,7 +332,7 @@ void ProjectLoader::loadEnumerators()
     auto enm = std::make_shared<Enumerator>("");
     enm->enumerator_id = query.value(ID).toInt();
     enm->name = query.value(NAME).toString();
-    enm->condition = query.value(CONDITION).toString();
+    write(enm->checkState, enm->condition, query.value(CONDITION).toString());
 
     project->enumerators[enm->enumerator_id] = enm;
   }

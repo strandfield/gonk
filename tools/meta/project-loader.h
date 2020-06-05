@@ -46,6 +46,8 @@ Q_SIGNALS:
 protected:
   void setState(const QString& st);
 
+  void write(Qt::CheckState& cs, QString& cond, QString db_cond);
+
   void loadTypes();
   void loadEntities();
   void loadModules();
