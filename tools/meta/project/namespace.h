@@ -35,6 +35,7 @@ public:
   {
     auto ret = std::make_shared<T>(name);
     elements.append(ret);
+    ret->parent = shared_from_this();
     return ret;
   }
 
@@ -49,6 +50,7 @@ public:
 
     auto ret = std::make_shared<T>(name);
     elements.append(ret);
+    ret->parent = shared_from_this();
     return ret;
   }
 
