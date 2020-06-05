@@ -87,7 +87,7 @@ void ProjectMerger::getIds(NodeRef elem)
     QSqlQuery query = Database::exec(QString("INSERT INTO modules(name) VALUES('%1')").arg(m->name));
     m->module_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, module_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, module_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(m->module_id), QString::number(m->order)));
     m->entity_id = query.lastInsertId().toInt();
 
@@ -100,7 +100,7 @@ void ProjectMerger::getIds(NodeRef elem)
     QSqlQuery query = Database::exec(QString("INSERT INTO files(name) VALUES('%1')").arg(f->name));
     f->file_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, file_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, file_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(f->file_id), QString::number(f->order)));
     f->entity_id = query.lastInsertId().toInt();
 
@@ -113,7 +113,7 @@ void ProjectMerger::getIds(NodeRef elem)
     QSqlQuery query = Database::exec(QString("INSERT INTO namespaces(name) VALUES('%1')").arg(ns->name));
     ns->namespace_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, namespace_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, namespace_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(ns->namespace_id), QString::number(ns->order)));
     ns->entity_id = query.lastInsertId().toInt();
 
@@ -127,7 +127,7 @@ void ProjectMerger::getIds(NodeRef elem)
       .arg(c->name, QString::number(c->type_id), c->base));
     c->class_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, class_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, class_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(c->class_id), QString::number(c->order)));
     c->entity_id = query.lastInsertId().toInt();
 
@@ -140,7 +140,7 @@ void ProjectMerger::getIds(NodeRef elem)
     QSqlQuery query = Database::exec(QString("INSERT INTO enums(name, type) VALUES('%1', %2)").arg(e->name, QString::number(e->type_id)));
     e->enum_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, enum_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, enum_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(e->enum_id), QString::number(e->order)));
     e->entity_id = query.lastInsertId().toInt();
 
@@ -154,7 +154,7 @@ void ProjectMerger::getIds(NodeRef elem)
     QSqlQuery query = Database::exec(QString("INSERT INTO enumerators(name, enum_id) VALUES('%1', %2)").arg(e->name, QString::number(parent->enum_id)));
     e->enumerator_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, enumerator_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, enumerator_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(e->enumerator_id), QString::number(e->order)));
     e->entity_id = query.lastInsertId().toInt();
 
@@ -168,7 +168,7 @@ void ProjectMerger::getIds(NodeRef elem)
       .arg(f->name, f->returnType, f->parameters.join(';'), f->getSpecifiers().join(',')));
     f->function_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, function_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, function_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(f->function_id), QString::number(f->order)));
     f->entity_id = query.lastInsertId().toInt();
 
@@ -181,7 +181,7 @@ void ProjectMerger::getIds(NodeRef elem)
     QSqlQuery query = Database::exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(s->name));
     s->statement_id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, 'order') VALUES(%1, %2, %3)")
+    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, rank) VALUES(%1, %2, %3)")
       .arg(parentId(), QString::number(s->statement_id), QString::number(s->order)));
     s->entity_id = query.lastInsertId().toInt();
 

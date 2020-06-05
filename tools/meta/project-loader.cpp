@@ -117,6 +117,7 @@ void ProjectLoader::loadEntities()
       {
         NamespaceRef ns = project->namespaces[query.value(NAMESPACE_ID).toInt()];
         ns->entity_id = entity_id;
+        ns->order = query.value(ORDER).toInt();
         project->entities[entity_id] = ns;
       }
       else if (!query.value(CLASS_ID).isNull())

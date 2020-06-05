@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS "entities" (
 	"enum_id"	INTEGER,
 	"enumerator_id"	INTEGER,
 	"statement_id"	INTEGER,
-	"order"	INTEGER,
+	"rank"	INTEGER,
 	FOREIGN KEY("statement_id") REFERENCES "statements"("id"),
 	FOREIGN KEY("class_id") REFERENCES "classes"("id"),
 	FOREIGN KEY("function_id") REFERENCES "functions"("id"),
