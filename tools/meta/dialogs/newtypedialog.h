@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_NEWTYPEDIALOG_H
-#define YASL_META_NEWTYPEDIALOG_H
+#ifndef METAGONK_NEWTYPEDIALOG_H
+#define METAGONK_NEWTYPEDIALOG_H
 
 #include <QDialog>
 
@@ -29,4 +29,4 @@ private:
   QLineEdit *mHeaderLineEdit;
 };
 
-#endif // YASL_META_NEWTYPEDIALOG_H
+#endif // METAGONK_NEWTYPEDIALOG_H

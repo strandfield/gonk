@@ -5,9 +5,12 @@
 #ifndef METAGONK_CPPFILE_H
 #define METAGONK_CPPFILE_H
 
-#include "headerfile.h"
+#include <QString>
 
 #include <set>
+#include <vector>
+
+class QFileInfo;
 
 class CppFile
 {

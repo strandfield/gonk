@@ -5,6 +5,7 @@
 #include "gen/cppfile.h"
 
 #include <QFile>
+#include <QFileInfo>
 #include <QTextStream>
 
 #include <QDebug>

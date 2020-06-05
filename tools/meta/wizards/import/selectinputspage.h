@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_SELECTINPUTSPAGE_H
-#define YASL_META_SELECTINPUTSPAGE_H
+#ifndef METAGONK_SELECTINPUTSPAGE_H
+#define METAGONK_SELECTINPUTSPAGE_H
 
 #include <QWizardPage>
 
@@ -35,4 +35,4 @@ private:
   QTreeWidget *sourceTreeWidget;
 };
 
-#endif // YASL_META_SELECTINPUTSPAGE_H
+#endif // METAGONK_SELECTINPUTSPAGE_H

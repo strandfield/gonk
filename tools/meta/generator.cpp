@@ -4,8 +4,6 @@
 
 #include "generator.h"
 
-#include "gen/headerfile.h"
-#include "gen/sourcefile.h"
 #include "gen/cppfile.h"
 #include "gen/format.h"
 

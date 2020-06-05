@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_TYPETREEWIDGET_H
-#define YASL_META_TYPETREEWIDGET_H
+#ifndef METAGONK_TYPETREEWIDGET_H
+#define METAGONK_TYPETREEWIDGET_H
 
 #include <QTreeWidget>
 
@@ -55,4 +55,4 @@ private:
   QTreeWidgetItem *mClasses;
 };
 
-#endif // YASL_META_TYPETREEWIDGET_H
+#endif // METAGONK_TYPETREEWIDGET_H

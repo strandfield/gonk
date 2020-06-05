@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_IMPORTWIZARD_H
-#define YASL_META_IMPORTWIZARD_H
+#ifndef METAGONK_IMPORTWIZARD_H
+#define METAGONK_IMPORTWIZARD_H
 
 #include <QWizard>
 
@@ -51,4 +51,4 @@ private:
   ProjectRef mProject;
 };
 
-#endif // YASL_METAWIZARD_H
+#endif // METAGONK_IMPORTWIZARD_H
