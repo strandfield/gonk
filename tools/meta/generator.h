@@ -11,6 +11,7 @@
 #include "project/file.h"
 #include "project/function.h"
 
+#include <QMap>
 #include <QSet>
 #include <QStack>
 

@@ -5,9 +5,6 @@
 #ifndef METAGONK_NODE_H
 #define METAGONK_NODE_H
 
-#include <QJsonObject>
-#include <QMap>
-#include <QSharedPointer>
 #include <QStack>
 
 #include <memory>
@@ -73,18 +70,6 @@ protected:
   virtual int compareTo(const Node & other) const;
 };
 typedef std::shared_ptr<Node> NodeRef;
-
-/// TODO: this seems to be dead code, remove!
-class NodeValue
-{
-public:
-  NodeRef value;
-
-  NodeValue(const NodeRef & val) : value(val) { }
-  NodeValue(const NodeValue & ) = default;
-
-  NodeValue & operator=(const NodeValue &) = default;
-};
 
 bool eq(const NodeRef & lhs, const NodeRef & rhs);
 inline bool neq(const NodeRef & lhs, const NodeRef & rhs)

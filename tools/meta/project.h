@@ -14,6 +14,7 @@
 #include "project/statement.h"
 #include "project/type.h"
 
+#include <map>
 #include <memory>
 
 class Project
