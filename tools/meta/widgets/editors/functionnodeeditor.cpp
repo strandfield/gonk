@@ -40,6 +40,14 @@ FunctionNodeEditor::FunctionNodeEditor(const FunctionRef & func, QWidget *p)
   mSpecifiers->setPlaceholderText("const,static,...");
   mSpecifiers->setFixedWidth(fm.width("const,static,...") + 8);
 
+  m_implementation = new QLineEdit;
+  m_implementation->setPlaceholderText("my_callback");
+  m_implementation->setFixedWidth(fm.width("my_callback") + 8);
+
+  m_condition = new QLineEdit;
+  m_condition->setPlaceholderText("QT_VERSION_MAJOR > 5");
+  m_condition->setFixedWidth(fm.width("QT_VERSION_MAJOR > 5") + 8);
+
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
   layout->addWidget(mVersion);
@@ -48,6 +56,8 @@ FunctionNodeEditor::FunctionNodeEditor(const FunctionRef & func, QWidget *p)
   layout->addWidget(mName);
   layout->addWidget(mParameters);
   layout->addWidget(mSpecifiers);
+  layout->addWidget(m_implementation);
+  layout->addWidget(m_condition);
 
   setAutoFillBackground(true);
 
@@ -64,8 +74,8 @@ void FunctionNodeEditor::write()
     mParameters->text().split(';'),
     mSpecifiers->text().split(','),
     static_cast<Function::BindingMethod>(mBindingMethod->currentIndex() + Function::FirstBindingMethod),
-    "",
-    "");
+    m_implementation->text(),
+    m_condition->text());
 }
 
 void FunctionNodeEditor::read(FunctionRef fun)
@@ -82,5 +92,8 @@ void FunctionNodeEditor::read(FunctionRef fun)
   mParameters->setText(params.join(";"));
 
   mSpecifiers->setText(fun->getSpecifiers().join(','));
+
+  m_implementation->setText(fun->implementation);
+  m_condition->setText(fun->condition);
 }
 

@@ -30,7 +30,9 @@ private:
   QLineEdit *mReturnType;
   QLineEdit *mName;
   QLineEdit *mParameters;
-  QLineEdit *mSpecifiers;
+  QLineEdit* mSpecifiers;
+  QLineEdit* m_implementation;
+  QLineEdit* m_condition;
 };
 
 #endif // YASL_META_FUNCTION_NODE_EDITOR_H

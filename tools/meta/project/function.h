@@ -39,6 +39,7 @@ public:
   bool isConstructor;
   bool isDestructor;
   BindingMethod bindingMethod;
+  QString implementation;
   QStringList defaultArguments;
 
 public:

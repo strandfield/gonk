@@ -227,6 +227,7 @@ void ProjectLoader::loadFunctions()
     fun->parameters = query.value(PARAMETERS).toString().split(';', QString::SkipEmptyParts);
     fun->condition = query.value(CONDITION).toString();
     fun->bindingMethod = Function::deserialize<Function::BindingMethod>(query.value(BINDING).toString());
+    fun->implementation = query.value(IMPL).toString();
 
     QStringList specifiers = query.value(SPECIFIERS).toString().split(',');
     fun->setSpecifiers(specifiers);

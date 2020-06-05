@@ -80,7 +80,7 @@ bool ProjectController::update(Function& fun, const QString& name, const QString
   fun.setSpecifiers(specifiers);
   fun.bindingMethod = method;
   fun.condition = condition;
-  // @TODO: fun.impl
+  fun.implementation = impl;
 
   return true;
 }

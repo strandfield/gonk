@@ -569,7 +569,7 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 
   const QString funname = fun->rename.isEmpty() ? fun->name : fun->rename;
   const QString params = fparamscomma(fun);
-  const QString funaddr = "&" + nameQualification() + fun->name;
+  const QString funaddr = fun->implementation.isEmpty() ? ("&" + nameQualification() + fun->name) : fun->implementation;
   const QString fret = bm == Function::ConstructorBinding ? QString() : fparam(fun->returnType);
 
   QString ret = [&]() -> QString {
@@ -594,9 +594,9 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
     else if (bm == Function::SimpleBinding && enclosingEntity() == "Class")
       return QString("  gonk::bind::member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionBinding)
-      return QString("  gonk::bind::fn_as_memfn<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, "&" + fun->name, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::fn_as_memfn<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionAsStaticBinding)
-      return QString("  gonk::bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, "&" + fun->name, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
 
     throw std::runtime_error{ "Unsupported bind method !" };
   }();
