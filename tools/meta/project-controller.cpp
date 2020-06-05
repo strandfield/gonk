@@ -325,6 +325,13 @@ void ProjectController::move(NodeRef node, ProjectRef pro, int delta)
 
     Database::exec(QString("UPDATE entities SET rank = %1 WHERE id = %2")
       .arg(QString::number(node->order + delta), QString::number(node->entity_id)));
+
+    if (node->parent.lock() != nullptr)
+      node->parent.lock()->childAt(node->order + delta)->order = node->order;
+    else
+      pro->modules.at(node->order + delta)->order = node->order;
+
+    node->order += delta;
   }
 
   if (node->parent.lock() != nullptr)

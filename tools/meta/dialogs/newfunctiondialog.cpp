@@ -4,6 +4,9 @@
 
 #include "dialogs/newfunctiondialog.h"
 
+#include "controller.h"
+#include "project-controller.h"
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QLineEdit>
@@ -69,14 +72,13 @@ void NewFunctionDialog::setup()
 
 void NewFunctionDialog::sync()
 {
-  mFunction->name = mNameLineEdit->text();
-  mFunction->returnType = mReturnTypeLineEdit->text().simplified();
-  mFunction->parameters = mParametersLineEdit->text().simplified().split(";", QString::SkipEmptyParts);
-  mFunction->bindingMethod = Function::deserialize<Function::BindingMethod>(mBindingMethodComboBox->currentText());
-  mFunction->implementation = m_impl_lineedit->text();
-  mFunction->condition = m_condition_lineedit->text();
-
-  QString specifiers = mSpecifiersLineEdit->text();
-  mFunction->setSpecifiers(specifiers.split(','));
+  Controller::Instance().projectController().update(*mFunction,
+    mNameLineEdit->text(),
+    mReturnTypeLineEdit->text().simplified(),
+    mParametersLineEdit->text().simplified().split(";", QString::SkipEmptyParts),
+    mSpecifiersLineEdit->text().simplified().split(','),
+    static_cast<Function::BindingMethod>(mBindingMethodComboBox->currentIndex() + Function::FirstBindingMethod),
+    m_impl_lineedit->text(),
+    m_condition_lineedit->text());
 }
 

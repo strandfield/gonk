@@ -25,7 +25,6 @@ public:
   inline FunctionRef getFunction() const { return std::static_pointer_cast<Function>(getNode()); }
 
 private:
-  QLineEdit *mVersion;
   QComboBox *mBindingMethod;
   QLineEdit *mReturnType;
   QLineEdit *mName;

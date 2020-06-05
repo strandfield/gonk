@@ -537,6 +537,16 @@ void Generator::generate(FileRef file)
   currentHeader().lines.push_back("namespace script");
   currentHeader().lines.push_back("{");
 
+  for (NodeRef child : file->elements)
+  {
+    if (child->is<Statement>())
+    {
+      QString content = child->name;
+      content.replace("\\n", "\n");
+      currentSource().lines.push_back(content);
+    }
+  }
+
   generate(NamespaceRef{ file });
 
   currentHeader().lines.push_back("} // namespace script");
@@ -567,7 +577,7 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 
   const QString funname = fun->name;
   const QString params = fparamscomma(fun);
-  const QString funaddr = fun->implementation.isEmpty() ? ("&" + nameQualification() + fun->name) : fun->implementation;
+  const QString funaddr = "&" + (fun->implementation.isEmpty() ? (nameQualification() + fun->name) : fun->implementation);
   const QString fret = bm == Function::ConstructorBinding ? QString() : fparam(fun->returnType);
 
   QString ret = [&]() -> QString {
@@ -957,7 +967,9 @@ void Generator::generate(ClassRef cla)
     }
     else if (n->is<Statement>())
     {
-      lines << n->name;
+      QString content = n->name;
+      content.replace("\\n", "\n");
+      lines << ("  " + content);
     }
   }
 
@@ -1129,9 +1141,11 @@ void Generator::generate(NamespaceRef ns)
       if (!fun->condition.isEmpty())
         lines << QString("#endif");
     }
-    else if (n->is<Statement>())
+    else if (n->is<Statement>() && !ns->is<File>())
     {
-      lines << ("  " + n->name);
+      QString content = n->name;
+      content.replace("\\n", "\n");
+      lines << ("  " + content);
     }
   }
 

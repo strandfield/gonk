@@ -17,10 +17,6 @@ FunctionNodeEditor::FunctionNodeEditor(const FunctionRef & func, QWidget *p)
 {
   QFontMetrics fm{ font() };
 
-  mVersion = new QLineEdit;
-  mVersion->setPlaceholderText("version");
-  mVersion->setFixedWidth(fm.width("version") + 8);
-
   mBindingMethod = new QComboBox();
   for (int i(Function::FirstBindingMethod); i <= Function::LastBindingMethod; ++i)
     mBindingMethod->addItem(Function::serialize(static_cast<Function::BindingMethod>(i)));
@@ -50,7 +46,6 @@ FunctionNodeEditor::FunctionNodeEditor(const FunctionRef & func, QWidget *p)
 
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mVersion);
   layout->addWidget(mBindingMethod);
   layout->addWidget(mReturnType);
   layout->addWidget(mName);

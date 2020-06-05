@@ -19,6 +19,7 @@ StatementEditorDialog::StatementEditorDialog(StatementRef stmt, QWidget *parent)
   setWindowTitle("Statement Editor");
 
   m_texteditor = new QPlainTextEdit();
+  m_texteditor->setFont(QFont("Courier"));
 
   QString text = stmt->name;
   text.replace("\\n", "\n");
