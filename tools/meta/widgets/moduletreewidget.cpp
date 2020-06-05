@@ -245,38 +245,12 @@ void ModuleTreeWidget::moveSelectedRow(int k)
   if (node == nullptr)
     return;
 
-  if (k == Qt::Key_Up)
-  {
-    if (node->is<Class>())
-      node->as<Class>().elements.swap(item_index, item_index - 1);
-    else if (node->is<Namespace>())
-      node->as<Namespace>().elements.swap(item_index, item_index - 1);
-    else if (node->is<Module>())
-      node->as<Module>().elements.swap(item_index, item_index - 1);
-    else if (node->is<Enum>())
-      node->as<Enum>().enumerators.swap(item_index, item_index - 1);
-    else
-      throw std::runtime_error{ "ModuleTreeWidget::moveSelectedRow : Not implemented" };
+  int delta = k == Qt::Key_Up ? -1 : 1;
 
-    QTreeWidgetItem *sibling = parent->takeChild(item_index - 1);
-    parent->insertChild(item_index, sibling);
-  }
-  else if (k == Qt::Key_Down)
-  {
-    if (node->is<Class>())
-      node->as<Class>().elements.swap(item_index, item_index + 1);
-    else if (node->is<Namespace>())
-      node->as<Namespace>().elements.swap(item_index, item_index + 1);
-    else if (node->is<Module>())
-      node->as<Module>().elements.swap(item_index, item_index + 1);
-    else if (node->is<Enum>())
-      node->as<Enum>().enumerators.swap(item_index, item_index + 1);
-    else
-      throw std::runtime_error{ "ModuleTreeWidget::moveSelectedRow : Not implemented" };
+  Controller::Instance().projectController().move(node, mProject, delta);
 
-    QTreeWidgetItem *sibling = parent->takeChild(item_index + 1);
-    parent->insertChild(item_index, sibling);
-  }
+  QTreeWidgetItem* sibling = parent->takeChild(item_index + delta);
+  parent->insertChild(item_index, sibling);
 }
 
 void ModuleTreeWidget::processCtrlE()

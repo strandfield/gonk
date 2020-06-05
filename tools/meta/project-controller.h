@@ -39,6 +39,8 @@ public:
 
   void remove(std::shared_ptr<Type> t, ProjectRef pro);
 
+  void move(NodeRef node, ProjectRef pro, int delta);
+
 protected:
 };
 

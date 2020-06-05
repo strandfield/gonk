@@ -286,3 +286,41 @@ void ProjectController::remove(std::shared_ptr<Type> t, ProjectRef pro)
 
   list.removeAt(index);
 }
+
+void ProjectController::move(NodeRef node, ProjectRef pro, int delta)
+{
+  Q_ASSERT(delta == -1 || delta == 1);
+
+  if (node->order == 0 && delta == -1)
+    return;
+  // @TODO: add check for delta == 1
+
+  if (node->entity_id != -1)
+  {
+    QString parent_id = node->parent.lock() != nullptr ? QString::number(node->parent.lock()->entity_id) : QString("NULL");
+
+    Database::exec(QString("UPDATE entities SET rank = %1 WHERE parent = %2 AND rank = %3")
+      .arg(QString::number(node->order), parent_id, QString::number(node->order + delta)));
+
+    Database::exec(QString("UPDATE entities SET rank = %1 WHERE id = %2")
+      .arg(QString::number(node->order + delta), QString::number(node->entity_id)));
+  }
+
+  if (node->parent.lock() != nullptr)
+  {
+    auto parent = node->parent.lock();
+
+    if (parent->is<Class>())
+      parent->as<Class>().elements.swap(node->order, node->order + delta);
+    else if (parent->is<Namespace>())
+      parent->as<Namespace>().elements.swap(node->order, node->order + delta);
+    else if (parent->is<Module>())
+      parent->as<Module>().elements.swap(node->order, node->order + delta);
+    else if (parent->is<Enum>())
+      parent->as<Enum>().enumerators.swap(node->order, node->order + delta);
+  }
+  else
+  {
+    pro->modules.swap(node->order, node->order + delta);
+  }
+}
