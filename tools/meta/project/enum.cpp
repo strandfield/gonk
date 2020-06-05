@@ -60,12 +60,12 @@ size_t Enum::childCount() const
 
 std::shared_ptr<Node> Enum::childAt(size_t index) const
 {
-  return enumerators.at(index);
+  return enumerators.at(static_cast<int>(index));
 }
 
 void Enum::removeChild(size_t index)
 {
-  enumerators.removeAt(index);
+  enumerators.removeAt(static_cast<int>(index));
 }
 
 QList<std::shared_ptr<Node>> Enum::children() const

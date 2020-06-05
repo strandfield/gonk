@@ -47,12 +47,12 @@ size_t Class::childCount() const
 
 std::shared_ptr<Node> Class::childAt(size_t index) const
 {
-  return elements.at(index);
+  return elements.at(static_cast<int>(index));
 }
 
 void Class::removeChild(size_t index)
 {
-  elements.removeAt(index);
+  elements.removeAt(static_cast<int>(index));
 }
 
 QList<std::shared_ptr<Node>> Class::children() const

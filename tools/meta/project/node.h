@@ -13,26 +13,6 @@
 #include <memory>
 #include <vector>
 
-namespace yaml
-{
-class Value;
-class Object;
-QString extractField(QString str, const QString & fieldName);
-QString createField(const QString &fieldName, const QString & content);
-QString checkStateField(Qt::CheckState cs);
-Qt::CheckState checkstate(const QString & str);
-void writeCheckstate(yaml::Object & obj, Qt::CheckState cs);
-Qt::CheckState readCheckState(const yaml::Object & obj);
-int firstFieldIndex(const QString & str);
-QString extractName(QString str);
-} // namespace yaml
-
-namespace json
-{
-Qt::CheckState readCheckState(const QJsonObject & obj);
-void writeCheckState(QJsonObject & obj, Qt::CheckState cs);
-} //  namespace json
-
 enum class NodeType
 {
   Module,
