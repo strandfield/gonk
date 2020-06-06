@@ -11,6 +11,8 @@ class Database
 {
 public:
   static QSqlQuery exec(const QString& query);
+
+  static bool run(const QString& filepath);
 };
 
 #endif // METAGONK_DATABASE_H

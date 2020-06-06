@@ -1,0 +1,9 @@
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS "enumerators" (
+	"id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+	"name"	TEXT NOT NULL,
+	"enum_id"	INTEGER,
+	"condition"	TEXT,
+	FOREIGN KEY("enum_id") REFERENCES "enums"("id")
+);
+COMMIT;

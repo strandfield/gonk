@@ -53,6 +53,7 @@ MainWindow::MainWindow()
   setCentralWidget(mTabWidget);
 
   menuBar()->addAction("Open", this, SLOT(openProject()));
+  menuBar()->addAction("Build DB", this, SLOT(buildDB()));
   menuBar()->addAction("New type", this, SLOT(createNewType()));
   menuBar()->addAction("Import", this, SLOT(importCpp()));
   menuBar()->addAction("Generate", this, SLOT(generateBinding()));
@@ -66,25 +67,7 @@ void MainWindow::openProject()
 
   QFileInfo fileinfo{ path };
 
-  if (fileinfo.suffix() == "sql")
-  {
-    QString savepath = QFileDialog::getSaveFileName(this, "Save database", QString(), QString("metagonk database (*.db)"));
-
-    if (savepath.isEmpty())
-      return;
-
-    if (!m_controller->createSqlDatabase(fileinfo, savepath))
-    {
-      QMessageBox::warning(nullptr, QObject::tr("Cannot create database"),
-        m_controller->database().lastError().text(), QMessageBox::Ok);
-
-      return;
-    }
-
-    m_controller->loadProject();
-    mProject = m_controller->project();
-  }
-  else if (fileinfo.suffix() == "db")
+  if (fileinfo.suffix() == "db")
   {
     if (!m_controller->loadDatabase(fileinfo))
     {
@@ -101,6 +84,46 @@ void MainWindow::openProject()
   {
     QMessageBox::information(this, "Open project", "Failed to open project", QMessageBox::Ok);
     return;
+  }
+
+  if (mProject)
+  {
+    mSettings->setValue("lastproject", path);
+
+    mTypeTreeWidget->setProject(mProject);
+    mModuleTreeWidget->setProject(mProject);
+  }
+  else
+  {
+    QMessageBox::information(this, "Open project", "Failed to open project", QMessageBox::Ok); return;
+  }
+}
+
+void MainWindow::buildDB()
+{
+  QString path = QFileDialog::getExistingDirectory(this, "Selected database directory");
+  if (path.isEmpty())
+    return;
+
+  QFileInfo fileinfo{ path };
+
+  if (fileinfo.exists())
+  {
+    QString savepath = QFileDialog::getSaveFileName(this, "Save database", QString(), QString("metagonk database (*.db)"));
+
+    if (savepath.isEmpty())
+      return;
+
+    if (!m_controller->createSqlDatabase(fileinfo, savepath))
+    {
+      QMessageBox::warning(nullptr, QObject::tr("Cannot create database"),
+        m_controller->database().lastError().text(), QMessageBox::Ok);
+
+      return;
+    }
+
+    m_controller->loadProject();
+    mProject = m_controller->project();
   }
 
   if (mProject)

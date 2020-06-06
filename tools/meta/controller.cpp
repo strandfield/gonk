@@ -4,6 +4,8 @@
 
 #include "controller.h"
 
+#include "database.h"
+
 #include "project-controller.h"
 #include "project-loader.h"
 #include "project-merger.h"
@@ -38,22 +40,8 @@ Controller& Controller::Instance()
   return *m_singleton;
 }
 
-class QueryParser
-{
-public:
-  QString text;
-  int index = 0;
 
-  QString next()
-  {
-    int offset = text.indexOf(";\n", index);
-    QString result = text.mid(index, offset - index);
-    index = offset + 2;
-    return result;
-  }
-};
-
-bool Controller::createSqlDatabase(const QFileInfo& sql_file, const QString& savepath)
+bool Controller::createSqlDatabase(const QFileInfo& db_dir, const QString& savepath)
 {
   if (QFile::exists(savepath))
     QFile::remove(savepath);
@@ -66,32 +54,16 @@ bool Controller::createSqlDatabase(const QFileInfo& sql_file, const QString& sav
 
   m_database_path = savepath;
 
-  QByteArray db_content;
-
-  {
-    QFile file{ sql_file.absoluteFilePath() };
-    file.open(QIODevice::ReadOnly);
-    db_content = file.readAll();
-  }
-
-  QueryParser parser;
-  parser.text = QString::fromUtf8(db_content).replace("\r\n", "\n");
-
-  while (parser.index != parser.text.length())
-  {
-    QString q = parser.next();
-
-    qDebug() << "Executing " << q;
-
-    QSqlQuery query = database().exec(q);
-
-    if (database().lastError().isValid())
-    {
-      return false;
-    }
-  }
-
-  return true;
+  return Database::run(db_dir.absoluteFilePath() + "/types.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/statements.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/namespaces.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/modules.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/enums.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/enumerators.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/functions.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/files.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/classes.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/entities.sql");
 }
 
 bool Controller::loadDatabase(const QFileInfo& db_file)

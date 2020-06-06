@@ -8,7 +8,25 @@
 
 #include <QSqlError>
 
+#include <QFile>
+
 #include <QDebug>
+
+
+class QueryParser
+{
+public:
+  QString text;
+  int index = 0;
+
+  QString next()
+  {
+    int offset = text.indexOf(";\n", index);
+    QString result = text.mid(index, offset - index);
+    index = offset + 2;
+    return result;
+  }
+};
 
 QSqlQuery Database::exec(const QString& query)
 {
@@ -21,4 +39,36 @@ QSqlQuery Database::exec(const QString& query)
   }
 
   return result;
+}
+
+bool Database::run(const QString& filepath)
+{
+  QByteArray db_content;
+
+  {
+    QFile file{ filepath };
+    file.open(QIODevice::ReadOnly);
+    db_content = file.readAll();
+  }
+
+  QueryParser parser;
+  parser.text = QString::fromUtf8(db_content).replace("\r\n", "\n");
+
+  while (parser.index != parser.text.length())
+  {
+    QString q = parser.next();
+
+    qDebug() << "Executing " << q;
+
+    try
+    {
+      exec(q);    
+    }
+    catch (std::runtime_error &)
+    {
+      return false;
+    }
+  }
+
+  return true;
 }

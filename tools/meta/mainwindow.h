@@ -27,6 +27,7 @@ public:
 
 protected Q_SLOTS:
   void openProject();
+  void buildDB();
   void createNewType();
   void importCpp();
   void generateBinding();
