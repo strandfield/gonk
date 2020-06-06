@@ -116,6 +116,12 @@ void Generator::generate(const ProjectRef & p)
     generate(m);
 
   auto elapsed = timer.elapsed();
+
+  for (const QString& t : unsupported_types)
+  {
+    qDebug() << t;
+  }
+
   qDebug() << "Generation done in" << elapsed;
 }
 
@@ -1410,7 +1416,7 @@ Generator::TypeInfo & Generator::typeinfo(const QString & t)
   auto it = mTypeInfos.find(t);
   if (it == mTypeInfos.end())
   {
-    qDebug() << "Unsupported type: " << t;
+    unsupported_types.insert(t);
     throw UnsupportedType{ t };
   }
   return it.value();

@@ -135,6 +135,22 @@ struct member_wrapper_t<R(ClassType::*)(A1, A2, A3, A4, A5, A6), F> {
   }
 };
 
+template<typename R, typename ClassType, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, R(ClassType::*F)(A1, A2, A3, A4, A5, A6, A7)const>
+struct member_wrapper_t<R(ClassType::*)(A1, A2, A3, A4, A5, A6, A7)const, F> {
+  static script::Value wrap(script::FunctionCall* c) {
+    const ClassType& ref = value_cast<const ClassType&>(c->arg(0));
+    return make_value<R>(((ref).*(F))(value_cast<A1>(c->arg(1)), value_cast<A2>(c->arg(2)), value_cast<A3>(c->arg(3)), value_cast<A4>(c->arg(4)), value_cast<A5>(c->arg(5)), value_cast<A6>(c->arg(6)), value_cast<A7>(c->arg(7))), c->engine());
+  }
+};
+
+template<typename R, typename ClassType, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, R(ClassType::*F)(A1, A2, A3, A4, A5, A6, A7)>
+struct member_wrapper_t<R(ClassType::*)(A1, A2, A3, A4, A5, A6, A7), F> {
+  static script::Value wrap(script::FunctionCall* c) {
+    ClassType& ref = value_cast<ClassType&>(c->arg(0));
+    return make_value<R>(((ref).*(F))(value_cast<A1>(c->arg(1)), value_cast<A2>(c->arg(2)), value_cast<A3>(c->arg(3)), value_cast<A4>(c->arg(4)), value_cast<A5>(c->arg(5)), value_cast<A6>(c->arg(6)), value_cast<A7>(c->arg(7))), c->engine());
+  }
+};
+
 /****************************************************************
 void member functions
 ****************************************************************/

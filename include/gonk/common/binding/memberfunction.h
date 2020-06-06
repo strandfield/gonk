@@ -130,6 +130,23 @@ script::FunctionBuilder member_function(script::Class& cla, std::string && name)
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
 
+template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, R(T:: * F)(A1, A2, A3, A4, A5, A6)const>
+script::FunctionBuilder member_function(script::Class& cla, std::string&& name)
+{
+  return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
+    .setConst()
+    .returns(make_type<R>())
+    .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>(), make_type<A6>());
+}
+
+template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, R(T:: * F)(A1, A2, A3, A4, A5, A6, A7)const>
+script::FunctionBuilder member_function(script::Class& cla, std::string&& name)
+{
+  return cla.newMethod(std::move(name), wrapper::member_wrapper_t<decltype(F), F>::wrap)
+    .setConst()
+    .returns(make_type<R>())
+    .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>(), make_type<A6>(), make_type<A7>());
+}
 
 /* void functions */
 
