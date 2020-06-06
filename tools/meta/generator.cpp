@@ -631,6 +631,13 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
   {
     return generateOperator(fun, getOperatorSymbol(fun->name));
   }
+  else if (bm == Function::NewConstructor)
+  {
+    const QString funaddr = "&" + fun->implementation;
+    const QString formatted_params = formatParams("gonk::make_type<%1>()", params(*fun));
+    const QString explicit_str = fun->isExplicit ? ".setExplicit()" : "";
+    return QString("  %1.newConstructor(%2)%4.params(%3).create();").arg(enclosing_snake_name(), funaddr, formatted_params, explicit_str);
+  }
 
   const QString funname = fun->name;
   const QString params = fparamscomma(fun);
@@ -809,41 +816,7 @@ QString Generator::fparam(FunctionRef fun, int n)
 
 QString Generator::fparam(const QString & p)
 {
-  QString pp = p;
-
-  bool is_const = false;
-  bool is_ref = false;
-  bool is_refref = false;
-
-  if (pp.startsWith("const "))
-  {
-    is_const = true;
-    pp.remove(0, 6);
-  }
-  if (pp.endsWith("&&"))
-  {
-    is_refref = true;
-    pp.chop(2);
-  }
-  if (pp.endsWith("&"))
-  {
-    is_ref = true;
-    pp.chop(1);
-  }
-
-  if (pp.endsWith(" *"))
-  {
-    pp.chop(2);
-    pp.append(QChar('*'));
-  }
-
-  pp = pp.simplified();
-
-  const Type & info = typeinfo(pp);
-
-  if (!info.header.isEmpty())
-    currentSource().include("general", info.header);
-
+  checkParam(p);
   return p;
 }
 
@@ -873,6 +846,57 @@ const QStringList & Generator::checkParams(const QStringList & ps)
   for (const auto & p : ps)
     fparam(p);
   return ps;
+}
+
+void Generator::checkParam(QString p)
+{
+  bool is_const = false;
+  bool is_ref = false;
+  bool is_refref = false;
+
+  if (p.startsWith("const "))
+  {
+    is_const = true;
+    p.remove(0, 6);
+  }
+  if (p.endsWith("&&"))
+  {
+    is_refref = true;
+    p.chop(2);
+  }
+  if (p.endsWith("&"))
+  {
+    is_ref = true;
+    p.chop(1);
+  }
+
+  if (p.endsWith(" *"))
+  {
+    p.chop(2);
+    p.append(QChar('*'));
+  }
+
+  p = p.simplified();
+
+  const Type& info = typeinfo(p);
+
+  if (!info.header.isEmpty())
+    currentSource().include("general", info.header);
+}
+
+QString Generator::formatParams(QString fmt, QStringList params, QString prefix, QString suffix)
+{
+  for (QString& s : params)
+    s = fmt.arg(s);
+
+  return prefix + params.join(',') + suffix;
+}
+
+QStringList Generator::params(const Function& fun)
+{
+  for (const QString p : fun.parameters)
+    checkParam(p);
+  return fun.parameters;
 }
 
 Function::BindingMethod Generator::getBindingMethod(FunctionRef fun) const

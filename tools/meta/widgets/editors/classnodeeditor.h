@@ -25,7 +25,6 @@ public:
   inline ClassRef getClass() const { return std::static_pointer_cast<Class>(getNode()); }
 
 private:
-  QLineEdit *mCondition;
   QLineEdit *mName;
   QCheckBox *mFinal;
   QLineEdit *mBase;

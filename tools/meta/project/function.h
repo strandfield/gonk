@@ -25,7 +25,8 @@ public:
     FreeFunctionBinding,
     FreeFunctionAsStaticBinding,
     GenWrapperBinding,
-    LastBindingMethod = GenWrapperBinding,
+    NewConstructor,
+    LastBindingMethod = NewConstructor,
   };
 
 public:
@@ -90,6 +91,8 @@ public:
       return "freestatic";
     case Function::GenWrapperBinding:
       return "genwrapper";
+    case Function::NewConstructor:
+      return "newConstructor";
     default:
       break;
     }
@@ -127,6 +130,8 @@ public:
       return FreeFunctionAsStaticBinding;
     else if (str == "genwrapper")
       return GenWrapperBinding;
+    else if (str == "newConstructor")
+      return NewConstructor;
     return AutoBinding;
   }
 };
