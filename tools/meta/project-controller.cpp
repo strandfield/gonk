@@ -135,6 +135,18 @@ void ProjectController::update(Statement& stmt, const QString& content)
   stmt.name = content;
 }
 
+void ProjectController::update(Namespace& ns, const QString& name)
+{
+  if (ns.entity_id != -1)
+  {
+    Database::exec(QString("UPDATE namespaces SET name='%1'"
+      "WHERE id = %2")
+      .arg(name, QString::number(ns.namespace_id)));
+  }
+
+  ns.name = name;
+}
+
 void ProjectController::update(Node& node, const QString& name, const QString& condition)
 {
   if (node.entity_id != -1)

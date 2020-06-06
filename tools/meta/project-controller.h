@@ -37,6 +37,8 @@ public:
 
   void update(Statement& stmt, const QString& content);
 
+  void update(Namespace& ns, const QString& name);
+
   void update(Node& node, const QString& name, const QString& condition);
 
   void update(Node& node, Qt::CheckState cs);

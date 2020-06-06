@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_FILE_H
-#define YASL_META_FILE_H
+#ifndef METAGONK_FILE_H
+#define METAGONK_FILE_H
 
 #include "project/namespace.h"
 
@@ -29,4 +29,4 @@ public:
 };
 typedef std::shared_ptr<File> FileRef;
 
-#endif // YASL_META_FILE_H
+#endif // METAGONK_FILE_H

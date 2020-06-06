@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_MODULE_H
-#define YASL_META_MODULE_H
+#ifndef METAGONK_MODULE_H
+#define METAGONK_MODULE_H
 
 #include "project/node.h"
 
@@ -51,4 +51,4 @@ public:
 
 typedef std::shared_ptr<Module> ModuleRef;
 
-#endif // YASL_META_MODULE_H
+#endif // METAGONK_MODULE_H

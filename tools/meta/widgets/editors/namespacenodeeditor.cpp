@@ -1,8 +1,11 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "namespacenodeeditor.h"
+
+#include "controller.h"
+#include "project-controller.h"
 
 #include <QBoxLayout>
 #include <QFontMetrics>
@@ -14,7 +17,7 @@ NamespaceNodeEditor::NamespaceNodeEditor(const NamespaceRef & ns, QWidget *p)
   QFontMetrics fm{ font() };
 
   mName = new QLineEdit();
-  mName->setPlaceholderText("name[->rename]");
+  mName->setPlaceholderText("name");
 
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
@@ -29,18 +32,12 @@ void NamespaceNodeEditor::write()
 {
   auto ns = getNamespace();
 
-  ns->name = mName->text();
-  const int index = ns->name.indexOf("->");
-  if (index != -1)
-  {
-    ns->rename = ns->name.mid(index + 2);
-    ns->name.chop(ns->name.size() - index);
-  }
+  Controller::Instance().projectController().update(*ns, mName->text());
 }
 
 void NamespaceNodeEditor::read(NamespaceRef ns)
 {
   setNode(ns);
 
-  mName->setText(ns->name + (ns->rename.isEmpty() ? QString() : ("->" + ns->rename)));
+  mName->setText(ns->name);
 }

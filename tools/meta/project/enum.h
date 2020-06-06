@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_ENUM_H
-#define YASL_META_ENUM_H
+#ifndef METAGONK_ENUM_H
+#define METAGONK_ENUM_H
 
 #include "project/node.h"
 
@@ -58,4 +58,4 @@ public:
 };
 typedef std::shared_ptr<Enum> EnumRef;
 
-#endif // YASL_META_ENUM_H
+#endif // METAGONK_ENUM_H

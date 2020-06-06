@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_NAMESPACE_NODE_EDITOR_H
-#define YASL_META_NAMESPACE_NODE_EDITOR_H
+#ifndef METAGONK_NAMESPACE_NODE_EDITOR_H
+#define METAGONK_NAMESPACE_NODE_EDITOR_H
 
 #include "abstractnodeeditor.h"
 
@@ -28,4 +28,4 @@ private:
   QLineEdit *mName;
 };
 
-#endif // YASL_META_NAMESPACE_NODE_EDITOR_H
+#endif // METAGONK_NAMESPACE_NODE_EDITOR_H

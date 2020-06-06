@@ -1,9 +1,9 @@
-// Copyright (C) 2018 Vincent Chambrin
-// This file is part of the Yasl project
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef YASL_META_STATEMENT_H
-#define YASL_META_STATEMENT_H
+#ifndef METAGONK_STATEMENT_H
+#define METAGONK_STATEMENT_H
 
 #include "project/node.h"
 
@@ -23,4 +23,4 @@ public:
 };
 typedef std::shared_ptr<Statement> StatementRef;
 
-#endif // YASL_META_STATEMENT_H
+#endif // METAGONK_STATEMENT_H
