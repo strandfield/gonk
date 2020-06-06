@@ -31,6 +31,8 @@ public:
 
   bool update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes);
 
+  void update(Class& c, const QString& name, bool is_final, const QString& base);
+
   bool update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition);
 
   void update(Statement& stmt, const QString& content);

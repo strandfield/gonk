@@ -59,18 +59,35 @@ void ProjectController::insert(FunctionRef f, NodeRef parent)
 
 bool ProjectController::update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes)
 {
-  QSqlQuery query = database.exec(QString("UPDATE files SET name='%1', hincludes='%2', cppincludes='%3' WHERE id = %4").arg(
-    name, hincludes.join(','), cppincludes.join(','), QString::number(file.file_id)
-  ));
+  if (file.file_id != -1)
+  {
+    QSqlQuery query = database.exec(QString("UPDATE files SET name='%1', hincludes='%2', cppincludes='%3' WHERE id = %4").arg(
+      name, hincludes.join(','), cppincludes.join(','), QString::number(file.file_id)
+    ));
 
-  if (query.lastError().isValid())
-    return false;
+    if (query.lastError().isValid())
+      return false;
+  }
 
   file.name = name;
   file.hincludes = hincludes;
   file.cppincludes = cppincludes;
 
   return true;
+}
+
+void ProjectController::update(Class& c, const QString& name, bool is_final, const QString& base)
+{
+  if (c.class_id != -1)
+  {
+    Database::exec(QString("UPDATE classes SET name='%1', base='%2', final=%3 WHERE id = %4").arg(
+      name, base, is_final ? "1" : "0", QString::number(c.class_id)
+    ));
+  }
+
+  c.name = name;
+  c.isFinal = is_final;
+  c.base = base;
 }
 
 bool ProjectController::update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition)

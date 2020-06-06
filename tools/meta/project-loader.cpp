@@ -259,12 +259,13 @@ void ProjectLoader::loadClasses()
 {
   setState("loading classes");
 
-  QSqlQuery query = database.exec("SELECT id, name, type, base FROM classes");
+  QSqlQuery query = database.exec("SELECT id, name, type, base, final FROM classes");
 
   int ID = 0;
   int NAME = 1;
   int TYPE = 2;
   int BASE = 3;
+  int FINAL = 4;
 
   while (query.next())
   {
@@ -273,6 +274,7 @@ void ProjectLoader::loadClasses()
     c->name = query.value(NAME).toString();
     c->type_id = query.value(TYPE).toInt();
     c->base = query.value(BASE).toString();
+    c->isFinal = query.value(FINAL).toInt();
 
     project->classes[c->class_id] = c;
   }
