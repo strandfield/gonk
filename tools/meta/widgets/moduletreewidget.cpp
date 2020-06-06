@@ -1,0 +1,634 @@
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
+// For conditions of distribution and use, see copyright notice in LICENSE
+
+#include "moduletreewidget.h"
+
+#include "controller.h"
+#include "project-controller.h"
+
+#include "dialogs/newfunctiondialog.h"
+#include "dialogs/statementeditor.h"
+
+#include "project/class.h"
+#include "project/enum.h"
+#include "project/file.h"
+#include "project/function.h"
+#include "project/module.h"
+#include "project/namespace.h"
+#include "project/statement.h"
+
+#include "widgets/editors/classnodeeditor.h"
+#include "widgets/editors/enumnodeeditor.h"
+#include "widgets/editors/filenodeeditor.h"
+#include "widgets/editors/functionnodeeditor.h"
+#include "widgets/editors/namespacenodeeditor.h"
+#include "widgets/editors/simplenodeeditor.h"
+
+#include <QAction>
+#include <QKeyEvent>
+#include <QMenu>
+#include <QStyledItemDelegate>
+
+#include <QDebug>
+
+class ItemDelegate : public QStyledItemDelegate
+{
+public:
+  ItemDelegate(QObject* parent = nullptr) : QStyledItemDelegate(parent) {}
+
+  virtual QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+  {
+    QTreeWidgetItem *item = static_cast<QTreeWidgetItem*>(index.internalPointer());
+    NodeRef node = dynamic_cast<ModuleTreeWidget*>(item->treeWidget())->getNode(item);
+
+    if (node->is<Function>() && index.column() == 0)
+      return new FunctionNodeEditor(std::static_pointer_cast<Function>(node), parent);
+    else if (node->is<File>() && index.column() == 0)
+      return new FileNodeEditor(std::static_pointer_cast<File>(node), parent);
+    else if (node->is<Namespace>() && index.column() == 0)
+      return new NamespaceNodeEditor(std::static_pointer_cast<Namespace>(node), parent);
+    else if (node->is<Class>() && index.column() == 0)
+      return new ClassNodeEditor(std::static_pointer_cast<Class>(node), parent);
+    else if (node->is<Enum>() && index.column() == 0)
+      return new EnumNodeEditor(std::static_pointer_cast<Enum>(node), parent);
+    else if (node->is<Statement>() && index.column() == 0)
+      return nullptr;
+    return QStyledItemDelegate::createEditor(parent, option, index);
+  }
+
+  void setEditorData(QWidget *editor, const QModelIndex & index) const override
+  {
+    QTreeWidgetItem *item = static_cast<QTreeWidgetItem*>(index.internalPointer());
+    NodeRef node = dynamic_cast<ModuleTreeWidget*>(item->treeWidget())->getNode(item);
+
+    EnumNodeEditor *enmedit = qobject_cast<EnumNodeEditor*>(editor);
+    FileNodeEditor *fileedit = qobject_cast<FileNodeEditor*>(editor);
+    FunctionNodeEditor *funedit = qobject_cast<FunctionNodeEditor*>(editor);
+    ClassNodeEditor *classedit = qobject_cast<ClassNodeEditor*>(editor);
+    NamespaceNodeEditor* nsedit = qobject_cast<NamespaceNodeEditor*>(editor);
+    SimpleNodeEditor* simple_edit = qobject_cast<SimpleNodeEditor*>(editor);
+    if (funedit != nullptr)
+    {
+      funedit->read(std::static_pointer_cast<Function>(node));
+      return;
+    }
+    else if (fileedit != nullptr)
+    {
+      fileedit->read(std::static_pointer_cast<File>(node));
+      return;
+    }
+    else if (classedit != nullptr)
+    {
+      classedit->read(std::static_pointer_cast<Class>(node));
+      return;
+    }
+    else if (enmedit != nullptr)
+    {
+      enmedit->read(std::static_pointer_cast<Enum>(node));
+      return;
+    }
+    else if (nsedit != nullptr)
+    {
+      nsedit->read(std::static_pointer_cast<Namespace>(node));
+      return;
+    }
+    else if (simple_edit != nullptr)
+    {
+      simple_edit->read(node);
+      return;
+    }
+    else
+    {
+      return QStyledItemDelegate::setEditorData(editor, index);
+    }
+  }
+
+  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex & index) const override
+  {
+    QTreeWidgetItem *item = static_cast<QTreeWidgetItem*>(index.internalPointer());
+
+    AbstractNodeEditor *nodeedit = qobject_cast<AbstractNodeEditor*>(editor);
+    if (nodeedit != nullptr)
+    {
+      nodeedit->write();
+      item->setText(0, nodeedit->getNode()->display());
+      return;
+    }
+    else
+    {
+      return QStyledItemDelegate::setModelData(editor, model, index);
+    }
+  }
+
+  void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &/* index */) const override
+  {
+    editor->setGeometry(option.rect);
+  }
+};
+
+
+ModuleTreeWidget::ModuleTreeWidget(const ProjectRef & pro)
+  : mProject(pro)
+  , mShowCheckboxes(true)
+{
+  setColumnCount(1);
+  setHeaderHidden(true);
+  setSelectionBehavior(QAbstractItemView::SelectRows);
+  setSelectionMode(QAbstractItemView::ExtendedSelection);
+  setItemDelegate(new ItemDelegate(this));
+  setContextMenuPolicy(Qt::CustomContextMenu);
+
+  createContextMenus();
+
+  if(pro != nullptr)
+    fillTreeWidget(pro);
+
+  setShowCheckboxes(true);
+
+  connect(this, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(updateItem(QTreeWidgetItem*, int)));
+  connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*, int)));
+  connect(this, SIGNAL(collapsed(const QModelIndex&)), this, SLOT(resizeColumnsAuto()));
+  connect(this, SIGNAL(expanded(const QModelIndex&)), this, SLOT(resizeColumnsAuto()));
+  connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(displayContextMenu(const QPoint &)));
+}
+
+void ModuleTreeWidget::handle_checkboxes(QTreeWidgetItem *item, bool on)
+{
+  NodeRef node = getNode(item);
+
+  if (on)
+  {
+    item->setCheckState(0, node->checkState);
+    item->setData(0, Qt::ForegroundRole, QVariant());
+  }
+  else
+  {
+    item->setData(0, Qt::CheckStateRole, QVariant());
+    if (node->checkState == Qt::Unchecked)
+      item->setData(0, Qt::ForegroundRole, QVariant::fromValue(QBrush(Qt::gray)));
+    else
+      item->setData(0, Qt::ForegroundRole, QVariant::fromValue(QBrush(Qt::black)));
+  }
+
+  for (int i(0); i < item->childCount(); ++i)
+    handle_checkboxes(item->child(i), on);
+}
+
+void ModuleTreeWidget::setShowCheckboxes(bool visible)
+{
+  for (int i(0); i < topLevelItemCount(); ++i)
+    handle_checkboxes(topLevelItem(i), visible);
+}
+
+void ModuleTreeWidget::setProject(const ProjectRef & pro)
+{
+  mProject = pro;
+  fillTreeWidget(pro);
+}
+
+void ModuleTreeWidget::fetchNewNodes()
+{
+  for (int i(0); i < topLevelItemCount(); ++i)
+    fetchNewNodes(topLevelItem(i));
+
+  for (int i(topLevelItemCount()); i < mProject->modules.size(); ++i)
+    addTopLevelItem(createItem(mProject->modules.at(i)));
+}
+
+
+void ModuleTreeWidget::keyPressEvent(QKeyEvent *e)
+{
+  if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
+    removeSelectedRows();
+  else if ((e->key() == Qt::Key_Up || e->key() == Qt::Key_Down) && e->modifiers() == Qt::CTRL)
+    moveSelectedRow(e->key());
+  else if (e->key() == Qt::Key_N && e->modifiers() == Qt::CTRL)
+    processCtrlN();
+  else if (e->key() == Qt::Key_E && e->modifiers() == Qt::CTRL)
+    processCtrlE();
+  else
+    QTreeWidget::keyPressEvent(e);
+}
+
+void ModuleTreeWidget::removeSelectedRows()
+{
+  const QList<QTreeWidgetItem*> selecteds = selectedItems();
+  for (auto item : selecteds)
+  {
+    Controller::Instance().projectController().remove(getNode(item), mProject);
+
+    QTreeWidgetItem *parent = item->parent();
+    if (parent == nullptr)
+      parent = invisibleRootItem();
+    const int item_index = parent->indexOfChild(item);
+    parent->removeChild(item);
+  }
+}
+
+void ModuleTreeWidget::moveSelectedRow(int k)
+{
+  const QList<QTreeWidgetItem*> selecteds = selectedItems();
+  if (selecteds.size() != 1)
+    return;
+
+  QTreeWidgetItem *item = selecteds.first();
+  QTreeWidgetItem *parent = item->parent();
+  const int item_index = parent->indexOfChild(item);
+
+  if (item_index == 0 && k == Qt::Key_Up)
+    return;
+  else if (item_index == parent->childCount() - 1 && k == Qt::Key_Down)
+    return;
+
+  NodeRef node = m_nodes_map.at(item);
+  if (node == nullptr)
+    return;
+
+  int delta = k == Qt::Key_Up ? -1 : 1;
+
+  const int old_pos = node->order;
+
+  Controller::Instance().projectController().move(node, mProject, node->order + delta);
+
+  QTreeWidgetItem* sibling = parent->takeChild(old_pos);
+  parent->insertChild(node->order, sibling);
+}
+
+void ModuleTreeWidget::processCtrlE()
+{
+  const QList<QTreeWidgetItem*> selecteds = selectedItems();
+  if (selecteds.size() != 1)
+    return;
+
+  QTreeWidgetItem *item = selecteds.first();
+
+  NodeRef node = m_nodes_map.at(item);
+  if (node == nullptr)
+    return;
+
+  if (!node->is<Function>())
+    return;
+
+  auto *dialog = new NewFunctionDialog(std::static_pointer_cast<Function>(node), this);
+  int result = dialog->exec();
+  dialog->deleteLater();
+  if (result != QDialog::Accepted)
+    return;
+
+  dialog->sync();
+
+  refreshItem(item);
+}
+
+void ModuleTreeWidget::processCtrlN()
+{
+  const QList<QTreeWidgetItem*> selecteds = selectedItems();
+  if (selecteds.size() != 1)
+    return;
+
+  QTreeWidgetItem *item = selecteds.first();
+
+  NodeRef node = m_nodes_map.at(item);
+  if (node == nullptr)
+    return;
+
+  if (!node->is<Class>() && !node->is<Namespace>())
+    return;
+
+  auto *dialog = new NewFunctionDialog(this);
+  int result = dialog->exec();
+  dialog->deleteLater();
+  if (result != QDialog::Accepted)
+    return;
+
+  dialog->sync();
+
+  if(node->is<Class>())
+    node->as<Class>().elements.append(dialog->function());
+  else if (node->is<Namespace>())
+    node->as<Namespace>().elements.append(dialog->function());
+
+  fetchNewNodes();
+}
+
+void ModuleTreeWidget::refreshItem(QTreeWidgetItem* item)
+{
+  NodeRef node = m_nodes_map.at(item);
+  if (node == nullptr)
+    return;
+
+  blockSignals(true);
+
+  item->setText(0, node->display());
+
+  blockSignals(false);
+}
+
+void ModuleTreeWidget::fetchNewNodes(QTreeWidgetItem *item)
+{
+  NodeRef node = m_nodes_map.at(item);
+  if (node == nullptr)
+    return;
+
+  if (node->is<Module>())
+  {
+    Module & m = node->as<Module>();
+
+    for (int i(item->childCount()); i < m.elements.size(); ++i)
+      item->addChild(createItem(m.elements.at(i)));
+  }
+  else if (node->is<File>())
+  {
+    File & f = node->as<File>();
+
+    for (int i(item->childCount()); i < f.elements.size(); ++i)
+      item->addChild(createItem(f.elements.at(i)));
+  }
+  else if (node->is<Namespace>())
+  {
+    Namespace & ns = node->as<Namespace>();
+
+    for (int i(item->childCount()); i < ns.elements.size(); ++i)
+      item->addChild(createItem(ns.elements.at(i)));
+  }
+  else if (node->is<Class>())
+  {
+    Class & c = node->as<Class>();
+
+    for (int i(item->childCount()); i < c.elements.size(); ++i)
+      item->addChild(createItem(c.elements.at(i)));
+  }
+  else if (node->is<Enum>())
+  {
+    Enum & e = node->as<Enum>();
+
+    for (int i(item->childCount()); i < e.enumerators.size(); ++i)
+      item->addChild(createItem(e.enumerators.at(i)));
+  }
+
+  for (int i(0); i < item->childCount(); ++i)
+    fetchNewNodes(item->child(i));
+}
+
+void ModuleTreeWidget::fillTreeWidget(const ProjectRef & pro)
+{
+  clear();
+
+  for (const auto & item : pro->modules)
+    fill(invisibleRootItem(), item);
+}
+
+QTreeWidgetItem* ModuleTreeWidget::createItem(const NodeRef & node)
+{
+  QTreeWidgetItem *item = new QTreeWidgetItem(QStringList{ node->display() });
+  item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+  m_nodes_map[item] = node;
+
+  if (node->is<Module>())
+  {
+    item->setIcon(0, QIcon(":/assets/namespace.png"));
+
+    Module & m = node->as<Module>();
+    for (const auto & n : m.elements)
+      item->addChild(createItem(n));
+  }
+  else if (node->is<File>())
+  {
+    item->setIcon(0, QIcon(":/assets/namespace.png"));
+    File & f = node->as<File>();
+    for (const auto & n : f.elements)
+      item->addChild(createItem(n));
+  }
+  else if (node->is<Namespace>())
+  {
+    item->setIcon(0, QIcon(":/assets/namespace.png"));
+    Namespace & ns = node->as<Namespace>();
+    for (const auto & n : ns.elements)
+      item->addChild(createItem(n));
+  }
+  else if (node->is<Class>())
+  {
+    item->setIcon(0, QIcon(":/assets/class.png"));
+    Class & c = node->as<Class>();
+    for (const auto & n : c.elements)
+      item->addChild(createItem(n));
+  }
+  else if (node->is<Enum>())
+  {
+    item->setIcon(0, QIcon(":/assets/enum.png"));
+    Enum & enm = node->as<Enum>();
+    for (const auto & n : enm.enumerators)
+      item->addChild(createItem(n));
+  }
+  else if (node->is<Enumerator>())
+  {
+    item->setIcon(0, QIcon(":/assets/enumerator.png"));
+  }
+  else if (node->is<Function>())
+  {
+    item->setIcon(0, QIcon(":/assets/func.png"));
+  }
+  else if (node->is<Statement>())
+  {
+    item->setIcon(0, QIcon(":/assets/statement.png"));
+  }
+
+  handle_checkboxes(item, mShowCheckboxes);
+  return item;
+}
+
+void ModuleTreeWidget::fill(QTreeWidgetItem *parent, const NodeRef & node)
+{
+  QTreeWidgetItem *item = createItem(node);
+  parent->addChild(item);
+}
+
+
+void ModuleTreeWidget::updateItem(QTreeWidgetItem *item, int column)
+{
+  NodeRef node = m_nodes_map.at(item);
+  if (node == nullptr)
+    return;
+
+  if (node->checkState != item->checkState(0))
+    Controller::Instance().projectController().update(*node, item->checkState(0));
+
+  if (node->is<Module>() || node->is<Statement>())
+  {
+    node->name = item->text(0);
+  }
+
+  updateCheckState(item);
+}
+
+void ModuleTreeWidget::updateCheckState(QTreeWidgetItem *item)
+{
+  auto root = invisibleRootItem();
+  if (item->parent() != root && item->parent() != nullptr)
+  {
+    if (item->parent()->childCount() == 1)
+      item->parent()->setCheckState(0, item->checkState(0));
+    else
+    {
+      bool one_checked = false;
+      bool one_unchecked = false;
+      for (int i(0); i < item->parent()->childCount(); ++i)
+      {
+        if (item->parent()->child(i)->checkState(0) == Qt::Checked)
+          one_checked = true;
+        else if (item->parent()->child(i)->checkState(0) == Qt::Unchecked)
+          one_unchecked = true;
+        else if (item->parent()->child(i)->checkState(0) == Qt::PartiallyChecked)
+        {
+          one_checked = true, one_unchecked = true;
+          break;
+        }
+      }
+
+      if (one_checked && one_unchecked)
+        item->parent()->setCheckState(0, Qt::PartiallyChecked);
+      else if (one_checked)
+        item->parent()->setCheckState(0, Qt::Checked);
+      else
+        item->parent()->setCheckState(0, Qt::Unchecked);
+
+    }
+  }
+
+  if (item->checkState(0) == Qt::Unchecked)
+  {
+    for (int i(0); i < item->childCount(); ++i)
+      item->child(i)->setCheckState(0, Qt::Unchecked);
+  }
+  else if (item->checkState(0) == Qt::Checked)
+  {
+    for (int i(0); i < item->childCount(); ++i)
+      item->child(i)->setCheckState(0, Qt::Checked);
+  }
+}
+
+void ModuleTreeWidget::resizeColumnsAuto()
+{
+  //for (int i(0); i < columnCount(); ++i)
+  //  resizeColumnToContents(i);
+}
+
+void ModuleTreeWidget::displayContextMenu(const QPoint & p)
+{
+  QTreeWidgetItem *item = itemAt(p);
+  if (item == nullptr)
+    return;
+
+  NodeRef node = getNode(item);
+  if (node == nullptr)
+    return;
+
+  bool is_class = node->is<Class>();
+  bool is_file = node->is<File>();
+  bool is_function = node->is<Function>();
+
+  mAddCopyCtorAction->setVisible(is_class);
+  mAddDestructorAction->setVisible(is_class);
+  mAddAssignmentAction->setVisible(is_class);
+  mSortClassMembersAction->setVisible(false);
+  mMoveToTopAction->setVisible(is_class || is_function);
+  mAddStatementAction->setVisible(is_class || is_file);
+
+  QAction *act = mMenu->exec(this->mapToGlobal(p));
+  execAction(item, node, act);
+}
+
+void ModuleTreeWidget::onItemDoubleClicked(QTreeWidgetItem* item, int column)
+{
+  NodeRef n = getNode(item);
+
+  if (n->is<Statement>())
+  {
+    auto stmt = std::static_pointer_cast<Statement>(n);
+
+    StatementEditorDialog dialog{ stmt, this };
+    
+    if (dialog.exec() == QDialog::Accepted)
+      item->setText(0, stmt->display());
+  }
+}
+
+NodeRef ModuleTreeWidget::getNode(QTreeWidgetItem *item) const
+{
+  auto it = m_nodes_map.find(item);
+  return it != m_nodes_map.end() ? it->second : nullptr;
+}
+
+void ModuleTreeWidget::createContextMenus()
+{
+  mMenu = new QMenu(this);
+
+  mAddCopyCtorAction = mMenu->addAction("Add copy constructor");
+  mAddDestructorAction = mMenu->addAction("Add destructor");
+  mAddAssignmentAction = mMenu->addAction("Add assignment");
+  mSortClassMembersAction = mMenu->addAction("Sort");
+  mAddStatementAction = mMenu->addAction("Add statement");
+  mMoveToTopAction = mMenu->addAction("Move to top");
+}
+
+void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *act)
+{
+  if (node->is<Class>())
+  {
+    Class & cla = node->as<Class>();
+    
+    if (act == mAddCopyCtorAction)
+    {
+      FunctionRef ctor = std::make_shared<Function>(cla.name);
+      ctor->isConstructor = true;
+      ctor->parameters.append("const " + cla.name + " &");
+      Controller::Instance().projectController().insert(ctor, node);
+    }
+    else if (act == mAddDestructorAction)
+    {
+      FunctionRef dtor = std::make_shared<Function>("~" + cla.name);
+      dtor->isDestructor = true;
+      Controller::Instance().projectController().insert(dtor, node);
+    }
+    else if (act == mAddAssignmentAction)
+    {
+      FunctionRef assign = std::make_shared<Function>("operator=");
+      assign->returnType = cla.name + " &";
+      assign->parameters.append("const " + cla.name + " &");
+      Controller::Instance().projectController().insert(assign, node);
+    }
+    else if (act == mSortClassMembersAction)
+    {
+      //sort(cla.elements);
+      //while (item->childCount() > 0)
+      //  item->removeChild(item->child(item->childCount() - 1));
+      //fetchNewNodes(item);
+    }
+    else if (act == mAddStatementAction)
+    {
+      Controller::Instance().projectController().addStatement(cla, "(void) 0;");
+    }
+  }
+  else if (node->is<File>())
+  {
+    File & file = node->as<File>();
+    if (act == mAddStatementAction)
+    {
+      Controller::Instance().projectController().addStatement(file, "(void) 0;");
+    }
+  }
+  else if (node->is<Function>())
+  {
+    if (act == mMoveToTopAction)
+    {
+      const int old_pos = node->order;
+      Controller::Instance().projectController().move(node, mProject, 0);
+      QTreeWidgetItem* parent = item->parent();
+      QTreeWidgetItem* self = parent->takeChild(old_pos);
+      parent->insertChild(node->order, self);
+    }
+  }
+
+  fetchNewNodes(item);
+}

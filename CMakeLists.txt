@@ -11,7 +11,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 set(CMAKE_AUTOMOC ON)
-find_package(Qt5 COMPONENTS Core Gui Widgets)
+find_package(Qt5 COMPONENTS Core Gui Widgets Sql)
 
 ##################################################################
 ###### dependencies
@@ -66,7 +66,7 @@ add_subdirectory(plugins)
 ##################################################################
 
 add_subdirectory(tests)
-#add_subdirectory(tools)
+add_subdirectory(tools)
 #add_subdirectory(examples)
 
 # Copy examples to build directory

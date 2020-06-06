@@ -1,0 +1,37 @@
+// Copyright (C) 2020 Vincent Chambrin
+// This file is part of the 'gonk' project
+// For conditions of distribution and use, see copyright notice in LICENSE
+
+#ifndef METAGONK_FUNCTION_NODE_EDITOR_H
+#define METAGONK_FUNCTION_NODE_EDITOR_H
+
+#include "abstractnodeeditor.h"
+
+#include "project/function.h"
+
+class QComboBox;
+class QLineEdit;
+
+class FunctionNodeEditor : public AbstractNodeEditor
+{
+  Q_OBJECT
+public:
+  FunctionNodeEditor(const FunctionRef & func, QWidget *p = nullptr);
+  ~FunctionNodeEditor() = default;
+
+  void write() override;
+  void read(FunctionRef fun);
+
+  inline FunctionRef getFunction() const { return std::static_pointer_cast<Function>(getNode()); }
+
+private:
+  QComboBox *mBindingMethod;
+  QLineEdit *mReturnType;
+  QLineEdit *mName;
+  QLineEdit *mParameters;
+  QLineEdit* mSpecifiers;
+  QLineEdit* m_implementation;
+  QLineEdit* m_condition;
+};
+
+#endif // METAGONK_FUNCTION_NODE_EDITOR_H
