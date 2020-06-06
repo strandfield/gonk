@@ -60,13 +60,12 @@ private:
 private:
   ProjectRef mProject;
   bool mShowCheckboxes;
-  QMenu *mClassMenu;
+  QMenu *mMenu;
   QAction *mAddCopyCtorAction;
   QAction *mAddDestructorAction;
   QAction *mAddAssignmentAction;
   QAction *mSortClassMembersAction;
-  QAction* mAddClassStatementAction;
-  QMenu *mFileNodeMenu;
+  QAction* mMoveToTopAction;
   QAction *mAddStatementAction;
   std::unordered_map<QTreeWidgetItem*, std::shared_ptr<Node>> m_nodes_map;
 };

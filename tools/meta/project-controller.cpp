@@ -368,47 +368,58 @@ void ProjectController::remove(std::shared_ptr<Type> t, ProjectRef pro)
   list.removeAt(index);
 }
 
-void ProjectController::move(NodeRef node, ProjectRef pro, int delta)
+void ProjectController::move(NodeRef node, ProjectRef pro, int dest)
 {
-  Q_ASSERT(delta == -1 || delta == 1);
+  if (node->is<Module>())
+    return; // @TODO: implement module move
 
-  if (node->order == 0 && delta == -1)
+  Q_ASSERT(dest >= 0 && dest < node->parent.lock()->childCount());
+
+  if (node->order == dest)
     return;
-  // @TODO: add check for delta == 1
 
   if (node->entity_id != -1)
   {
     QString parent_id = node->parent.lock() != nullptr ? QString::number(node->parent.lock()->entity_id) : QString("NULL");
 
-    Database::exec(QString("UPDATE entities SET rank = %1 WHERE parent = %2 AND rank = %3")
-      .arg(QString::number(node->order), parent_id, QString::number(node->order + delta)));
+    Database::exec(QString("UPDATE entities SET rank = rank - 1 WHERE parent = %2 AND rank > %3")
+      .arg(parent_id, QString::number(node->order)));
+
+    Database::exec(QString("UPDATE entities SET rank = rank + 1 WHERE parent = %2 AND rank >= %3")
+      .arg(parent_id, QString::number(dest)));
 
     Database::exec(QString("UPDATE entities SET rank = %1 WHERE id = %2")
-      .arg(QString::number(node->order + delta), QString::number(node->entity_id)));
-
-    if (node->parent.lock() != nullptr)
-      node->parent.lock()->childAt(node->order + delta)->order = node->order;
-    else
-      pro->modules.at(node->order + delta)->order = node->order;
-
-    node->order += delta;
+      .arg(QString::number(dest), QString::number(node->entity_id)));
   }
 
-  if (node->parent.lock() != nullptr)
+  auto parent = node->parent.lock();
+
+  for (int i(node->order + 1); i < parent->childCount(); ++i)
+    parent->childAt(i)->order -= 1;
+
+  if (parent->is<Class>())
   {
-    auto parent = node->parent.lock();
-
-    if (parent->is<Class>())
-      parent->as<Class>().elements.swap(node->order, node->order + delta);
-    else if (parent->is<Namespace>())
-      parent->as<Namespace>().elements.swap(node->order, node->order + delta);
-    else if (parent->is<Module>())
-      parent->as<Module>().elements.swap(node->order, node->order + delta);
-    else if (parent->is<Enum>())
-      parent->as<Enum>().enumerators.swap(node->order, node->order + delta);
+    parent->as<Class>().elements.takeAt(node->order);
+    parent->as<Class>().elements.insert(dest, node);
   }
-  else
+  else if (parent->is<Namespace>())
   {
-    pro->modules.swap(node->order, node->order + delta);
+    parent->as<Namespace>().elements.takeAt(node->order);
+    parent->as<Namespace>().elements.insert(dest, node);
   }
+  else if (parent->is<Module>())
+  {
+    parent->as<Module>().elements.takeAt(node->order);
+    parent->as<Module>().elements.insert(dest, node);
+  }
+  else if (parent->is<Enum>())
+  {
+    parent->as<Enum>().enumerators.takeAt(node->order);
+    parent->as<Enum>().enumerators.insert(dest, std::static_pointer_cast<Enumerator>(node));
+  }
+
+  for (int i(dest); i < parent->childCount(); ++i)
+    parent->childAt(i)->order += 1;
+
+  node->order = dest;
 }

@@ -247,10 +247,12 @@ void ModuleTreeWidget::moveSelectedRow(int k)
 
   int delta = k == Qt::Key_Up ? -1 : 1;
 
-  Controller::Instance().projectController().move(node, mProject, delta);
+  const int old_pos = node->order;
 
-  QTreeWidgetItem* sibling = parent->takeChild(item_index + delta);
-  parent->insertChild(item_index, sibling);
+  Controller::Instance().projectController().move(node, mProject, node->order + delta);
+
+  QTreeWidgetItem* sibling = parent->takeChild(old_pos);
+  parent->insertChild(node->order, sibling);
 }
 
 void ModuleTreeWidget::processCtrlE()
@@ -522,17 +524,18 @@ void ModuleTreeWidget::displayContextMenu(const QPoint & p)
   if (node == nullptr)
     return;
 
-  QMenu *menu = nullptr;
+  bool is_class = node->is<Class>();
+  bool is_file = node->is<File>();
+  bool is_function = node->is<Function>();
 
-  if (node->is<Class>())
-    menu = mClassMenu;
-  else if (node->is<File>())
-    menu = mFileNodeMenu;
+  mAddCopyCtorAction->setVisible(is_class);
+  mAddDestructorAction->setVisible(is_class);
+  mAddAssignmentAction->setVisible(is_class);
+  mSortClassMembersAction->setVisible(false);
+  mMoveToTopAction->setVisible(is_class || is_function);
+  mAddStatementAction->setVisible(is_class || is_file);
 
-  if (menu == nullptr)
-    return;
-
-  QAction *act = menu->exec(this->mapToGlobal(p));
+  QAction *act = mMenu->exec(this->mapToGlobal(p));
   execAction(item, node, act);
 }
 
@@ -559,16 +562,14 @@ NodeRef ModuleTreeWidget::getNode(QTreeWidgetItem *item) const
 
 void ModuleTreeWidget::createContextMenus()
 {
-  mClassMenu = new QMenu(this);
-  mFileNodeMenu = new QMenu(this);
+  mMenu = new QMenu(this);
 
-  mAddCopyCtorAction = mClassMenu->addAction("Add copy constructor");
-  mAddDestructorAction = mClassMenu->addAction("Add destructor");
-  mAddAssignmentAction = mClassMenu->addAction("Add assignment");
-  mSortClassMembersAction = mClassMenu->addAction("Sort");
-  mAddClassStatementAction = mClassMenu->addAction("Add statement");
-
-  mAddStatementAction = mFileNodeMenu->addAction("Add statement");
+  mAddCopyCtorAction = mMenu->addAction("Add copy constructor");
+  mAddDestructorAction = mMenu->addAction("Add destructor");
+  mAddAssignmentAction = mMenu->addAction("Add assignment");
+  mSortClassMembersAction = mMenu->addAction("Sort");
+  mAddStatementAction = mMenu->addAction("Add statement");
+  mMoveToTopAction = mMenu->addAction("Move to top");
 }
 
 void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *act)
@@ -604,7 +605,7 @@ void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *
       //  item->removeChild(item->child(item->childCount() - 1));
       //fetchNewNodes(item);
     }
-    else if (act == mAddClassStatementAction)
+    else if (act == mAddStatementAction)
     {
       Controller::Instance().projectController().addStatement(cla, "(void) 0;");
     }
@@ -615,6 +616,17 @@ void ModuleTreeWidget::execAction(QTreeWidgetItem *item, NodeRef node, QAction *
     if (act == mAddStatementAction)
     {
       Controller::Instance().projectController().addStatement(file, "(void) 0;");
+    }
+  }
+  else if (node->is<Function>())
+  {
+    if (act == mMoveToTopAction)
+    {
+      const int old_pos = node->order;
+      Controller::Instance().projectController().move(node, mProject, 0);
+      QTreeWidgetItem* parent = item->parent();
+      QTreeWidgetItem* self = parent->takeChild(old_pos);
+      parent->insertChild(node->order, self);
     }
   }
 
