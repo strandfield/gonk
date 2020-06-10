@@ -223,17 +223,6 @@ script::Function memop_subscript(script::Class & cla)
     .get();
 }
 
-//template<typename T, typename R, typename Index>
-//script::Function memop_proxy_subscript(script::Class & cla)
-//{
-//  static_assert(std::is_reference<R>::value, "Return type must be a reference");
-//
-//  return cla.newOperator(script::SubscriptOperator, wrapper::subscript_proxy_wrapper<R, T&, Index>)
-//    .returns(make_type<Proxy<typename std::remove_reference<R>::type>>())
-//    .params(make_type<Index>())
-//    .get();
-//}
-
 template<typename T, typename R, typename RHS>
 script::Function memop_const_subscript(script::Class & cla)
 {
