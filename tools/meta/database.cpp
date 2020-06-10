@@ -12,6 +12,7 @@
 
 #include <QDebug>
 
+#include <stdexcept>
 
 class QueryParser
 {

@@ -17,6 +17,8 @@
 
 #include <QDebug>
 
+#include <stdexcept>
+
 const QString Generator::endl = "\n";
 const QString Generator::ClassBinderInclude = "gonk/common/binding/class.h";
 const QString Generator::EnumBinderInclude = "gonk/common/enums.h";;

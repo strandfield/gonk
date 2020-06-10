@@ -17,6 +17,7 @@
 #include <QDebug>
 
 #include <algorithm>
+#include <stdexcept>
 
 template<typename T>
 void remove_unchekced_recursively(QList<T> & nodes)

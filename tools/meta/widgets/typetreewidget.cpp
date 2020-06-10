@@ -11,6 +11,8 @@
 
 #include <QKeyEvent>
 
+#include <stdexcept>
+
 TypeTreeWidget::TypeTreeWidget(const ProjectRef & pro)
   : mProject(pro)
 {

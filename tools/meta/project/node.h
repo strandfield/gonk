@@ -5,6 +5,7 @@
 #ifndef METAGONK_NODE_H
 #define METAGONK_NODE_H
 
+#include <QList>
 #include <QStack>
 
 #include <memory>

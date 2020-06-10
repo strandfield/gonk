@@ -14,6 +14,8 @@
 
 #include <QDebug>
 
+#include <stdexcept>
+
 void ProjectMerger::merge()
 {
   fetchTypes(other);

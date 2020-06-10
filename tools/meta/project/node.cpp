@@ -10,6 +10,8 @@
 #include "project/class.h"
 #include "project/module.h"
 
+#include <stdexcept>
+
 Node::Node(const QString & n, Qt::CheckState c)
   : checkState(c)
   , name(n)

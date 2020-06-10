@@ -8,6 +8,8 @@
 
 #include <QDebug>
 
+#include <stdexcept>
+
 Enumerator::Enumerator(const QString & n, Qt::CheckState c)
   : Node(n, c)
 {

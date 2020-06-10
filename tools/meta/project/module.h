@@ -7,6 +7,8 @@
 
 #include "project/node.h"
 
+#include <QList>
+
 class Module : public Node
 {
 public:
