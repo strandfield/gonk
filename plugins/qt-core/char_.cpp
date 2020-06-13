@@ -378,6 +378,169 @@ static void register_char__unicode_version_enum(script::Class char_)
 }
 
 
+namespace {
+QChar::Category QChar_category(const QChar& self)
+{
+  return self.category();
+}
+
+QChar::Direction QChar_direction(const QChar& self)
+{
+  return self.direction();
+}
+
+QChar::JoiningType QChar_joiningType(const QChar& self)
+{
+  return self.joiningType();
+}
+
+QChar::Joining QChar_joining(const QChar& self)
+{
+  return self.joining();
+}
+
+QChar QChar_mirroredChar(const QChar& self)
+{
+  return self.mirroredChar();
+}
+
+bool QChar_hasMirrored(const QChar& self)
+{
+  return self.hasMirrored();
+}
+
+QChar::Decomposition QChar_decompositionTag(const QChar& self)
+{
+  return self.decompositionTag();
+}
+
+int QChar_digitValue(const QChar& self)
+{
+  return self.digitValue();
+}
+
+QChar QChar_toLower(const QChar& self)
+{
+  return self.toLower();
+}
+
+QChar QChar_toUpper(const QChar& self)
+{
+  return self.toUpper();
+}
+
+QChar QChar_toTitleCase(const QChar& self)
+{
+  return self.toTitleCase();
+}
+
+QChar QChar_toCaseFolded(const QChar& self)
+{
+  return self.toCaseFolded();
+}
+
+QChar::Script QChar_script(const QChar& self)
+{
+  return self.script();
+}
+
+QChar::UnicodeVersion QChar_unicodeVersion(const QChar& self)
+{
+  return self.unicodeVersion();
+}
+
+char QChar_toLatin1(const QChar& self)
+{
+  return self.toLatin1();
+}
+
+bool QChar_isNull(const QChar& self)
+{
+  return self.isNull();
+}
+
+bool QChar_isPrint(const QChar& self)
+{
+  return self.isPrint();
+}
+
+bool QChar_isSpace(const QChar& self)
+{
+  return self.isSpace();
+}
+
+bool QChar_isMark(const QChar& self)
+{
+  return self.isMark();
+}
+
+bool QChar_isPunct(const QChar& self)
+{
+  return self.isPunct();
+}
+
+bool QChar_isSymbol(const QChar& self)
+{
+  return self.isSymbol();
+}
+
+bool QChar_isLetter(const QChar& self)
+{
+  return self.isLetter();
+}
+
+bool QChar_isNumber(const QChar& self)
+{
+  return self.isNumber();
+}
+
+bool QChar_isLetterOrNumber(const QChar& self)
+{
+  return self.isLetterOrNumber();
+}
+
+bool QChar_isDigit(const QChar& self)
+{
+  return self.isDigit();
+}
+
+bool QChar_isLower(const QChar& self)
+{
+  return self.isLower();
+}
+
+bool QChar_isUpper(const QChar& self)
+{
+  return self.isUpper();
+}
+
+bool QChar_isTitleCase(const QChar& self)
+{
+  return self.isTitleCase();
+}
+
+bool QChar_isNonCharacter(const QChar& self)
+{
+  return self.isNonCharacter();
+}
+
+bool QChar_isHighSurrogate(const QChar& self)
+{
+  return self.isHighSurrogate();
+}
+
+bool QChar_isLowSurrogate(const QChar& self)
+{
+  return self.isLowSurrogate();
+}
+
+bool QChar_isSurrogate(const QChar& self)
+{
+  return self.isSurrogate();
+}
+
+}
+
 static void register_char__class(script::Namespace ns)
 {
   using namespace script;
@@ -419,39 +582,39 @@ static void register_char__class(script::Namespace ns)
   // QChar(uchar);
   /// TODO: QChar(uchar);
   // QChar::Category category() const;
-  gonk::bind::member_function<QChar, QChar::Category, &QChar::category>(char_, "category").create();
+  gonk::bind::fn_as_memfn<QChar, QChar::Category, &QChar_category>(char_, "category").create();
   // QChar::Direction direction() const;
-  gonk::bind::member_function<QChar, QChar::Direction, &QChar::direction>(char_, "direction").create();
+  gonk::bind::fn_as_memfn<QChar, QChar::Direction, &QChar_direction>(char_, "direction").create();
   // QChar::JoiningType joiningType() const;
-  gonk::bind::member_function<QChar, QChar::JoiningType, &QChar::joiningType>(char_, "joiningType").create();
+  gonk::bind::fn_as_memfn<QChar, QChar::JoiningType, &QChar_joiningType>(char_, "joiningType").create();
   // QChar::Joining joining() const;
-  gonk::bind::member_function<QChar, QChar::Joining, &QChar::joining>(char_, "joining").create();
+  gonk::bind::fn_as_memfn<QChar, QChar::Joining, &QChar_joining>(char_, "joining").create();
   // unsigned char combiningClass() const;
   /// TODO: unsigned char combiningClass() const;
   // QChar mirroredChar() const;
-  gonk::bind::member_function<QChar, QChar, &QChar::mirroredChar>(char_, "mirroredChar").create();
+  gonk::bind::fn_as_memfn<QChar, QChar, &QChar_mirroredChar>(char_, "mirroredChar").create();
   // bool hasMirrored() const;
-  gonk::bind::member_function<QChar, bool, &QChar::hasMirrored>(char_, "hasMirrored").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_hasMirrored>(char_, "hasMirrored").create();
   // QString decomposition() const;
   gonk::bind::member_function<QChar, QString, &QChar::decomposition>(char_, "decomposition").create();
   // QChar::Decomposition decompositionTag() const;
-  gonk::bind::member_function<QChar, QChar::Decomposition, &QChar::decompositionTag>(char_, "decompositionTag").create();
+  gonk::bind::fn_as_memfn<QChar, QChar::Decomposition, &QChar_decompositionTag>(char_, "decompositionTag").create();
   // int digitValue() const;
-  gonk::bind::member_function<QChar, int, &QChar::digitValue>(char_, "digitValue").create();
+  gonk::bind::fn_as_memfn<QChar, int, &QChar_digitValue>(char_, "digitValue").create();
   // QChar toLower() const;
-  gonk::bind::member_function<QChar, QChar, &QChar::toLower>(char_, "toLower").create();
+  gonk::bind::fn_as_memfn<QChar, QChar, &QChar_toLower>(char_, "toLower").create();
   // QChar toUpper() const;
-  gonk::bind::member_function<QChar, QChar, &QChar::toUpper>(char_, "toUpper").create();
+  gonk::bind::fn_as_memfn<QChar, QChar, &QChar_toUpper>(char_, "toUpper").create();
   // QChar toTitleCase() const;
-  gonk::bind::member_function<QChar, QChar, &QChar::toTitleCase>(char_, "toTitleCase").create();
+  gonk::bind::fn_as_memfn<QChar, QChar, &QChar_toTitleCase>(char_, "toTitleCase").create();
   // QChar toCaseFolded() const;
-  gonk::bind::member_function<QChar, QChar, &QChar::toCaseFolded>(char_, "toCaseFolded").create();
+  gonk::bind::fn_as_memfn<QChar, QChar, &QChar_toCaseFolded>(char_, "toCaseFolded").create();
   // QChar::Script script() const;
-  gonk::bind::member_function<QChar, QChar::Script, &QChar::script>(char_, "script").create();
+  gonk::bind::fn_as_memfn<QChar, QChar::Script, &QChar_script>(char_, "script").create();
   // QChar::UnicodeVersion unicodeVersion() const;
-  gonk::bind::member_function<QChar, QChar::UnicodeVersion, &QChar::unicodeVersion>(char_, "unicodeVersion").create();
+  gonk::bind::fn_as_memfn<QChar, QChar::UnicodeVersion, &QChar_unicodeVersion>(char_, "unicodeVersion").create();
   // char toLatin1() const;
-  gonk::bind::member_function<QChar, char, &QChar::toLatin1>(char_, "toLatin1").create();
+  gonk::bind::fn_as_memfn<QChar, char, &QChar_toLatin1>(char_, "toLatin1").create();
   // ushort unicode() const;
   /// TODO: ushort unicode() const;
   // ushort& unicode();
@@ -459,39 +622,39 @@ static void register_char__class(script::Namespace ns)
   // static QChar fromLatin1(char);
   gonk::bind::static_member_function<QChar, QChar, char, &QChar::fromLatin1>(char_, "fromLatin1").create();
   // bool isNull() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isNull>(char_, "isNull").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isNull>(char_, "isNull").create();
   // bool isPrint() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isPrint>(char_, "isPrint").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isPrint>(char_, "isPrint").create();
   // bool isSpace() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isSpace>(char_, "isSpace").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isSpace>(char_, "isSpace").create();
   // bool isMark() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isMark>(char_, "isMark").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isMark>(char_, "isMark").create();
   // bool isPunct() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isPunct>(char_, "isPunct").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isPunct>(char_, "isPunct").create();
   // bool isSymbol() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isSymbol>(char_, "isSymbol").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isSymbol>(char_, "isSymbol").create();
   // bool isLetter() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isLetter>(char_, "isLetter").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isLetter>(char_, "isLetter").create();
   // bool isNumber() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isNumber>(char_, "isNumber").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isNumber>(char_, "isNumber").create();
   // bool isLetterOrNumber() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isLetterOrNumber>(char_, "isLetterOrNumber").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isLetterOrNumber>(char_, "isLetterOrNumber").create();
   // bool isDigit() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isDigit>(char_, "isDigit").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isDigit>(char_, "isDigit").create();
   // bool isLower() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isLower>(char_, "isLower").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isLower>(char_, "isLower").create();
   // bool isUpper() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isUpper>(char_, "isUpper").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isUpper>(char_, "isUpper").create();
   // bool isTitleCase() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isTitleCase>(char_, "isTitleCase").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isTitleCase>(char_, "isTitleCase").create();
   // bool isNonCharacter() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isNonCharacter>(char_, "isNonCharacter").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isNonCharacter>(char_, "isNonCharacter").create();
   // bool isHighSurrogate() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isHighSurrogate>(char_, "isHighSurrogate").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isHighSurrogate>(char_, "isHighSurrogate").create();
   // bool isLowSurrogate() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isLowSurrogate>(char_, "isLowSurrogate").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isLowSurrogate>(char_, "isLowSurrogate").create();
   // bool isSurrogate() const;
-  gonk::bind::member_function<QChar, bool, &QChar::isSurrogate>(char_, "isSurrogate").create();
+  gonk::bind::fn_as_memfn<QChar, bool, &QChar_isSurrogate>(char_, "isSurrogate").create();
   // uchar cell() const;
   /// TODO: uchar cell() const;
   // uchar row() const;

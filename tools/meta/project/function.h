@@ -102,39 +102,39 @@ public:
 
   template<typename T>
   static T deserialize(const QString & str);
-
-  template<>
-  static BindingMethod deserialize<BindingMethod>(const QString & str)
-  {
-    if (str == "chainable")
-      return ChainableBinding;
-    else if (str == "static-void")
-      return StaticVoidBinding;
-    else if (str == "const-void")
-      return ConstVoidBinding;
-    else if (str == "void")
-      return VoidBinding;
-    else if (str == "static")
-      return StaticBinding;
-    else if (str == "simple")
-      return SimpleBinding;
-    else if (str == "ctor")
-      return ConstructorBinding;
-    else if (str == "dtor")
-      return DestructorBinding;
-    else if (str == "op")
-      return OperatorBinding;
-    else if (str == "free")
-      return FreeFunctionBinding;
-    else if (str == "freestatic")
-      return FreeFunctionAsStaticBinding;
-    else if (str == "genwrapper")
-      return GenWrapperBinding;
-    else if (str == "newConstructor")
-      return NewConstructor;
-    return AutoBinding;
-  }
 };
+
+template<>
+inline Function::BindingMethod Function::deserialize<Function::BindingMethod>(const QString& str)
+{
+  if (str == "chainable")
+    return ChainableBinding;
+  else if (str == "static-void")
+    return StaticVoidBinding;
+  else if (str == "const-void")
+    return ConstVoidBinding;
+  else if (str == "void")
+    return VoidBinding;
+  else if (str == "static")
+    return StaticBinding;
+  else if (str == "simple")
+    return SimpleBinding;
+  else if (str == "ctor")
+    return ConstructorBinding;
+  else if (str == "dtor")
+    return DestructorBinding;
+  else if (str == "op")
+    return OperatorBinding;
+  else if (str == "free")
+    return FreeFunctionBinding;
+  else if (str == "freestatic")
+    return FreeFunctionAsStaticBinding;
+  else if (str == "genwrapper")
+    return GenWrapperBinding;
+  else if (str == "newConstructor")
+    return NewConstructor;
+  return AutoBinding;
+}
 
 typedef std::shared_ptr<Function> FunctionRef;
 

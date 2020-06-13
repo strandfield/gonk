@@ -563,13 +563,44 @@ void Generator::generate(FileRef file)
   source.write(QFileInfo{ currentSourceDirectory() + "/" + file->name + ".cpp" });
 }
 
+QString Generator::mangledName(const Function& fun)
+{
+  QString ret = fun.name;
+
+  if (fun.parent.lock() != nullptr && fun.parent.lock()->is<Class>())
+    ret = fun.parent.lock()->name + "_" + ret;
+
+  if (fun.isStatic)
+    ret += "_static";
+
+  for (QString p : fun.parameters)
+  {
+    p.remove("const");
+    p.remove("&");
+    p.remove("<");
+    p.remove(">");
+    p.remove(",");
+    p.remove(":");
+    p.remove(" ");
+
+    ret += "_" + p;
+  }
+
+  return ret;
+}
+
+QString Generator::computeWrapperName(const Function& fun)
+{
+  return fun.implementation.isEmpty() ? mangledName(fun) : fun.implementation;
+}
+
 QString Generator::generateWrapper(const Function& fun)
 {
   NodeRef parent = fun.parent.lock();
 
   QString result;
 
-  result += fun.returnType + " " + fun.implementation + "(";
+  result += fun.returnType + " " + computeWrapperName(fun) + "(";
 
   QStringList params;
 
@@ -590,7 +621,7 @@ QString Generator::generateWrapper(const Function& fun)
 
   params.clear();
 
-  if (fun.parent.lock()->is<Class>() && !fun.isStatic)
+  if (parent->is<Class>() && !fun.isStatic)
   {
     result += "self." + fun.name + "(";
 
@@ -603,6 +634,9 @@ QString Generator::generateWrapper(const Function& fun)
   }
   else
   {
+    if (parent->is<Class>())
+      result += parent->name + "::";
+
     result += fun.name + "(";
 
     for (int i(0); i < fun.parameters.size(); ++i)
@@ -649,7 +683,12 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
 
   const QString funname = fun->name;
   const QString params = fparamscomma(fun);
-  const QString funaddr = "&" + (fun->implementation.isEmpty() ? (nameQualification() + fun->name) : fun->implementation);
+  const QString funaddr = [&]() -> QString {
+    if (bm == Function::BindingMethod::GenWrapperBinding && fun->implementation.isEmpty())
+      return "&" + computeWrapperName(*fun);
+    else
+      return "&" + (fun->implementation.isEmpty() ? (nameQualification() + fun->name) : fun->implementation);
+  }();
   const QString fret = bm == Function::ConstructorBinding ? QString() : fparam(fun->returnType);
 
   QString ret = [&]() -> QString {

@@ -108,6 +108,8 @@ private:
   void generateModuleDefsFile();
   void generateModuleFile();
   void generate(FileRef file);
+  static QString mangledName(const Function& fun);
+  static QString computeWrapperName(const Function& fun);
   QString generateWrapper(const Function& fun);
   QString generate(FunctionRef fun);
   QString generate(FunctionRef fun, Function::BindingMethod bm);

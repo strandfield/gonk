@@ -17,6 +17,39 @@
 #include "qt-core/char_.h"
 #include "qt-core/string.h"
 
+namespace {
+bool QLatin1String_startsWith_QLatin1String_QtCaseSensitivity(const QLatin1String& self, QLatin1String a1, Qt::CaseSensitivity a2)
+{
+  return self.startsWith(a1, a2);
+}
+
+bool QLatin1String_startsWith_QChar(const QLatin1String& self, QChar a1)
+{
+  return self.startsWith(a1);
+}
+
+bool QLatin1String_startsWith_QChar_QtCaseSensitivity(const QLatin1String& self, QChar a1, Qt::CaseSensitivity a2)
+{
+  return self.startsWith(a1, a2);
+}
+
+bool QLatin1String_endsWith_QLatin1String_QtCaseSensitivity(const QLatin1String& self, QLatin1String a1, Qt::CaseSensitivity a2)
+{
+  return self.endsWith(a1, a2);
+}
+
+bool QLatin1String_endsWith_QChar(const QLatin1String& self, QChar a1)
+{
+  return self.endsWith(a1);
+}
+
+bool QLatin1String_endsWith_QChar_QtCaseSensitivity(const QLatin1String& self, QChar a1, Qt::CaseSensitivity a2)
+{
+  return self.endsWith(a1, a2);
+}
+
+}
+
 static void register_latin1_string_class(script::Namespace ns)
 {
   using namespace script;
@@ -57,7 +90,7 @@ static void register_latin1_string_class(script::Namespace ns)
   // bool startsWith(QLatin1String, Qt::CaseSensitivity) const;
   /// TODO: bool startsWith(QLatin1String, Qt::CaseSensitivity) const;
   // bool startsWith(QChar) const;
-  gonk::bind::member_function<QLatin1String, bool, QChar, &QLatin1String::startsWith>(latin1_string, "startsWith").create();
+  gonk::bind::fn_as_memfn<QLatin1String, bool, QChar, &QLatin1String_startsWith_QChar>(latin1_string, "startsWith").create();
   // bool startsWith(QChar, Qt::CaseSensitivity) const;
   /// TODO: bool startsWith(QChar, Qt::CaseSensitivity) const;
   // bool endsWith(QStringView, Qt::CaseSensitivity) const;
@@ -65,7 +98,7 @@ static void register_latin1_string_class(script::Namespace ns)
   // bool endsWith(QLatin1String, Qt::CaseSensitivity) const;
   /// TODO: bool endsWith(QLatin1String, Qt::CaseSensitivity) const;
   // bool endsWith(QChar) const;
-  gonk::bind::member_function<QLatin1String, bool, QChar, &QLatin1String::endsWith>(latin1_string, "endsWith").create();
+  gonk::bind::fn_as_memfn<QLatin1String, bool, QChar, &QLatin1String_endsWith_QChar>(latin1_string, "endsWith").create();
   // bool endsWith(QChar, Qt::CaseSensitivity) const;
   /// TODO: bool endsWith(QChar, Qt::CaseSensitivity) const;
   // QLatin1String::const_iterator begin() const;
