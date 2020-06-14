@@ -4,18 +4,15 @@
 
 #include "gonk/gonk.h"
 
+#include "gonk/builtins.h"
 #include "gonk/modules.h"
 
 #include <script/class.h>
-#include <script/classbuilder.h>
 #include <script/context.h>
-#include <script/functionbuilder.h>
 #include <script/module.h>
 #include <script/namespace.h>
 #include <script/script.h>
 #include <script/typesystem.h>
-
-#include <script/interpreter/executioncontext.h>
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -33,35 +30,6 @@
 #endif
 
 Gonk* Gonk::m_instance = nullptr;
-
-namespace callbacks
-{
-
-script::Value print_int(script::FunctionCall *c)
-{
-  std::cout << c->arg(0).toInt() << std::endl;
-  return script::Value::Void;
-}
-
-script::Value print_bool(script::FunctionCall *c)
-{
-  std::cout << c->arg(0).toBool() << std::endl;
-  return script::Value::Void;
-}
-
-script::Value print_double(script::FunctionCall *c)
-{
-  std::cout << c->arg(0).toDouble() << std::endl;
-  return script::Value::Void;
-}
-
-script::Value print_string(script::FunctionCall *c)
-{
-  std::cout << c->arg(0).toString() << std::endl;
-  return script::Value::Void;
-}
-
-} // namespace callbacks
 
 // from https://stackoverflow.com/questions/1528298/get-path-of-executable
 static std::filesystem::path getexepath()
@@ -90,11 +58,6 @@ static std::string executable_dir()
   path.erase(path.begin() + offset + 1, path.end());
   return path;
 }
-
-namespace gonk
-{
-extern void register_pointer_template(script::Namespace ns); // defined in pointer-template.cpp
-} // namespace gonk
 
 Gonk::Gonk(int & argc, char **argv)
   : m_argc(argc),
@@ -167,19 +130,8 @@ void Gonk::setupEngine()
 {
   m_engine.setup();
 
-  m_engine.rootNamespace().newFunction("print", callbacks::print_int)
-    .params(script::Type::Int).create();
-
-  m_engine.rootNamespace().newFunction("print", callbacks::print_bool)
-    .params(script::Type::Boolean).create();
-
-  m_engine.rootNamespace().newFunction("print", callbacks::print_double)
-    .params(script::Type::Double).create();
-
-  m_engine.rootNamespace().newFunction("print", callbacks::print_string)
-    .params(script::Type::cref(script::Type::String)).create();
-
-  gonk::register_pointer_template(m_engine.rootNamespace());
+  script::Namespace ns = m_engine.rootNamespace();
+  gonk::register_builtins(ns);
 }
 
 int Gonk::interactiveSession()
@@ -286,7 +238,7 @@ int Gonk::runScript()
   }
   catch (script::RuntimeError& err)
   {
-    std::cerr << err.what() << std::endl;
+    std::cerr << err.message << std::endl;
     return 1;
   }
   catch (std::exception& ex)
@@ -328,10 +280,23 @@ int Gonk::invokeMain(const script::Script& s)
   if (func.isNull())
     return 0;
 
-  script::Value ret = func.invoke({});
+  try
+  {
+    script::Value ret = func.invoke({});
 
-  if (ret.isInt())
-    return ret.toInt();
+    if (ret.isInt())
+      return ret.toInt();
+  }
+  catch (script::RuntimeError& err)
+  {
+    std::cerr << err.message << std::endl;
+    return 1;
+  }
+  catch (std::exception& ex)
+  {
+    std::cerr << ex.what() << std::endl;
+    return 1;
+  }
 
   return 0;
 }
