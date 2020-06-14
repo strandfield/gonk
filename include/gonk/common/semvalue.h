@@ -2,8 +2,10 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#ifndef GONK_COMMONS_VALUE_H
-#define GONK_COMMONS_VALUE_H
+#ifndef GONK_SEMVALUE_H
+#define GONK_SEMVALUE_H
+
+#include "gonk/gonk-defs.h"
 
 #include <script/function.h>
 #include <script/value.h>
@@ -12,7 +14,7 @@
 namespace gonk
 {
 
-struct TypeInfo : public script::UserData
+struct GONK_API TypeInfo : public script::UserData
 {
   script::Type element_type;
   script::Engine *engine;
@@ -28,17 +30,17 @@ struct TypeInfo : public script::UserData
   static std::shared_ptr<TypeInfo> get(const script::Class & cla);
 };
 
-class Value
+class GONK_API SemValue
 {
 public:
-  Value();
-  Value(const Value & other);
-  Value(Value && other);
-  Value(const std::shared_ptr<TypeInfo> & ti, const script::Value & val);
-  Value(const std::shared_ptr<TypeInfo> & ti, script::Value && val);
-  explicit Value(const script::Value & val);
-  explicit Value(script::Value && val);
-  ~Value();
+  SemValue();
+  SemValue(const SemValue& other);
+  SemValue(SemValue&& other);
+  SemValue(const std::shared_ptr<TypeInfo> & ti, const script::Value & val);
+  SemValue(const std::shared_ptr<TypeInfo> & ti, script::Value && val);
+  explicit SemValue(const script::Value & val);
+  explicit SemValue(script::Value && val);
+  ~SemValue();
 
   inline script::Value & get() { return value_; }
   inline const script::Value & get() const { return value_; }
@@ -52,19 +54,19 @@ public:
 
   int hash() const;
 
-  Value & operator=(const Value & other);
-  Value & operator=(Value && other);
-  bool operator==(const Value & other) const;
-  bool operator!=(const Value & other) const;
+  SemValue& operator=(const SemValue& other);
+  SemValue& operator=(SemValue&& other);
+  bool operator==(const SemValue& other) const;
+  bool operator!=(const SemValue& other) const;
 
-  bool operator<(const Value & other) const;
+  bool operator<(const SemValue& other) const;
 
 protected:
   std::shared_ptr<TypeInfo> typeinfo_;
   script::Value value_;
 };
 
-class ObserverValue : public Value
+class GONK_API ObserverValue : public SemValue
 {
 public:
   ObserverValue(const std::shared_ptr<TypeInfo> & ti, const script::Value & val);
@@ -73,4 +75,4 @@ public:
 
 } // namespace gonk
 
-#endif // GONK_COMMONS_VALUE_H
+#endif // GONK_SEMVALUE_H

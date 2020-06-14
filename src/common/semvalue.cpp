@@ -2,7 +2,7 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include "gonk/common/value.h"
+#include "gonk/common/semvalue.h"
 
 #include <script/class.h>
 #include <script/engine.h>
@@ -137,20 +137,20 @@ std::shared_ptr<TypeInfo> TypeInfo::get(const script::Class & cla)
   return std::static_pointer_cast<TypeInfo>(cla.data());
 }
 
-Value::Value()
+SemValue::SemValue()
   : typeinfo_(nullptr)
 {
 
 }
 
-Value::Value(const Value & other)
+SemValue::SemValue(const SemValue& other)
   : typeinfo_(other.typeinfo_)
 {
   if (other.isValid())
     value_ = engine()->copy(other.value_);
 }
 
-Value::Value(Value && other)
+SemValue::SemValue(SemValue&& other)
   : typeinfo_(other.typeinfo_)
   , value_(other.value_)
 {
@@ -158,39 +158,39 @@ Value::Value(Value && other)
   other.value_ = script::Value{};
 }
 
-Value::Value(const std::shared_ptr<TypeInfo> & ti, const script::Value & val)
+SemValue::SemValue(const std::shared_ptr<TypeInfo> & ti, const script::Value & val)
   : typeinfo_(ti)
 {
   value_ = engine()->copy(val);
 }
 
-Value::Value(const std::shared_ptr<TypeInfo> & ti, script::Value && val)
+SemValue::SemValue(const std::shared_ptr<TypeInfo> & ti, script::Value && val)
   : typeinfo_(ti)
   , value_(val)
 {
 
 }
 
-Value::Value(const script::Value & val)
+SemValue::SemValue(const script::Value & val)
 {
   typeinfo_ = TypeInfo::get(val.engine(), val.type());
   value_ = engine()->copy(val);
 }
 
-Value::Value(script::Value && val)
+SemValue::SemValue(script::Value && val)
   : value_(val)
 {
   typeinfo_ = TypeInfo::get(val.engine(), val.type());
 }
 
-Value::~Value()
+SemValue::~SemValue()
 {
   if (isValid())
     engine()->destroy(value_);
   value_ = script::Value{};
 }
 
-script::Value Value::release()
+script::Value SemValue::release()
 {
   typeinfo_ = nullptr;
   script::Value ret = value_;
@@ -198,7 +198,7 @@ script::Value Value::release()
   return ret;
 }
 
-void Value::assign(const script::Value & v)
+void SemValue::assign(const script::Value & v)
 {
   assert(isValid());
   assert(typeinfo_->element_type == v.type());
@@ -206,7 +206,7 @@ void Value::assign(const script::Value & v)
   typeinfo_->assign.invoke({ value_, v });
 }
 
-int Value::hash() const
+int SemValue::hash() const
 {
   script::Value result = typeinfo_->hash.invoke({ value_ });
   int ret = result.toInt();
@@ -214,7 +214,7 @@ int Value::hash() const
   return ret;
 }
 
-Value & Value::operator=(const Value & other)
+SemValue& SemValue::operator=(const SemValue& other)
 {
   if (value_ == other.value_)
     return *(this);
@@ -229,7 +229,7 @@ Value & Value::operator=(const Value & other)
   return *(this);
 }
 
-Value & Value::operator=(Value && other)
+SemValue& SemValue::operator=(SemValue&& other)
 {
   typeinfo_ = other.typeinfo_;
   value_ = other.value_;
@@ -240,7 +240,7 @@ Value & Value::operator=(Value && other)
   return *this;
 }
 
-bool Value::operator==(const Value & other) const
+bool SemValue::operator==(const SemValue& other) const
 {
   if (other.isNull() && isNull())
     return true;
@@ -254,12 +254,12 @@ bool Value::operator==(const Value & other) const
   return result;
 }
 
-bool Value::operator!=(const Value & other) const
+bool SemValue::operator!=(const SemValue& other) const
 {
   return !(*this == other);
 }
 
-bool Value::operator<(const Value & other) const
+bool SemValue::operator<(const SemValue& other) const
 {
   assert(!typeinfo_->less.isNull());
 
@@ -271,7 +271,7 @@ bool Value::operator<(const Value & other) const
 }
 
 ObserverValue::ObserverValue(const std::shared_ptr<TypeInfo> & ti, const script::Value & val)
-  : Value()
+  : SemValue()
 {
   typeinfo_ = ti;
   value_ = val;
