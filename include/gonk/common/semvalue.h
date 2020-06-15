@@ -7,6 +7,8 @@
 
 #include "gonk/gonk-defs.h"
 
+#include <script/interpreter/executioncontext.h>
+
 #include <script/function.h>
 #include <script/value.h>
 #include <script/userdata.h>
@@ -72,6 +74,11 @@ public:
   ObserverValue(const std::shared_ptr<TypeInfo> & ti, const script::Value & val);
   ~ObserverValue();
 };
+
+inline ObserverValue semarg(script::FunctionCall* c, size_t i)
+{
+  return ObserverValue{ TypeInfo::get(c->callee().memberOf()), c->arg(static_cast<int>(i)) };
+}
 
 } // namespace gonk
 

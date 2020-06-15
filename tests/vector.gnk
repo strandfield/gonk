@@ -1,0 +1,22 @@
+
+import std.vector;
+
+void main()
+{
+  std::vector<int> a(6, 0);
+  assert(a.size() == 6);
+  a[0] = 5;
+  assert(a.front() == 5);
+
+  std::vector<String> b;
+  assert(b.empty());
+
+  b.push_back("Hello World!");
+  assert(b.size() == 1);
+  
+  std::vector<int> c{a};
+  assert(c == a);
+  c.clear();
+  assert(c.size() == 0);
+  assert(c != a);
+}
