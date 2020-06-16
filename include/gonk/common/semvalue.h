@@ -14,20 +14,23 @@
 namespace gonk
 {
 
+class SemValue;
+
 struct GONK_API TypeInfo : public script::UserData
 {
-  script::Type element_type;
+  script::Type type;
   script::Engine *engine;
   script::Function eq;
   script::Function assign;
   script::Function less;
   script::Function hash;
 
+  SemValue defaultConstruct() const;
+
   inline bool hasLess() const { return !less.isNull(); }
   inline bool supportsHashing() const { return !hash.isNull(); }
 
   static std::shared_ptr<TypeInfo> get(script::Engine *e, const script::Type & t);
-  static std::shared_ptr<TypeInfo> get(const script::Class & cla);
 };
 
 class GONK_API SemValue

@@ -57,15 +57,15 @@ static void get_hash(TypeInfo & info)
 {
   script::Engine *e = info.engine;
 
-  script::Scope scp{ script::Scope::enclosingNamespace(info.element_type, e) };
+  script::Scope scp{ script::Scope::enclosingNamespace(info.type, e) };
   std::vector<script::Function> funcs = script::NameLookup::resolve("hash", scp).functions();
   auto resol = script::OverloadResolution::New(e);
-  if (!resol.process(funcs, { script::Type::cref(info.element_type) }))
+  if (!resol.process(funcs, { script::Type::cref(info.type) }))
     return;
 
   if (resol.selectedOverload().returnType() != script::Type::Int)
     return;
-  else if (resol.selectedOverload().parameter(0) != script::Type::cref(info.element_type))
+  else if (resol.selectedOverload().parameter(0) != script::Type::cref(info.type))
     return;
 
   info.hash = resol.selectedOverload();
@@ -80,7 +80,7 @@ std::shared_ptr<TypeInfo> TypeInfo::get(script::Engine *e, const script::Type & 
     return it->second;
 
   std::shared_ptr<TypeInfo> ret = std::make_shared<TypeInfo>();
-  ret->element_type = t.baseType();
+  ret->type = t.baseType();
   ret->engine = e;
 
   if (t.isObjectType() || t.isFundamentalType())
@@ -132,9 +132,10 @@ std::shared_ptr<TypeInfo> TypeInfo::get(script::Engine *e, const script::Type & 
   return ret;
 }
 
-std::shared_ptr<TypeInfo> TypeInfo::get(const script::Class & cla)
+SemValue TypeInfo::defaultConstruct() const
 {
-  return std::static_pointer_cast<TypeInfo>(cla.data());
+  const std::vector<script::Value> args;
+  return SemValue(this->engine->construct(this->type, args));
 }
 
 SemValue::SemValue()
@@ -201,7 +202,7 @@ script::Value SemValue::release()
 void SemValue::assign(const script::Value & v)
 {
   assert(isValid());
-  assert(typeinfo_->element_type == v.type());
+  assert(typeinfo_->type == v.type());
 
   typeinfo_->assign.invoke({ value_, v });
 }

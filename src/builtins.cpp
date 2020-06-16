@@ -49,6 +49,13 @@ script::Value print_string(script::FunctionCall* c)
   return script::Value::Void;
 }
 
+script::Value gnk_assert(script::FunctionCall* c)
+{
+  if(!c->arg(0).toBool())
+    throw script::RuntimeError{ "Assertion failure!" };
+  return script::Value::Void;
+}
+
 script::Value raise(script::FunctionCall* c)
 {
   throw script::RuntimeError{ script::get<std::string>(c->arg(0)) };
@@ -69,6 +76,9 @@ void register_builtins(script::Namespace& ns)
 
   ns.newFunction("print", callbacks::print_string)
     .params(script::Type::cref(script::Type::String)).create();
+
+  ns.newFunction("assert", callbacks::gnk_assert)
+    .params(script::Type::Boolean).create();
 
   ns.newFunction("raise", callbacks::raise)
     .params(script::Type::cref(script::Type::String)).create();
