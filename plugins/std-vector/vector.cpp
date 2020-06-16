@@ -4,8 +4,6 @@
 
 #include "vector.h"
 
-#include "gonk/common/semvalue.h"
-
 #include <script/classtemplateinstancebuilder.h>
 #include <script/namespace.h>
 #include <script/symbol.h>
@@ -46,8 +44,7 @@ static script::Value dtor(script::FunctionCall* c)
 static script::Value ctor_int(script::FunctionCall* c)
 {
   const int count = script::get<int>(c->arg(1));
-  const std::vector<script::Value> args;
-  SemValue value{ c->engine()->construct(TypeInfo::get(c->callee().memberOf())->element_type, args) };
+  SemValue value{ VectorTemplate::info(c).element_type->defaultConstruct() };
   c->thisObject().init<std::vector<SemValue>>(static_cast<size_t>(count), value);
   return c->thisObject();
 }
@@ -214,8 +211,7 @@ static script::Value resize_int(script::FunctionCall* c)
 {
   std::vector<SemValue>& self = script::get<std::vector<SemValue>>(c->arg(0));
   const int size = script::get<int>(c->arg(1));
-  const std::vector<script::Value> args;
-  SemValue value{ c->engine()->construct(TypeInfo::get(c->callee().memberOf())->element_type, args) };
+  SemValue value{ VectorTemplate::info(c).element_type->defaultConstruct() };
   self.resize(static_cast<size_t>(size), value);
   return script::Value::Void;
 }
@@ -372,12 +368,19 @@ void fill_instance(script::Class& c, script::Type t)
 
 } // namespace std_vector
 
+VectorTemplate::InstanceInfo& VectorTemplate::info(script::FunctionCall* c)
+{
+  return static_cast<InstanceInfo&>(*c->callee().memberOf().data());
+}
+
 script::Class VectorTemplate::instantiate(script::ClassTemplateInstanceBuilder& builder)
 {
   builder.setFinal();
   const script::Type element_type = builder.arguments().front().type;
 
-  builder.setData(gonk::TypeInfo::get(builder.getTemplate().engine(), element_type));
+  auto instance_info = std::make_shared<InstanceInfo>();
+  instance_info->element_type = gonk::TypeInfo::get(builder.getTemplate().engine(), element_type);
+  builder.setData(instance_info);
 
   script::Class vector = builder.get();
 

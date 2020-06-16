@@ -16,14 +16,18 @@
 namespace gonk
 {
 
+class SemValue;
+
 struct GONK_API TypeInfo : public script::UserData
 {
-  script::Type element_type;
+  script::Type type;
   script::Engine *engine;
   script::Function eq;
   script::Function assign;
   script::Function less;
   script::Function hash;
+
+  SemValue defaultConstruct() const;
 
   inline bool hasLess() const { return !less.isNull(); }
   inline bool supportsHashing() const { return !hash.isNull(); }

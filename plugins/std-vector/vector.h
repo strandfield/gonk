@@ -5,6 +5,7 @@
 #include "std-vector-defs.h"
 
 #include "gonk/common/binding/class.h"
+#include "gonk/common/semvalue.h"
 #include "gonk/common/types.h"
 
 #include <script/interpreter/executioncontext.h>
@@ -28,6 +29,15 @@ namespace gonk
 
 class VectorTemplate : public script::ClassTemplateNativeBackend
 {
+public:
+
+  struct InstanceInfo : public script::UserData
+  {
+    std::shared_ptr<TypeInfo> element_type;
+  };
+
+  static InstanceInfo& info(script::FunctionCall* c);
+
   script::Class instantiate(script::ClassTemplateInstanceBuilder& builder) override;
 };
 
