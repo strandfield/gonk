@@ -39,5 +39,5 @@ void register_regex_file(script::Namespace ns)
   register_regex_class(ns);
 
   // bool regex_match(const std::string& s, const std::regex& e);
-  gonk::bind::function<bool, const std::string&, const std::regex&, &regex_match>(ns, "regex_match").create();
+  gonk::bind::free_function<bool, const std::string&, const std::regex&, &regex_match>(ns, "regex_match").create();
 }

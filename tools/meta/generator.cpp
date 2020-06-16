@@ -664,7 +664,7 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
     else if (bm == Function::StaticBinding)
       return QString("  gonk::bind::static_member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::SimpleBinding && enclosingEntity() == "Namespace")
-      return QString("  gonk::bind::function<%1, %2%3>(%4, \"%5\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::free_function<%1, %2%3>(%4, \"%5\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::SimpleBinding && enclosingEntity() == "Class")
       return QString("  gonk::bind::member_function<%1, %2, %3%4>(%5, \"%6\")").arg(enclosingName(), fret, params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::FreeFunctionBinding)
@@ -676,7 +676,7 @@ QString Generator::generate(FunctionRef fun, Function::BindingMethod bm)
     else if (bm == Function::GenWrapperBinding && enclosingEntity() == "Namespace" && fun->returnType == "void")
       return QString("  gonk::bind::void_function<%3%4>(%5, \"%6\")").arg(params, funaddr, enclosing_snake_name(), funname);
     else if (bm == Function::GenWrapperBinding && enclosingEntity() == "Namespace" && fun->returnType != "void")
-      return QString("  gonk::bind::function<%2, %3%4>(%5, \"%6\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
+      return QString("  gonk::bind::free_function<%2, %3%4>(%5, \"%6\")").arg(fret, params, funaddr, enclosing_snake_name(), funname);
 
     throw std::runtime_error{ "Unsupported bind method !" };
   }();

@@ -129,7 +129,7 @@ void test_simple_bindind(script::Engine& e)
 
   Namespace ns = e.rootNamespace();
   
-  Function add_func = gonk::bind::function<int, int, int, &add>(ns, "add").get();
+  Function add_func = gonk::bind::free_function<int, int, int, &add>(ns, "add").get();
   ASSERT(add_func.returnType() == Type::Int);
   ASSERT(add_func.prototype().size() == 2);
   ASSERT(add_func.parameter(0) == Type::Int);
@@ -186,7 +186,7 @@ void test_simple_bindind(script::Engine& e)
     ASSERT(val_x.toInt() == 4);
   }
 
-  Function y = gonk::bind::fn_as_memfn<Point, int, &point_y>(pt, "y").get();
+  Function y = gonk::bind::fn_as_memfn<Point, int, point_y>(pt, "y").get();
   ASSERT(y.isMemberFunction());
   ASSERT(y.memberOf() == pt);
   ASSERT(y.name() == "y");
@@ -324,7 +324,7 @@ void test_enum_binding(script::Engine& e)
   ASSERT(val.type() == script::make_type<CoordinateSystem>());
   ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
 
-  script::Function favcoord = gonk::bind::function<CoordinateSystem, &favoriteCoordinateSystem>(ns, "favoriteCoordinateSystem").get();
+  script::Function favcoord = gonk::bind::free_function<CoordinateSystem, &favoriteCoordinateSystem>(ns, "favoriteCoordinateSystem").get();
 
   val = favcoord.invoke({});
   ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);

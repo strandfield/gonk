@@ -21,14 +21,14 @@ namespace bind
 /* Non-void functions */
 
 template<typename R, R(*F)()>
-script::FunctionBuilder function(script::Namespace & ns, std::string && name)
+script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   return ns.newFunction(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>());
 }
 
 template<typename R, typename A1, R(*F)(A1)>
-script::FunctionBuilder function(script::Namespace & ns, std::string && name)
+script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   return ns.newFunction(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -36,7 +36,7 @@ script::FunctionBuilder function(script::Namespace & ns, std::string && name)
 }
 
 template<typename R, typename A1, typename A2, R(*F)(A1, A2)>
-script::FunctionBuilder function(script::Namespace & ns, std::string && name)
+script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   return ns.newFunction(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -44,7 +44,7 @@ script::FunctionBuilder function(script::Namespace & ns, std::string && name)
 }
 
 template<typename R, typename A1, typename A2, typename A3, R(*F)(A1, A2, A3)>
-script::FunctionBuilder function(script::Namespace & ns, std::string && name)
+script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   return ns.newFunction(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -52,7 +52,7 @@ script::FunctionBuilder function(script::Namespace & ns, std::string && name)
 }
 
 template<typename R, typename A1, typename A2, typename A3, typename A4, R(*F)(A1, A2, A3, A4)>
-script::FunctionBuilder function(script::Namespace & ns, std::string && name)
+script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   return ns.newFunction(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
@@ -60,7 +60,7 @@ script::FunctionBuilder function(script::Namespace & ns, std::string && name)
 }
 
 template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, R(*F)(A1, A2, A3, A4, A5)>
-script::FunctionBuilder function(script::Namespace & ns, std::string && name)
+script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   return ns.newFunction(std::move(name), wrapper::function_wrapper_t<decltype(F), F>::wrap)
     .returns(make_type<R>())
