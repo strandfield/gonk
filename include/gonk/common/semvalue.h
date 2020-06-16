@@ -7,8 +7,6 @@
 
 #include "gonk/gonk-defs.h"
 
-#include <script/interpreter/executioncontext.h>
-
 #include <script/function.h>
 #include <script/value.h>
 #include <script/userdata.h>
@@ -33,7 +31,6 @@ struct GONK_API TypeInfo : public script::UserData
   inline bool supportsHashing() const { return !hash.isNull(); }
 
   static std::shared_ptr<TypeInfo> get(script::Engine *e, const script::Type & t);
-  static std::shared_ptr<TypeInfo> get(const script::Class & cla);
 };
 
 class GONK_API SemValue
@@ -78,11 +75,6 @@ public:
   ObserverValue(const std::shared_ptr<TypeInfo> & ti, const script::Value & val);
   ~ObserverValue();
 };
-
-inline ObserverValue semarg(script::FunctionCall* c, size_t i)
-{
-  return ObserverValue{ TypeInfo::get(c->callee().memberOf()), c->arg(static_cast<int>(i)) };
-}
 
 } // namespace gonk
 

@@ -132,11 +132,6 @@ std::shared_ptr<TypeInfo> TypeInfo::get(script::Engine *e, const script::Type & 
   return ret;
 }
 
-std::shared_ptr<TypeInfo> TypeInfo::get(const script::Class & cla)
-{
-  return std::static_pointer_cast<TypeInfo>(cla.data());
-}
-
 SemValue TypeInfo::defaultConstruct() const
 {
   const std::vector<script::Value> args;

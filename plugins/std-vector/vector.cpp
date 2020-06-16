@@ -53,7 +53,7 @@ static script::Value ctor_int(script::FunctionCall* c)
 static script::Value ctor_int_T(script::FunctionCall* c)
 {
   const int size = script::get<int>(c->arg(1));
-  ObserverValue value = semarg(c, 2);
+  ObserverValue value{ VectorTemplate::info(c).element_type,  c->arg(2) };
   c->thisObject().init<std::vector<SemValue>>(static_cast<size_t>(size), value);
   return c->thisObject();
 }
@@ -72,7 +72,7 @@ static script::Value assign_int_T(script::FunctionCall* c)
 {
   std::vector<SemValue>& self = script::get<std::vector<SemValue>>(c->arg(0));
   const int count = script::get<int>(c->arg(1));
-  ObserverValue value = semarg(c, 2);
+  ObserverValue value{ VectorTemplate::info(c).element_type,  c->arg(2) };
   self.assign(count, value);
   return script::Value::Void;
 }
@@ -175,7 +175,7 @@ static script::Value insert_int_T(script::FunctionCall* c)
 {
   std::vector<SemValue>& self = script::get<std::vector<SemValue>>(c->arg(0));
   const int index = script::get<int>(c->arg(1));
-  ObserverValue value = semarg(c, 2);
+  ObserverValue value{ VectorTemplate::info(c).element_type,  c->arg(2) };
   self.insert(self.begin() + static_cast<size_t>(index), value);
   return script::Value::Void;
 }
@@ -193,7 +193,7 @@ static script::Value erase_int(script::FunctionCall* c)
 static script::Value push_back(script::FunctionCall* c)
 {
   std::vector<SemValue>& self = script::get<std::vector<SemValue>>(c->arg(0));
-  ObserverValue value = semarg(c, 1);
+  ObserverValue value{ VectorTemplate::info(c).element_type,  c->arg(1) };
   self.push_back(value);
   return script::Value::Void;
 }
@@ -221,7 +221,7 @@ static script::Value resize_int_T(script::FunctionCall* c)
 {
   std::vector<SemValue>& self = script::get<std::vector<SemValue>>(c->arg(0));
   const int size = script::get<int>(c->arg(1));
-  ObserverValue value = semarg(c, 2);
+  ObserverValue value{ VectorTemplate::info(c).element_type,  c->arg(2) };
   self.resize(static_cast<size_t>(size), value);
   return script::Value::Void;
 }
