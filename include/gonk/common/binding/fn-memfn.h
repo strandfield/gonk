@@ -81,7 +81,7 @@ script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 template<typename T, typename R, R(*F)(const T &)>
 script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(&F), F>::wrap)
+  return cla.newMethod(std::move(name), wrapper::function_wrapper_t<R(*)(const T&), F>::wrap)
     .setConst()
     .returns(make_type<R>());
 }
@@ -89,7 +89,7 @@ script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 template<typename T, typename R, typename A1, R(*F)(const T &, A1)>
 script::FunctionBuilder fn_as_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::function_wrapper_t<decltype(&F), F>::wrap)
+  return cla.newMethod(std::move(name), wrapper::function_wrapper_t<R(*)(const T&, A1), F>::wrap)
     .setConst()
     .returns(make_type<R>())
     .params(make_type<A1>());

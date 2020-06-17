@@ -483,7 +483,7 @@ void register_bytearray_file(script::Namespace ns)
   // int qstrcmp(const char*, const char*);
   /// TODO: int qstrcmp(const char*, const char*);
   // int qstrcmp(const QByteArray&, const QByteArray&);
-  gonk::bind::function<int, const QByteArray&, const QByteArray&, &bytearray_qstrcmp>(ns, "qstrcmp").create();
+  gonk::bind::free_function<int, const QByteArray&, const QByteArray&, &bytearray_qstrcmp>(ns, "qstrcmp").create();
   // int qstrcmp(const QByteArray&, const char*);
   /// TODO: int qstrcmp(const QByteArray&, const char*);
   // int qstrcmp(const char*, const QByteArray&);
@@ -559,9 +559,9 @@ void register_bytearray_file(script::Namespace ns)
   // QDataStream& operator>>(QDataStream&, QByteArray&);
   /// TODO: QDataStream& operator>>(QDataStream&, QByteArray&);
   // QByteArray qCompress(const QByteArray&, int);
-  gonk::bind::function<QByteArray, const QByteArray&, int, &bytearray_qCompress>(ns, "qCompress").create();
+  gonk::bind::free_function<QByteArray, const QByteArray&, int, &bytearray_qCompress>(ns, "qCompress").create();
   // QByteArray qUncompress(const QByteArray&);
-  gonk::bind::function<QByteArray, const QByteArray&, &bytearray_qUncompress>(ns, "qUncompress").create();
+  gonk::bind::free_function<QByteArray, const QByteArray&, &bytearray_qUncompress>(ns, "qUncompress").create();
   // void swap(QByteArray&, QByteArray&);
   gonk::bind::void_function<QByteArray&, QByteArray&, &swap>(ns, "swap").create();
 }
