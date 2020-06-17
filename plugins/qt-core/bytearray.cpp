@@ -16,6 +16,13 @@
 #include "qt-core/bytearray.h"
 #include "qt-core/string.h"
 
+#if METAGONK_SOURCE
+int {{ 'Hello_World' }} = 5;
+#else
+int Hello_World = 5;
+#endif // METAGONK_SOURCE
+
+
 namespace
 {
 script::Value bytearray_string_ctor(script::FunctionCall* c)

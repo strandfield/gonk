@@ -11,7 +11,7 @@ add_executable(metagonk ${METAGONK_HDR_FILES} ${METAGONK_SRC_FILES} res.qrc)
 
 target_include_directories(metagonk PRIVATE ".")
 
-target_link_libraries(metagonk cxxast)
+target_link_libraries(metagonk cxxast liquid)
 target_link_libraries(metagonk Qt5::Core Qt5::Widgets Qt5::Sql)
 
 set_target_properties(metagonk PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")

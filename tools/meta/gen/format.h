@@ -7,7 +7,7 @@
 
 #include <QString>
 
-QString format(const char* str)
+inline QString format(const char* str)
 {
   return QString(str);
 }
