@@ -107,6 +107,8 @@ private:
 
   std::string renderSource(std::string src);
 
+  json::Json applyFilter(const std::string& name, const json::Json& object, const std::vector<json::Json>& args) override;
+
   void fetchTypesHeaders();
   void fetchTypesHeaders(NodeRef node);
 
@@ -165,6 +167,8 @@ private:
   friend class LiquidGenStateGuard;
   ProjectRef mProject;
   QMap<QString, TypeInfo> mTypeInfos;
+
+  json::Json mSerializedProject;
 
   QString mRootDirectory;
   QStack<NodeRef> mProcessingStack;

@@ -8,6 +8,9 @@
 #include "gen/format.h"
 
 #include "project/statement.h"
+#include "project/node-visitor.h"
+
+#include <json-toolkit/stringify.h>
 
 #include <QDir>
 #include <QDirIterator>
@@ -83,6 +86,152 @@ public:
 };
 
 
+class ProjectSerializer : public NodeVisitor
+{
+public:
+
+  json::Json result;
+
+  static json::Json serialize(Node& n)
+  {
+    ProjectSerializer s;
+    n.accept(s);
+    return s.result;
+  }
+
+  static json::Array serialize(const QList<NodeRef>& nodes)
+  {
+    json::Array ret;
+
+    json::Json default_constructed;
+
+    for (auto n : nodes)
+    {
+      json::Json obj = serialize(*n);
+      if (obj != default_constructed)
+        ret.push(obj);
+    }
+
+    return ret;
+  }
+
+  static json::Json serialize(ProjectRef pro)
+  {
+    json::Json result;
+
+    json::Array modules;
+
+    for (auto m : pro->modules)
+      modules.push(serialize(*m));
+
+    result["modules"] = modules;
+
+    return result;
+  }
+
+  void visit(Class& c) override
+  {
+    result["type"] = "class";
+    result["name"] = c.name.toStdString();
+    
+    if (!c.base.isEmpty())
+      result["base"] = c.base.toStdString();
+
+    if (c.isFinal)
+      result["final"] = true;
+
+    if (!c.elements.isEmpty())
+      result["members"] = serialize(c.elements);
+  }
+
+  void visit(Module& m) override
+  {
+    result["type"] = "module";
+    result["name"] = m.name.toStdString();
+
+    if (!m.elements.isEmpty())
+    {
+      json::Array elements;
+
+      for (auto f : m.elements)
+      {
+        for (auto e : static_cast<File&>(*f).elements)
+          elements.push(serialize(*e));
+      }
+
+      result["elements"] = elements;
+    }
+  }
+
+  void visit(Enum& e) override
+  {
+    result["type"] = "enum";
+    result["name"] = e.name.toStdString();
+
+    json::Array values;
+
+    for (auto ev : e.enumerators)
+      values.push(serialize(*ev));
+
+    result["values"] = values;
+  }
+
+  void visit(Enumerator& e) override
+  {
+    result["type"] = "enumerator";
+    result["name"] = e.name.toStdString();
+  }
+
+  void visit(File& f) override
+  {
+
+  }
+
+  void visit(Function& f) override
+  {
+    result["type"] = "function";
+    result["name"] = f.name.toStdString();
+    
+    if (!f.isConstructor && !f.isDestructor)
+      result["return_type"] = f.returnType.toStdString();
+
+    if (f.isConstructor)
+      result["constructor"] = true;
+    else if (f.isDestructor)
+      result["destructor"] = true;
+
+    json::Array parameters;
+    for (auto p : f.parameters)
+    {
+      parameters.push(p.toStdString());
+    }
+    result["parameters"] = parameters;
+
+    if (f.isConst)
+      result["const"] = true;
+
+    if (f.isExplicit)
+      result["explicit"] = true;
+
+    if (f.isStatic)
+      result["static"] = true;
+  }
+
+  void visit(Namespace& n) override
+  {
+    result["type"] = "namespace";
+    result["name"] = n.name.toStdString();
+
+    if (!n.elements.isEmpty())
+      result["elements"] = serialize(n.elements);
+  }
+
+  void visit(Statement& s)
+  {
+
+  }
+};
+
 LiquidGenerator::TypeInfo::TypeInfo(const Type & t)
   : Type(t)
 {
@@ -102,6 +251,13 @@ void LiquidGenerator::generate(const ProjectRef & p)
   timer.start();
 
   mProject = p;
+  mSerializedProject = ProjectSerializer::serialize(mProject);
+
+  {
+    QFile pro_json{ "project.json" };
+    pro_json.open(QIODevice::WriteOnly | QIODevice::Truncate);
+    pro_json.write(json::stringify(mSerializedProject).c_str());
+  }
 
   fetchTypesHeaders();
 
@@ -285,7 +441,7 @@ std::string LiquidGenerator::renderSource(std::string src)
     std::string liquid_src{ src.begin() + src_begin, src.begin() + src_end };
 
     liquid::Template tmplt = liquid::parse(liquid_src);
-    std::string liquid_rendered = liquid::Renderer::render(tmplt, json::Object());
+    std::string liquid_rendered = liquid::Renderer::render(tmplt, mSerializedProject.toObject());
 
     size_t replacement_begin = src.find('\n', src_end) + 1;
     size_t replacement_end = src.find("#endif // METAGONK_SOURCE", replacement_begin);
@@ -296,6 +452,11 @@ std::string LiquidGenerator::renderSource(std::string src)
   }
 
   return src;
+}
+
+json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Json& object, const std::vector<json::Json>& args)
+{
+  return liquid::Renderer::applyFilter(name, object, args);
 }
 
 void LiquidGenerator::fetchTypesHeaders()
