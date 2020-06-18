@@ -169,6 +169,7 @@ private:
   QMap<QString, TypeInfo> mTypeInfos;
 
   json::Json mSerializedProject;
+  std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef> m_serialization_map;
 
   QString mRootDirectory;
   QStack<NodeRef> mProcessingStack;

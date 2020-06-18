@@ -90,16 +90,23 @@ class ProjectSerializer : public NodeVisitor
 {
 public:
 
+  std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef>& map;
   json::Json result;
 
-  static json::Json serialize(Node& n)
+  ProjectSerializer(std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef>& m)
+    : map(m)
   {
-    ProjectSerializer s;
+
+  }
+
+  json::Json serialize(Node& n)
+  {
+    ProjectSerializer s{ map };
     n.accept(s);
     return s.result;
   }
 
-  static json::Array serialize(const QList<NodeRef>& nodes)
+  json::Array serialize(const QList<NodeRef>& nodes)
   {
     json::Array ret;
 
@@ -115,7 +122,7 @@ public:
     return ret;
   }
 
-  static json::Json serialize(ProjectRef pro)
+  json::Json serialize(ProjectRef pro)
   {
     json::Json result;
 
@@ -131,6 +138,8 @@ public:
 
   void visit(Class& c) override
   {
+    map[result.impl()] = c.shared_from_this();
+
     result["type"] = "class";
     result["name"] = c.name.toStdString();
     
@@ -146,6 +155,8 @@ public:
 
   void visit(Module& m) override
   {
+    map[result.impl()] = m.shared_from_this();
+
     result["type"] = "module";
     result["name"] = m.name.toStdString();
 
@@ -165,6 +176,8 @@ public:
 
   void visit(Enum& e) override
   {
+    map[result.impl()] = e.shared_from_this();
+
     result["type"] = "enum";
     result["name"] = e.name.toStdString();
 
@@ -178,6 +191,8 @@ public:
 
   void visit(Enumerator& e) override
   {
+    map[result.impl()] = e.shared_from_this();
+
     result["type"] = "enumerator";
     result["name"] = e.name.toStdString();
   }
@@ -189,6 +204,8 @@ public:
 
   void visit(Function& f) override
   {
+    map[result.impl()] = f.shared_from_this();
+
     result["type"] = "function";
     result["name"] = f.name.toStdString();
     
@@ -219,6 +236,8 @@ public:
 
   void visit(Namespace& n) override
   {
+    map[result.impl()] = n.shared_from_this();
+
     result["type"] = "namespace";
     result["name"] = n.name.toStdString();
 
@@ -251,7 +270,9 @@ void LiquidGenerator::generate(const ProjectRef & p)
   timer.start();
 
   mProject = p;
-  mSerializedProject = ProjectSerializer::serialize(mProject);
+
+  ProjectSerializer serializer{ m_serialization_map };
+  mSerializedProject = serializer.serialize(mProject);
 
   {
     QFile pro_json{ "project.json" };
