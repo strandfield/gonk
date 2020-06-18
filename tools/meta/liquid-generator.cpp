@@ -90,10 +90,10 @@ class ProjectSerializer : public NodeVisitor
 {
 public:
 
-  std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef>& map;
+  SerializationMaps& map;
   json::Json result;
 
-  ProjectSerializer(std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef>& m)
+  ProjectSerializer(SerializationMaps& m)
     : map(m)
   {
 
@@ -138,7 +138,7 @@ public:
 
   void visit(Class& c) override
   {
-    map[result.impl()] = c.shared_from_this();
+    map.bind(c.shared_from_this(), result);
 
     result["type"] = "class";
     result["name"] = c.name.toStdString();
@@ -155,7 +155,7 @@ public:
 
   void visit(Module& m) override
   {
-    map[result.impl()] = m.shared_from_this();
+    map.bind(m.shared_from_this(), result);
 
     result["type"] = "module";
     result["name"] = m.name.toStdString();
@@ -176,7 +176,7 @@ public:
 
   void visit(Enum& e) override
   {
-    map[result.impl()] = e.shared_from_this();
+    map.bind(e.shared_from_this(), result);
 
     result["type"] = "enum";
     result["name"] = e.name.toStdString();
@@ -191,7 +191,7 @@ public:
 
   void visit(Enumerator& e) override
   {
-    map[result.impl()] = e.shared_from_this();
+    map.bind(e.shared_from_this(), result);
 
     result["type"] = "enumerator";
     result["name"] = e.name.toStdString();
@@ -204,7 +204,7 @@ public:
 
   void visit(Function& f) override
   {
-    map[result.impl()] = f.shared_from_this();
+    map.bind(f.shared_from_this(), result);
 
     result["type"] = "function";
     result["name"] = f.name.toStdString();
@@ -236,7 +236,7 @@ public:
 
   void visit(Namespace& n) override
   {
-    map[result.impl()] = n.shared_from_this();
+    map.bind(n.shared_from_this(), result);
 
     result["type"] = "namespace";
     result["name"] = n.name.toStdString();
@@ -289,6 +289,8 @@ void LiquidGenerator::generate(const ProjectRef & p)
     if (!dir.exists("plugins"))
       dir.mkdir("plugins");
   }
+
+  parseTemplates();
 
   QDirIterator diriterator{ mRootDirectory + "/plugins", QDir::Files, QDirIterator::Subdirectories };
 
@@ -428,6 +430,26 @@ static const OperatorInfo static_operator_infos[]{
   { "bitwise_not", true, 1 },
 };
 
+void LiquidGenerator::parseTemplates()
+{
+  QDirIterator diriterator{ mRootDirectory + "/templates", QDir::Files };
+
+  while (diriterator.hasNext())
+  {
+    diriterator.next();
+
+    QFileInfo item_info = diriterator.fileInfo();
+
+    if (item_info.suffix() == "liquid")
+    {
+      liquid::Template tmplt = liquid::parseFile(item_info.absoluteFilePath().toStdString());
+      tmplt.stripWhitespacesAtTag();
+      liquid::Renderer::templates()[item_info.baseName().toStdString()] = tmplt;
+
+      qDebug() << "Parsed template: " << item_info.baseName();
+    }
+  }
+}
 
 void LiquidGenerator::processFile(const QFileInfo& fileinfo)
 {
@@ -462,7 +484,9 @@ std::string LiquidGenerator::renderSource(std::string src)
     std::string liquid_src{ src.begin() + src_begin, src.begin() + src_end };
 
     liquid::Template tmplt = liquid::parse(liquid_src);
-    std::string liquid_rendered = liquid::Renderer::render(tmplt, mSerializedProject.toObject());
+    json::Object data;
+    data["project"] = mSerializedProject;
+    std::string liquid_rendered = liquid::Renderer::render(tmplt, data);
 
     size_t replacement_begin = src.find('\n', src_end) + 1;
     size_t replacement_end = src.find("#endif // METAGONK_SOURCE", replacement_begin);
@@ -477,7 +501,36 @@ std::string LiquidGenerator::renderSource(std::string src)
 
 json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Json& object, const std::vector<json::Json>& args)
 {
-  return liquid::Renderer::applyFilter(name, object, args);
+  if (name == "snake_case")
+  {
+    return to_snake_case(QString::fromStdString(object.toString())).toStdString();
+  }
+  else if (name == "replace")
+  {
+    QString str = QString::fromStdString(object.toString());
+    str.replace(QString::fromStdString(args.at(0).toString()), QString::fromStdString(args.at(1).toString()));
+    return str.toStdString();
+  }
+  else if (name == "qualified_name")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    return node->qualifiedName().toStdString();
+  }
+  else if (name == "get_symbol")
+  {
+    NodeRef node = mProject->getSymbol(QString::fromStdString(args.at(0).toString()), QString::fromStdString(args.at(1).toString()));
+    return m_serialization_map.get(node);
+  }
+  else if (name == "parent")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    node = node->parent.lock();
+    return node ? m_serialization_map.get(node) : json::null;
+  }
+  else
+  {
+    return liquid::Renderer::applyFilter(name, object, args);
+  }
 }
 
 void LiquidGenerator::fetchTypesHeaders()

@@ -116,6 +116,53 @@ std::shared_ptr<Type> Project::getType(int id) const
   return it != type_map.end() ? it->second : nullptr;
 }
 
+NodeRef Project::getSymbol(const QString& module_name, const QString& name) const
+{
+  auto m = [&]() -> ModuleRef {
+    for (const auto& e : modules)
+    {
+      if (e->name == module_name)
+        return  e;
+    }
+    return nullptr;
+  }();
+
+  QStringList names = name.split("::", QString::SkipEmptyParts);
+
+  NodeRef elem = [&]() -> NodeRef {
+    for (auto f : m->elements)
+    {
+      for (auto e : static_cast<File&>(*f).elements)
+      {
+        if (e->name == names.first())
+          return e;
+      }
+    }
+
+    return nullptr;
+  }();
+
+  names.pop_front();
+
+  while (!names.empty())
+  {
+    elem = [&]() -> NodeRef {
+      for (size_t i(0); i < elem->childCount(); ++i)
+      {
+        if (elem->childAt(i)->name == names.front())
+          return elem->childAt(i);
+      }
+
+      return nullptr;
+    }();
+
+    names.pop_front();
+
+  }
+
+  return elem;
+}
+
 void Project::sort(QList<Type> & types)
 {
   struct LessThan

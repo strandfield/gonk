@@ -55,6 +55,8 @@ public:
   virtual void removeChild(size_t index);
   virtual QList<std::shared_ptr<Node>> children() const;
 
+  QString qualifiedName() const;
+
   static QString nameQualification(const QStack<std::shared_ptr<Node>> & nodes);
   static QString nameQualification(const std::vector<std::shared_ptr<Node>>& nodes);
 

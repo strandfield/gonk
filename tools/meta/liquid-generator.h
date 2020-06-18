@@ -26,6 +26,28 @@ class CppFile;
 class QFileInfo;
 class QTextStream;
 
+struct SerializationMaps
+{
+  std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef> backward;
+  std::unordered_map<NodeRef, json::Json> forward;
+
+  json::Json get(const NodeRef& n) const
+  {
+    return forward.at(n);
+  }
+
+  NodeRef get(const json::Json& obj) const
+  {
+    return backward.at(obj.impl());
+  }
+
+  void bind(const NodeRef& n, const json::Json& o)
+  {
+    backward[o.impl()] = n;
+    forward[n] = o;
+  }
+};
+
 class LiquidGenerator : protected liquid::Renderer
 {
 public:
@@ -103,6 +125,8 @@ private:
 
 private:
 
+  void parseTemplates();
+
   void processFile(const QFileInfo& fileinfo);
 
   std::string renderSource(std::string src);
@@ -169,7 +193,7 @@ private:
   QMap<QString, TypeInfo> mTypeInfos;
 
   json::Json mSerializedProject;
-  std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef> m_serialization_map;
+  SerializationMaps m_serialization_map;
 
   QString mRootDirectory;
   QStack<NodeRef> mProcessingStack;

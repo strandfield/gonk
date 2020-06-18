@@ -48,6 +48,8 @@ public:
   Type & getType(const QString & name);
   std::shared_ptr<Type> getType(int id) const;
 
+  NodeRef getSymbol(const QString& module_name, const QString& name) const;
+
   template<typename T>
   std::shared_ptr<T> get(const QString & name)
   {

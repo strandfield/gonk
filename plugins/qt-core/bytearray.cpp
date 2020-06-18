@@ -17,9 +17,22 @@
 #include "qt-core/string.h"
 
 #if METAGONK_SOURCE
-int {{ 'Hello_World' }} = 5;
+const char* module_name = "{{ project.modules[0].name }}";
+{% include generate_enum with enum = project | get_symbol: 'Qt.Core', 'QByteArray::Base64Option' %}
 #else
-int Hello_World = 5;
+const char* module_name = "Qt.Core";
+static void register_byte_array__base64_option(script::Class& parent)
+{
+  using namespace script;
+  
+  Enum base64_option = parent.newEnum("Base64Option").setId(script::Type::make<QByteArray::Base64Option>().data()).get();
+  
+  base64_option.addValue("Base64Encoding", QByteArray::Base64Option::Base64Encoding);
+  base64_option.addValue("Base64UrlEncoding", QByteArray::Base64Option::Base64UrlEncoding);
+  base64_option.addValue("KeepTrailingEquals", QByteArray::Base64Option::KeepTrailingEquals);
+  base64_option.addValue("OmitTrailingEquals", QByteArray::Base64Option::OmitTrailingEquals);
+}
+
 #endif // METAGONK_SOURCE
 
 

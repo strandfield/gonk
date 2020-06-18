@@ -49,6 +49,21 @@ QList<std::shared_ptr<Node>> Node::children() const
   return ret;
 }
 
+QString Node::qualifiedName() const
+{
+  QString result = this->name;
+
+  NodeRef p = this->parent.lock();
+
+  while (p != nullptr && p->typeCode() != NodeType::File)
+  {
+    result = p->name + "::" + result;
+    p = p->parent.lock();
+  }
+
+  return result;
+}
+
 QString Node::nameQualification(const QStack<std::shared_ptr<Node>> & nodes)
 {
   if (nodes.isEmpty())
