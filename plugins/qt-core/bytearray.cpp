@@ -18,20 +18,30 @@
 
 #if METAGONK_SOURCE
 const char* module_name = "{{ project.modules[0].name }}";
-{% include generate_enum with enum = project | get_symbol: 'Qt.Core', 'QByteArray::Base64Option' %}
+{% assign bytearray_class = project | get_symbol: 'Qt.Core', 'QByteArray' %}
+{% include generate_function with function = bytearray_class.members[4] %}
+{% include generate_function with function = bytearray_class.members[8] %}
+{% include generate_function with function = bytearray_class.members[14] %}
+{% include generate_function with function = bytearray_class.members[16] %}
+{% include generate_function with function = bytearray_class.members[9] %}
+{% include generate_wrapper with function = bytearray_class.members[17] %}
 #else
 const char* module_name = "Qt.Core";
-static void register_byte_array__base64_option(script::Class& parent)
-{
-  using namespace script;
-  
-  Enum base64_option = parent.newEnum("Base64Option").setId(script::Type::make<QByteArray::Base64Option>().data()).get();
-  
-  base64_option.addValue("Base64Encoding", QByteArray::Base64Option::Base64Encoding);
-  base64_option.addValue("Base64UrlEncoding", QByteArray::Base64Option::Base64UrlEncoding);
-  base64_option.addValue("KeepTrailingEquals", QByteArray::Base64Option::KeepTrailingEquals);
-  base64_option.addValue("OmitTrailingEquals", QByteArray::Base64Option::OmitTrailingEquals);
-}
+
+// QByteArray(int, char);
+  gonk::bind::constructor<QByteArray, int, char>(c).create();
+
+// ~QByteArray();
+  gonk::bind::destructor<QByteArray>(c).create();
+
+// int size() const;
+  gonk::bind::member_function<QByteArray, int, &QByteArray::size>(c, "size").create();
+
+// void resize(int);
+  gonk::bind::void_member_function<QByteArray, int, &QByteArray::resize>(c, "resize").create();
+
+// QByteArray& operator=(const QByteArray&);
+  gonk::bind::memop_assign<QByteArray, const QByteArray&>(c).create();
 
 #endif // METAGONK_SOURCE
 

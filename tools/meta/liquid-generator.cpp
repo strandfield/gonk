@@ -236,7 +236,12 @@ public:
       result["static"] = true;
 
     if (f.bindingMethod != Function::BindingMethod::AutoBinding)
+    {
       result["binding"] = Function::serialize(f.bindingMethod).toStdString();
+
+      if (f.bindingMethod == Function::GenWrapperBinding)
+        result["genwrapper"] = true;
+    }
 
     if (!f.implementation.isEmpty())
       result["implementation"] = f.implementation.toStdString();
@@ -451,7 +456,7 @@ void LiquidGenerator::parseTemplates()
     if (item_info.suffix() == "liquid")
     {
       liquid::Template tmplt = liquid::parseFile(item_info.absoluteFilePath().toStdString());
-      tmplt.stripWhitespacesAtTag();
+      tmplt.skipWhitespacesAfterTag();
       liquid::Renderer::templates()[item_info.baseName().toStdString()] = tmplt;
 
       qDebug() << "Parsed template: " << item_info.baseName();
@@ -558,7 +563,7 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   {
     NodeRef node = m_serialization_map.get(object);
     node = node->parent.lock();
-    return node ? m_serialization_map.get(node) : json::null;
+    return node && ! node->is<File>() ? m_serialization_map.get(node) : json::null;
   }
   else if (name == "signature")
   {
@@ -577,6 +582,45 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
     NodeRef node = m_serialization_map.get(object);
     FunctionRef fn = std::static_pointer_cast<Function>(node);
     return operatorName(*fn).toStdString();
+  }
+  else if (name == "operator_need_return_type")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    OperatorSymbol opsym = getOperatorSymbol(fn->name);
+
+    static std::set<OperatorSymbol> assignment_ops = {
+      Greater,
+      Less,
+      Leq, 
+      Geq,
+      Eq,
+      Neq,
+      Assign,
+      AddAssign,
+      SubAssign,
+      MulAssign,
+      DivAssign,
+      AndAssign,
+      OrAssign,
+      PlusPlus,
+      PreIncrement,
+      PostIncrement,
+      MinusMinus,
+      PreDecrement,
+      PostDecrement,
+      LeftShiftAssign,
+      RightShiftAssign,
+      XorAssign,
+    };
+
+    return assignment_ops.find(opsym) == assignment_ops.end();
+  }
+  else if (name == "mangled_name")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    return mangledName(*fn).toStdString();
   }
   else if (name == "check_params")
   {

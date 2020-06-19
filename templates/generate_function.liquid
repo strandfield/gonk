@@ -1,34 +1,40 @@
 {% assign fn = include.function %}
 {% assign parent = fn | parent %}
-// {{ fn | signature }}
+{{''}}  // {{ fn | signature }}
 {% if fn | check_params %}
     {% if parent and parent.type == 'class' %}
         {% assign qualified_class_name = parent | qualified_name %}
         {% if fn.constructor %}
             {% if fn.parameters.length == 0 %}
-                {{ '  ' }}gonk::bind::default_constructor<{{ qualified_class_name }}>(c).create();
+                {{ '  ' }}gonk::bind::default_constructor<{{ qualified_class_name }}>(c).create();{% comment %}
 			{% else %}
-			    {{ '  ' }}gonk::bind::constructor<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' }}>(c).create();
+			    {{ '  ' }}gonk::bind::constructor<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' }}>(c).create();{% comment %}
             {% endif %}
         {% elsif fn.destructor %}
-            {{ '  ' }}gonk::bind::destructor<{{ qualified_class_name }}>(c).create();
+            {{ '  ' }}gonk::bind::destructor<{{ qualified_class_name }}>(c).create();{% comment %}
 	    {% elsif fn.operator %}
-            {{ '  ' }}gonk::bind::{{ fn | operator_name }}<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' }}>(c).create();
+            {% if fn | operator_need_return_type %}
+			    {{ '  ' }}gonk::bind::{{ fn | operator_name }}<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' }}>(c);{% comment %}
+		    {% else %}
+			    {{ '  ' }}gonk::bind::{{ fn | operator_name }}<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' }}>(c);{% comment %}
+			{% endif %}
         {% else %}
             {% if fn.static and fn.return_type == 'void' %}
-                {{ '  ' }}gonk::bind::static_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();
+                {{ '  ' }}gonk::bind::static_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
             {% elsif fn.const and fn.return_type == 'void' %}
-			    {{ '  ' }}gonk::bind::const_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();
+			    {{ '  ' }}gonk::bind::const_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% elsif fn.return_type == 'void' %}
-			    {{ '  ' }}gonk::bind::void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();
+			    {{ '  ' }}gonk::bind::void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% elsif fn.static %}
-			    {{ '  ' }}gonk::bind::static_member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();
+			    {{ '  ' }}gonk::bind::static_member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+			{% elsif fn.implementation and fn.implementation != '' %}
+			    {{ '  ' }}gonk::bind::fn_as_memfn<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% else %}
-			    {{ '  ' }}gonk::bind::member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();
+			    {{ '  ' }}gonk::bind::member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% endif %}
 	    {% endif %}
     {% else %}
     {% endif %}
 {% else %}
-// @TODO: {{ fn | signature }}
-{% endif %}
+// @TODO: {{ fn | signature }}{% comment %}
+{% endif %}{{''}}

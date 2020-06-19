@@ -1,0 +1,55 @@
+{% assign class = include.class %}
+{% assign parent = class | parent %}
+{% assign has_wrappers_to_generate = false %}
+{% for m in class.members %}
+    {% if m.type == 'function' %}
+	    {% include needs_wrapper with function = m %}
+		{% if function_needs_wrapper %}
+	        {% assign has_wrappers_to_generate = true %}
+		    {% break %}
+		{% endif %}
+	{% endif %}
+{% endfor %}
+{% if has_wrappers_to_generate %}
+namespace 
+{
+{% for m in class.members %}
+    {% if m.type == 'function' %}
+	    {% include needs_wrapper with function = m %}
+		{% if function_needs_wrapper %}
+	        {% include generate_wrapper with function = m %}
+		{% endif %}
+	{% endif %}
+{% endfor %}
+}
+{% endif %}
+
+{% if parent and parent.type == 'class' %}
+static void register_{{ class | qualified_name | replace: '::', '_' | snake_case }}(script::Class& parent)
+{% else %}
+static void register_{{ class | qualified_name | replace: '::', '_' | snake_case }}(script::Namespace& parent)
+{% endif %}
+{
+  using namespace script;
+  
+{% if parent and parent.type == 'class' %}
+{{'  '}}Class {{ class.name | snake_case }} = parent.newNestedClass("{{ class.name }}").setId(script::Type::make<{{ class | qualified_name }}>().data())
+{% else %}
+{{'  '}}Class {{ class.name | snake_case }} = parent.newClass("{{ class.name }}").setId(script::Type::make<{{ class | qualified_name }}>().data())
+{% endif %}
+{% if class.base %}
+{{'    '}}.setBase(script::Type::make<{{ class.base }}>().data())
+{% endif %}
+{% if class.final %}
+{{'    '}}.setFinal()
+{% endif %}
+{{'    '}}.get();
+
+  Class& c = {{ class.name | snake_case }};
+  
+{% for m in class.members %}
+    {% if m.type == 'function' %}
+	    {% include generate_function with function = m %}
+	{% endif %}
+{% endfor %}
+}
