@@ -108,6 +108,11 @@ QString Function::signature() const
   return result;
 }
 
+bool Function::isOperator() const
+{
+  return this->name.startsWith("operator");
+}
+
 int Function::compareTo(const Node & o) const
 {
   static const QString operator_str = "operator";

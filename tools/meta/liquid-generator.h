@@ -133,6 +133,8 @@ private:
 
   json::Json applyFilter(const std::string& name, const json::Json& object, const std::vector<json::Json>& args) override;
 
+  QString operatorName(const Function& fn) const;
+
   void fetchTypesHeaders();
   void fetchTypesHeaders(NodeRef node);
 
@@ -161,6 +163,7 @@ private:
   QString fparamscomma(const FunctionRef fun);
   const QStringList & checkParams(const QStringList & ps);
   QStringList params(const Function& fun);
+  bool validateParams(const Function& fun);
   void checkParam(QString p);
   QString formatParams(QString fmt, QStringList params, QString prefix = "", QString suffix = "");
   Function::BindingMethod getBindingMethod(FunctionRef fun) const;

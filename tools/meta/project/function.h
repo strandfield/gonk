@@ -56,6 +56,8 @@ public:
   QString display() const override;
   QString signature() const;
 
+  bool isOperator() const;
+
   int compareTo(const Node & o) const;
 
   QStringList getSpecifiers() const;

@@ -216,6 +216,8 @@ public:
       result["constructor"] = true;
     else if (f.isDestructor)
       result["destructor"] = true;
+    else if (f.isOperator())
+      result["operator"] = true;
 
     json::Array parameters;
     for (auto p : f.parameters)
@@ -232,6 +234,12 @@ public:
 
     if (f.isStatic)
       result["static"] = true;
+
+    if (f.bindingMethod != Function::BindingMethod::AutoBinding)
+      result["binding"] = Function::serialize(f.bindingMethod).toStdString();
+
+    if (!f.implementation.isEmpty())
+      result["implementation"] = f.implementation.toStdString();
   }
 
   void visit(Namespace& n) override
@@ -511,6 +519,31 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
     str.replace(QString::fromStdString(args.at(0).toString()), QString::fromStdString(args.at(1).toString()));
     return str.toStdString();
   }
+  else if (name == "append_if_not_empty")
+  {
+    QString str = QString::fromStdString(object.toString());
+
+    if (!str.isEmpty())
+    {
+      QString other = QString::fromStdString(args.front().toString());
+      str.append(other);
+    }
+
+    return str.toStdString();
+  }
+  else if (name == "join")
+  {
+    QString sep = QString::fromStdString(args.front().toString());
+
+    json::Array list = object.toArray();
+    QStringList strings;
+    for (int i(0); i < list.length(); ++i)
+    {
+      strings.push_back(QString::fromStdString(list.at(i).toString()));
+    }
+
+    return strings.join(sep).toStdString();
+  }
   else if (name == "qualified_name")
   {
     NodeRef node = m_serialization_map.get(object);
@@ -527,9 +560,86 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
     node = node->parent.lock();
     return node ? m_serialization_map.get(node) : json::null;
   }
+  else if (name == "signature")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    return fn->signature().toStdString();
+  }
+  else if (name == "funaddr")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    return ("&" + (fn->implementation.isEmpty() ? (fn->qualifiedName()) : fn->implementation)).toStdString();
+  }
+  else if (name == "operator_name")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    return operatorName(*fn).toStdString();
+  }
+  else if (name == "check_params")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    return validateParams(*fn);
+  }
   else
   {
     return liquid::Renderer::applyFilter(name, object, args);
+  }
+}
+
+QString LiquidGenerator::operatorName(const Function& fn) const
+{
+  OperatorSymbol op = getOperatorSymbol(fn.name);
+
+  QString result = fn.parent.lock()->is<Class>() ? "memop_" : "op_";
+
+  const int implicit_param_count = isMember() ? 1 : 0;
+
+  if (op == Plus)
+    op = fn.parameters.count() + implicit_param_count == 1 ? UnaryPlus : Add;
+  else if (op == Minus)
+    op = fn.parameters.count() + implicit_param_count == 1 ? UnaryMinus : Sub;
+  else if (op == PlusPlus)
+    op = fn.parameters.count() + implicit_param_count == 1 ? PreIncrement : PostIncrement;
+  else if (op == MinusMinus)
+    op = fn.parameters.count() + implicit_param_count == 1 ? PreDecrement : PostDecrement;
+
+  if (op == FunctionCall)
+  {
+    return result + static_operator_infos[op].short_name;
+  }
+  else if (op == Subscript)
+  {
+    // operator[] cannot be non-member
+    if (fn.isConst)
+      return result + "const_subscript";
+    else
+      return result + "subscript";
+  }
+  else
+  {
+    if (op == LeftShift || op == RightShift)
+    {
+      if (!isMember())
+      {
+        if (fn.returnType == fn.parameters.at(0))
+        {
+          result += (op == LeftShift ? "put_to" : "read_from");
+          return result;
+        }
+      }
+      else
+      {
+        // TODO: check if not l- or r-shift
+        result += (op == LeftShift ? "put_to" : "read_from");
+        return result;
+      }
+    }
+
+    return result + static_operator_infos[op].short_name;
   }
 }
 
@@ -1219,7 +1329,7 @@ void LiquidGenerator::checkParam(QString p)
 
   const Type& info = typeinfo(p);
 
-  if (!info.header.isEmpty())
+  if (!info.header.isEmpty() && m_current_source != nullptr)
     currentSource().include("general", info.header);
 }
 
@@ -1236,6 +1346,20 @@ QStringList LiquidGenerator::params(const Function& fun)
   for (const QString p : fun.parameters)
     checkParam(p);
   return fun.parameters;
+}
+
+bool LiquidGenerator::validateParams(const Function& fun)
+{
+  try
+  {
+    for (const QString p : fun.parameters)
+      checkParam(p);
+    return true;
+  }
+  catch (...)
+  {
+    return false;
+  }
 }
 
 Function::BindingMethod LiquidGenerator::getBindingMethod(FunctionRef fun) const
