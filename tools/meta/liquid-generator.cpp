@@ -554,6 +554,24 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
     NodeRef node = m_serialization_map.get(object);
     return node->qualifiedName().toStdString();
   }
+  else if (name == "typeid")
+  {
+    NodeRef node = m_serialization_map.get(object);
+    if (node->is<Class>())
+    {
+      auto t = project()->getType(node->as<Class>().type_id);
+      return t->id.toStdString();
+    }
+    else if (node->is<Enum>())
+    {
+      auto t = project()->getType(node->as<Enum>().type_id);
+      return t->id.toStdString();
+    }
+    else
+    {
+      return "";
+    }
+  }
   else if (name == "get_symbol")
   {
     NodeRef node = mProject->getSymbol(QString::fromStdString(args.at(0).toString()), QString::fromStdString(args.at(1).toString()));

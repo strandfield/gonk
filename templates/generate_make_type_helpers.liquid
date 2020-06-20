@@ -1,0 +1,14 @@
+{% assign entity = include.entity %}
+{% assign module_namespace = include.module_namespace %}
+{% if include.recursive and entity.type == 'class' %}
+    {% for m in entity.members %}
+	    {% if m.type == 'class' or m.type == 'enum' %}
+	        {% include generate_make_type_helpers with entity = m and module_namespace = module_namespace and recursive = true %}
+		{% endif %}
+	{% endfor %}
+{% endif %}
+{% if entity.type == 'class' %}
+    template<> struct make_type_helper<{{ entity | qualified_name }}> { inline static script::Type get(){ return (gonk::{{ module_namespace }}::class_type_id_offset() + static_cast<int>(gonk::{{ module_namespace }}::ClassTypeIds::{{ entity | typeid }})) | script::Type::ObjectFlag; } };
+{% elsif entity.type == 'enum' %}
+    template<> struct make_type_helper<{{ entity | qualified_name }}> { inline static script::Type get(){ return (gonk::{{ module_namespace }}::enum_type_id_offset() + static_cast<int>(gonk::{{ module_namespace }}::EnumTypeIds::{{ entity | typeid }})) | script::Type::EnumFlag; } };
+{% endif %}
