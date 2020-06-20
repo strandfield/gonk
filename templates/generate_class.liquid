@@ -1,25 +1,34 @@
 {% assign class = include.class %}
 {% assign parent = class | parent %}
+{% if include.recursive %}
+    {% for m in class.members %}
+        {% if m.type == 'class' %}
+            {% include generate_class with class = m and recursive = true %}
+        {% elsif m.type == 'enum' %}
+            {% include generate_enum with enum = m %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
 {% assign has_wrappers_to_generate = false %}
 {% for m in class.members %}
     {% if m.type == 'function' %}
-	    {% include needs_wrapper with function = m %}
-		{% if function_needs_wrapper %}
-	        {% assign has_wrappers_to_generate = true %}
-		    {% break %}
-		{% endif %}
-	{% endif %}
+        {% include needs_wrapper with function = m %}
+        {% if function_needs_wrapper %}
+            {% assign has_wrappers_to_generate = true %}
+            {% break %}
+        {% endif %}
+    {% endif %}
 {% endfor %}
 {% if has_wrappers_to_generate %}
 namespace 
 {
 {% for m in class.members %}
     {% if m.type == 'function' %}
-	    {% include needs_wrapper with function = m %}
-		{% if function_needs_wrapper %}
-	        {% include generate_wrapper with function = m %}
-		{% endif %}
-	{% endif %}
+        {% include needs_wrapper with function = m %}
+        {% if function_needs_wrapper %}
+            {% include generate_wrapper with function = m %}
+        {% endif %}
+    {% endif %}
 {% endfor %}
 }
 {% endif %}
@@ -47,9 +56,19 @@ static void register_{{ class | qualified_name | replace: '::', '_' | snake_case
 
   Class& c = {{ class.name | snake_case }};
   
+{% if include.recursive %}
+    {% for m in class.members %}
+        {% if m.type == 'class' %}
+            {{'  '}}register_{{ m | qualified_name | replace: '::', '_' | snake_case }}(c);
+        {% elsif m.type == 'enum' %}
+            {{'  '}}register_{{ m | qualified_name | replace: '::', '_' | snake_case }}(c);
+        {% endif %}
+    {% endfor %}
+{% endif %}
+  
 {% for m in class.members %}
     {% if m.type == 'function' %}
-	    {% include generate_function with function = m %}
-	{% endif %}
+        {% include generate_function with function = m %}
+    {% endif %}
 {% endfor %}
 }

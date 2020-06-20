@@ -644,7 +644,7 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   {
     NodeRef node = m_serialization_map.get(object);
     FunctionRef fn = std::static_pointer_cast<Function>(node);
-    return validateParams(*fn);
+    return isExposable(*fn);
   }
   else
   {
@@ -1408,6 +1408,23 @@ QStringList LiquidGenerator::params(const Function& fun)
   for (const QString p : fun.parameters)
     checkParam(p);
   return fun.parameters;
+}
+
+bool LiquidGenerator::isExposable(const Function& fun)
+{
+  try
+  {
+    if(!fun.returnType.isEmpty())
+      checkParam(fun.returnType);
+
+    for (const QString p : fun.parameters)
+      checkParam(p);
+    return true;
+  }
+  catch (...)
+  {
+    return false;
+  }
 }
 
 bool LiquidGenerator::validateParams(const Function& fun)

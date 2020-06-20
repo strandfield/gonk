@@ -7,6 +7,8 @@
         {% if fn.constructor %}
             {% if fn.parameters.length == 0 %}
                 {{ '  ' }}gonk::bind::default_constructor<{{ qualified_class_name }}>(c).create();{% comment %}
+            {% elsif fn.implementation %}
+                {{ '  ' }}gonk::bind::custom_constructor<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' }}>(c, &{{ fn.implementation }}).create();{% comment %}
 			{% else %}
 			    {{ '  ' }}gonk::bind::constructor<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' }}>(c).create();{% comment %}
             {% endif %}
@@ -36,5 +38,5 @@
     {% else %}
     {% endif %}
 {% else %}
-// @TODO: {{ fn | signature }}{% comment %}
+{{'  '}}/// TODO: {{ fn | signature }}{% comment %}
 {% endif %}{{''}}

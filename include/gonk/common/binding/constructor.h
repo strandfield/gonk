@@ -38,6 +38,13 @@ script::ConstructorBuilder constructor(script::Class& c)
     .params(make_type<Args>()...);
 }
 
+template<typename T, typename... Args>
+script::ConstructorBuilder custom_constructor(script::Class& c, script::NativeFunctionSignature func)
+{
+  return c.newConstructor(func)
+    .params(make_type<Args>()...);
+}
+
 } // namespace bind
 
 } // namespace gonk

@@ -9,8 +9,8 @@ static void register_{{ enum | qualified_name | replace: '::', '_' | snake_case 
   using namespace script;
   
   Enum {{ enum.name | snake_case }} = parent.newEnum("{{ enum.name }}").setId(script::Type::make<{{ enum | qualified_name }}>().data()).get();
-  
-  {% for v in enum.values %}
+
+{% for v in enum.values %}
 {{ '  ' }}{{ enum.name | snake_case }}.addValue("{{ v.name }}", {{ enum | qualified_name }}::{{ v.name }});
-  {% endfor %}
+{% endfor %}
 }
