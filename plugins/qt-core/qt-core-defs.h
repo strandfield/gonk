@@ -23,6 +23,11 @@ namespace gonk
 namespace qt_core
 {
 
+#if METAGONK_SOURCE
+{% assign qt_core_module = project | get_module: 'Qt.Core' %}
+{% include generate_typeid_list with module = qt_core_module %}
+#else
+
 enum class EnumTypeIds
 {
   FirstTypeId,
@@ -56,6 +61,7 @@ enum class ClassTypeIds
   QChar,
   LastTypeId,
 };
+#endif // METAGONK_SOURCE
 
 GONK_QT_CORE_API int enum_type_id_offset();
 GONK_QT_CORE_API int class_type_id_offset();

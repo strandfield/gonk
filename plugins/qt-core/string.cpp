@@ -17,48 +17,51 @@
 #include "qt-core/char_.h"
 #include "qt-core/string.h"
 
-namespace {
-bool QLatin1String_startsWith_QLatin1String_QtCaseSensitivity(const QLatin1String& self, QLatin1String a1, Qt::CaseSensitivity a2)
+#if METAGONK_SOURCE
+{% assign classes = ['QLatin1String', 'QString', 'QCharRef', 'QStringRef'] %}
+{% include generate_all_classes with module = 'Qt.Core' and classes = classes %}
+#else
+
+namespace 
 {
-  return self.startsWith(a1, a2);
-}
-
-bool QLatin1String_startsWith_QChar(const QLatin1String& self, QChar a1)
+bool QLatin1String_startsWith_QLatin1String_QtCaseSensitivity(const QLatin1String& self, QLatin1String a0, Qt::CaseSensitivity a1)
 {
-  return self.startsWith(a1);
+  return self.startsWith(a0, a1);
 }
-
-bool QLatin1String_startsWith_QChar_QtCaseSensitivity(const QLatin1String& self, QChar a1, Qt::CaseSensitivity a2)
+bool QLatin1String_startsWith_QChar(const QLatin1String& self, QChar a0)
 {
-  return self.startsWith(a1, a2);
+  return self.startsWith(a0);
 }
-
-bool QLatin1String_endsWith_QLatin1String_QtCaseSensitivity(const QLatin1String& self, QLatin1String a1, Qt::CaseSensitivity a2)
+bool QLatin1String_startsWith_QChar_QtCaseSensitivity(const QLatin1String& self, QChar a0, Qt::CaseSensitivity a1)
 {
-  return self.endsWith(a1, a2);
+  return self.startsWith(a0, a1);
 }
-
-bool QLatin1String_endsWith_QChar(const QLatin1String& self, QChar a1)
+bool QLatin1String_endsWith_QLatin1String_QtCaseSensitivity(const QLatin1String& self, QLatin1String a0, Qt::CaseSensitivity a1)
 {
-  return self.endsWith(a1);
+  return self.endsWith(a0, a1);
 }
-
-bool QLatin1String_endsWith_QChar_QtCaseSensitivity(const QLatin1String& self, QChar a1, Qt::CaseSensitivity a2)
+bool QLatin1String_endsWith_QChar(const QLatin1String& self, QChar a0)
 {
-  return self.endsWith(a1, a2);
+  return self.endsWith(a0);
+}
+bool QLatin1String_endsWith_QChar_QtCaseSensitivity(const QLatin1String& self, QChar a0, Qt::CaseSensitivity a1)
+{
+  return self.endsWith(a0, a1);
+}
 }
 
-}
-
-static void register_latin1_string_class(script::Namespace ns)
+static void register_latin1_string(script::Namespace& parent)
 {
   using namespace script;
+  
+  Class latin1_string = parent.newClass("QLatin1String").setId(script::Type::make<QLatin1String>().data())
+    .get();
 
-  Class latin1_string = ns.newClass("QLatin1String").setId(script::Type::make<QLatin1String>().data()).get();
-
+  Class& c = latin1_string;
+  
 
   // QLatin1String();
-  gonk::bind::default_constructor<QLatin1String>(latin1_string).create();
+  gonk::bind::default_constructor<QLatin1String>(c).create();
   // QLatin1String(const char*);
   /// TODO: QLatin1String(const char*);
   // QLatin1String(const char*, const char*);
@@ -66,31 +69,31 @@ static void register_latin1_string_class(script::Namespace ns)
   // QLatin1String(const char*, int);
   /// TODO: QLatin1String(const char*, int);
   // QLatin1String(const QByteArray&);
-  gonk::bind::constructor<QLatin1String, const QByteArray&>(latin1_string).create();
+  gonk::bind::constructor<QLatin1String, const QByteArray&>(c).create();
   // const char* latin1() const;
   /// TODO: const char* latin1() const;
   // int size() const;
-  gonk::bind::member_function<QLatin1String, int, &QLatin1String::size>(latin1_string, "size").create();
+  gonk::bind::member_function<QLatin1String, int, &QLatin1String::size>(c, "size").create();
   // const char* data() const;
   /// TODO: const char* data() const;
   // bool isNull() const;
-  gonk::bind::member_function<QLatin1String, bool, &QLatin1String::isNull>(latin1_string, "isNull").create();
+  gonk::bind::member_function<QLatin1String, bool, &QLatin1String::isNull>(c, "isNull").create();
   // bool isEmpty() const;
-  gonk::bind::member_function<QLatin1String, bool, &QLatin1String::isEmpty>(latin1_string, "isEmpty").create();
+  gonk::bind::member_function<QLatin1String, bool, &QLatin1String::isEmpty>(c, "isEmpty").create();
   // QLatin1Char at(int) const;
-  gonk::bind::member_function<QLatin1String, QLatin1Char, int, &QLatin1String::at>(latin1_string, "at").create();
+  gonk::bind::member_function<QLatin1String, QLatin1Char, int, &QLatin1String::at>(c, "at").create();
   // QLatin1Char operator[](int) const;
-  gonk::bind::memop_const_subscript<QLatin1String, QLatin1Char, int>(latin1_string);
+  gonk::bind::memop_const_subscript<QLatin1String, QLatin1Char, int>(c);
   // QLatin1Char front() const;
-  gonk::bind::member_function<QLatin1String, QLatin1Char, &QLatin1String::front>(latin1_string, "front").create();
+  gonk::bind::member_function<QLatin1String, QLatin1Char, &QLatin1String::front>(c, "front").create();
   // QLatin1Char back() const;
-  gonk::bind::member_function<QLatin1String, QLatin1Char, &QLatin1String::back>(latin1_string, "back").create();
+  gonk::bind::member_function<QLatin1String, QLatin1Char, &QLatin1String::back>(c, "back").create();
   // bool startsWith(QStringView, Qt::CaseSensitivity) const;
   /// TODO: bool startsWith(QStringView, Qt::CaseSensitivity) const;
   // bool startsWith(QLatin1String, Qt::CaseSensitivity) const;
   /// TODO: bool startsWith(QLatin1String, Qt::CaseSensitivity) const;
   // bool startsWith(QChar) const;
-  gonk::bind::fn_as_memfn<QLatin1String, bool, QChar, &QLatin1String_startsWith_QChar>(latin1_string, "startsWith").create();
+  gonk::bind::member_function<QLatin1String, bool, QChar, &QLatin1String::startsWith>(c, "startsWith").create();
   // bool startsWith(QChar, Qt::CaseSensitivity) const;
   /// TODO: bool startsWith(QChar, Qt::CaseSensitivity) const;
   // bool endsWith(QStringView, Qt::CaseSensitivity) const;
@@ -98,7 +101,7 @@ static void register_latin1_string_class(script::Namespace ns)
   // bool endsWith(QLatin1String, Qt::CaseSensitivity) const;
   /// TODO: bool endsWith(QLatin1String, Qt::CaseSensitivity) const;
   // bool endsWith(QChar) const;
-  gonk::bind::fn_as_memfn<QLatin1String, bool, QChar, &QLatin1String_endsWith_QChar>(latin1_string, "endsWith").create();
+  gonk::bind::member_function<QLatin1String, bool, QChar, &QLatin1String::endsWith>(c, "endsWith").create();
   // bool endsWith(QChar, Qt::CaseSensitivity) const;
   /// TODO: bool endsWith(QChar, Qt::CaseSensitivity) const;
   // QLatin1String::const_iterator begin() const;
@@ -118,33 +121,33 @@ static void register_latin1_string_class(script::Namespace ns)
   // QLatin1String::const_reverse_iterator crend() const;
   /// TODO: QLatin1String::const_reverse_iterator crend() const;
   // QLatin1String mid(int) const;
-  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::mid>(latin1_string, "mid").create();
+  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::mid>(c, "mid").create();
   // QLatin1String mid(int, int) const;
-  gonk::bind::member_function<QLatin1String, QLatin1String, int, int, &QLatin1String::mid>(latin1_string, "mid").create();
+  gonk::bind::member_function<QLatin1String, QLatin1String, int, int, &QLatin1String::mid>(c, "mid").create();
   // QLatin1String left(int) const;
-  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::left>(latin1_string, "left").create();
+  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::left>(c, "left").create();
   // QLatin1String right(int) const;
-  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::right>(latin1_string, "right").create();
+  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::right>(c, "right").create();
   // QLatin1String chopped(int) const;
-  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::chopped>(latin1_string, "chopped").create();
+  gonk::bind::member_function<QLatin1String, QLatin1String, int, &QLatin1String::chopped>(c, "chopped").create();
   // void chop(int);
-  gonk::bind::void_member_function<QLatin1String, int, &QLatin1String::chop>(latin1_string, "chop").create();
+  gonk::bind::void_member_function<QLatin1String, int, &QLatin1String::chop>(c, "chop").create();
   // void truncate(int);
-  gonk::bind::void_member_function<QLatin1String, int, &QLatin1String::truncate>(latin1_string, "truncate").create();
+  gonk::bind::void_member_function<QLatin1String, int, &QLatin1String::truncate>(c, "truncate").create();
   // QLatin1String trimmed() const;
-  gonk::bind::member_function<QLatin1String, QLatin1String, &QLatin1String::trimmed>(latin1_string, "trimmed").create();
+  gonk::bind::member_function<QLatin1String, QLatin1String, &QLatin1String::trimmed>(c, "trimmed").create();
   // bool operator==(const QString&) const;
-  gonk::bind::memop_eq<QLatin1String, const QString&>(latin1_string);
+  gonk::bind::memop_eq<QLatin1String, const QString&>(c);
   // bool operator!=(const QString&) const;
-  gonk::bind::memop_neq<QLatin1String, const QString&>(latin1_string);
+  gonk::bind::memop_neq<QLatin1String, const QString&>(c);
   // bool operator>(const QString&) const;
-  gonk::bind::memop_greater<QLatin1String, const QString&>(latin1_string);
+  gonk::bind::memop_greater<QLatin1String, const QString&>(c);
   // bool operator<(const QString&) const;
-  gonk::bind::memop_less<QLatin1String, const QString&>(latin1_string);
+  gonk::bind::memop_less<QLatin1String, const QString&>(c);
   // bool operator>=(const QString&) const;
-  gonk::bind::memop_geq<QLatin1String, const QString&>(latin1_string);
+  gonk::bind::memop_geq<QLatin1String, const QString&>(c);
   // bool operator<=(const QString&) const;
-  gonk::bind::memop_leq<QLatin1String, const QString&>(latin1_string);
+  gonk::bind::memop_leq<QLatin1String, const QString&>(c);
   // bool operator==(const char*) const;
   /// TODO: bool operator==(const char*) const;
   // bool operator!=(const char*) const;
@@ -158,172 +161,162 @@ static void register_latin1_string_class(script::Namespace ns)
   // bool operator>=(const char*) const;
   /// TODO: bool operator>=(const char*) const;
   // bool operator==(const QByteArray&) const;
-  gonk::bind::memop_eq<QLatin1String, const QByteArray&>(latin1_string);
+  gonk::bind::memop_eq<QLatin1String, const QByteArray&>(c);
   // bool operator!=(const QByteArray&) const;
-  gonk::bind::memop_neq<QLatin1String, const QByteArray&>(latin1_string);
+  gonk::bind::memop_neq<QLatin1String, const QByteArray&>(c);
   // bool operator<(const QByteArray&) const;
-  gonk::bind::memop_less<QLatin1String, const QByteArray&>(latin1_string);
+  gonk::bind::memop_less<QLatin1String, const QByteArray&>(c);
   // bool operator>(const QByteArray&) const;
-  gonk::bind::memop_greater<QLatin1String, const QByteArray&>(latin1_string);
+  gonk::bind::memop_greater<QLatin1String, const QByteArray&>(c);
   // bool operator<=(const QByteArray&) const;
-  gonk::bind::memop_leq<QLatin1String, const QByteArray&>(latin1_string);
+  gonk::bind::memop_leq<QLatin1String, const QByteArray&>(c);
   // bool operator>=(const QByteArray&) const;
-  gonk::bind::memop_geq<QLatin1String, const QByteArray&>(latin1_string);
+  gonk::bind::memop_geq<QLatin1String, const QByteArray&>(c);
 }
-
-
-static void register_string_section_flag_enum(script::Class string)
+static void register_string__section_flag(script::Class& parent)
 {
   using namespace script;
+  
+  Enum section_flag = parent.newEnum("SectionFlag").setId(script::Type::make<QString::SectionFlag>().data()).get();
 
-  Enum section_flag = string.newEnum("SectionFlag").setId(script::Type::make<QString::SectionFlag>().data()).get();
-
-  section_flag.addValue("SectionDefault", QString::SectionDefault);
-  section_flag.addValue("SectionSkipEmpty", QString::SectionSkipEmpty);
-  section_flag.addValue("SectionIncludeLeadingSep", QString::SectionIncludeLeadingSep);
-  section_flag.addValue("SectionIncludeTrailingSep", QString::SectionIncludeTrailingSep);
-  section_flag.addValue("SectionCaseInsensitiveSeps", QString::SectionCaseInsensitiveSeps);
+  section_flag.addValue("SectionDefault", QString::SectionFlag::SectionDefault);
+  section_flag.addValue("SectionSkipEmpty", QString::SectionFlag::SectionSkipEmpty);
+  section_flag.addValue("SectionIncludeLeadingSep", QString::SectionFlag::SectionIncludeLeadingSep);
+  section_flag.addValue("SectionIncludeTrailingSep", QString::SectionFlag::SectionIncludeTrailingSep);
+  section_flag.addValue("SectionCaseInsensitiveSeps", QString::SectionFlag::SectionCaseInsensitiveSeps);
 }
-
-
-static void register_string_split_behavior_enum(script::Class string)
+static void register_string__split_behavior(script::Class& parent)
 {
   using namespace script;
+  
+  Enum split_behavior = parent.newEnum("SplitBehavior").setId(script::Type::make<QString::SplitBehavior>().data()).get();
 
-  Enum split_behavior = string.newEnum("SplitBehavior").setId(script::Type::make<QString::SplitBehavior>().data()).get();
-
-  split_behavior.addValue("KeepEmptyParts", QString::KeepEmptyParts);
-  split_behavior.addValue("SkipEmptyParts", QString::SkipEmptyParts);
+  split_behavior.addValue("KeepEmptyParts", QString::SplitBehavior::KeepEmptyParts);
+  split_behavior.addValue("SkipEmptyParts", QString::SplitBehavior::SkipEmptyParts);
 }
-
-
-static void register_string_normalization_form_enum(script::Class string)
+static void register_string__normalization_form(script::Class& parent)
 {
   using namespace script;
+  
+  Enum normalization_form = parent.newEnum("NormalizationForm").setId(script::Type::make<QString::NormalizationForm>().data()).get();
 
-  Enum normalization_form = string.newEnum("NormalizationForm").setId(script::Type::make<QString::NormalizationForm>().data()).get();
-
-  normalization_form.addValue("NormalizationForm_D", QString::NormalizationForm_D);
-  normalization_form.addValue("NormalizationForm_C", QString::NormalizationForm_C);
-  normalization_form.addValue("NormalizationForm_KD", QString::NormalizationForm_KD);
-  normalization_form.addValue("NormalizationForm_KC", QString::NormalizationForm_KC);
+  normalization_form.addValue("NormalizationForm_D", QString::NormalizationForm::NormalizationForm_D);
+  normalization_form.addValue("NormalizationForm_C", QString::NormalizationForm::NormalizationForm_C);
+  normalization_form.addValue("NormalizationForm_KD", QString::NormalizationForm::NormalizationForm_KD);
+  normalization_form.addValue("NormalizationForm_KC", QString::NormalizationForm::NormalizationForm_KC);
 }
 
-
-static void register_string_null_class(script::Class string)
+static void register_string__null(script::Class& parent)
 {
   using namespace script;
+  
+  Class null = parent.newNestedClass("Null").setId(script::Type::make<QString::Null>().data())
+    .get();
 
-  Class null = string.newNestedClass("QString::Null").setId(script::Type::make<QString::Null>().data()).get();
-
+  Class& c = null;
+  
 
 }
-
-
-namespace {
+namespace 
+{
 QString string_toLower(const QString& self)
 {
   return self.toLower();
 }
-
 QString string_toUpper(const QString& self)
 {
   return self.toUpper();
 }
-
 QString string_toCaseFolded(const QString& self)
 {
   return self.toCaseFolded();
 }
-
 QString string_trimmed(const QString& self)
 {
   return self.trimmed();
 }
-
 QString string_simplified(const QString& self)
 {
   return self.simplified();
 }
-
 QByteArray string_toLatin1(const QString& self)
 {
   return self.toLatin1();
 }
-
 QByteArray string_toUtf8(const QString& self)
 {
   return self.toUtf8();
 }
-
 QByteArray string_toLocal8Bit(const QString& self)
 {
   return self.toLocal8Bit();
 }
-
 }
 
-static void register_string_class(script::Namespace ns)
+static void register_string(script::Namespace& parent)
 {
   using namespace script;
+  
+  Class string = parent.newClass("QString").setId(script::Type::make<QString>().data())
+    .get();
 
-  Class string = ns.newClass("QString").setId(script::Type::make<QString>().data()).get();
-
-  register_string_section_flag_enum(string);
-  register_string_split_behavior_enum(string);
-  register_string_normalization_form_enum(string);
-  register_string_null_class(string);
-
+  Class& c = string;
+  
+  register_string__section_flag(c);
+          register_string__split_behavior(c);
+          register_string__normalization_form(c);
+          register_string__null(c);
+        
   // QString();
-  gonk::bind::default_constructor<QString>(string).create();
+  gonk::bind::default_constructor<QString>(c).create();
   // QString(const QChar*, int);
   /// TODO: QString(const QChar*, int);
   // QString(QChar);
-  gonk::bind::constructor<QString, QChar>(string).create();
+  gonk::bind::constructor<QString, QChar>(c).create();
   // QString(int, QChar);
-  gonk::bind::constructor<QString, int, QChar>(string).create();
+  gonk::bind::constructor<QString, int, QChar>(c).create();
   // QString(QLatin1String);
-  gonk::bind::constructor<QString, QLatin1String>(string).create();
+  gonk::bind::constructor<QString, QLatin1String>(c).create();
   // QString(const QString&);
-  gonk::bind::constructor<QString, const QString&>(string).create();
+  gonk::bind::constructor<QString, const QString&>(c).create();
   // ~QString();
-  gonk::bind::destructor<QString>(string).create();
+  gonk::bind::destructor<QString>(c).create();
   // QString& operator=(QChar);
-  gonk::bind::memop_assign<QString, QChar>(string);
+  gonk::bind::memop_assign<QString, QChar>(c);
   // QString& operator=(const QString&);
-  gonk::bind::memop_assign<QString, const QString&>(string);
+  gonk::bind::memop_assign<QString, const QString&>(c);
   // QString& operator=(QLatin1String);
-  gonk::bind::memop_assign<QString, QLatin1String>(string);
+  gonk::bind::memop_assign<QString, QLatin1String>(c);
   // QString(QString&&);
-  gonk::bind::constructor<QString, QString&&>(string).create();
+  gonk::bind::constructor<QString, QString&&>(c).create();
   // QString& operator=(QString&&);
-  gonk::bind::memop_assign<QString, QString&&>(string);
+  gonk::bind::memop_assign<QString, QString&&>(c);
   // void swap(QString&);
-  gonk::bind::void_member_function<QString, QString&, &QString::swap>(string, "swap").create();
+  gonk::bind::void_member_function<QString, QString&, &QString::swap>(c, "swap").create();
   // int size() const;
-  gonk::bind::member_function<QString, int, &QString::size>(string, "size").create();
+  gonk::bind::member_function<QString, int, &QString::size>(c, "size").create();
   // int count() const;
-  gonk::bind::member_function<QString, int, &QString::count>(string, "count").create();
+  gonk::bind::member_function<QString, int, &QString::count>(c, "count").create();
   // int length() const;
-  gonk::bind::member_function<QString, int, &QString::length>(string, "length").create();
+  gonk::bind::member_function<QString, int, &QString::length>(c, "length").create();
   // bool isEmpty() const;
-  gonk::bind::member_function<QString, bool, &QString::isEmpty>(string, "isEmpty").create();
+  gonk::bind::member_function<QString, bool, &QString::isEmpty>(c, "isEmpty").create();
   // void resize(int);
-  gonk::bind::void_member_function<QString, int, &QString::resize>(string, "resize").create();
+  gonk::bind::void_member_function<QString, int, &QString::resize>(c, "resize").create();
   // void resize(int, QChar);
-  gonk::bind::void_member_function<QString, int, QChar, &QString::resize>(string, "resize").create();
+  gonk::bind::void_member_function<QString, int, QChar, &QString::resize>(c, "resize").create();
   // QString& fill(QChar, int);
-  gonk::bind::member_function<QString, QString&, QChar, int, &QString::fill>(string, "fill").create();
+  gonk::bind::member_function<QString, QString&, QChar, int, &QString::fill>(c, "fill").create();
   // void truncate(int);
-  gonk::bind::void_member_function<QString, int, &QString::truncate>(string, "truncate").create();
+  gonk::bind::void_member_function<QString, int, &QString::truncate>(c, "truncate").create();
   // void chop(int);
-  gonk::bind::void_member_function<QString, int, &QString::chop>(string, "chop").create();
+  gonk::bind::void_member_function<QString, int, &QString::chop>(c, "chop").create();
   // int capacity() const;
-  gonk::bind::member_function<QString, int, &QString::capacity>(string, "capacity").create();
+  gonk::bind::member_function<QString, int, &QString::capacity>(c, "capacity").create();
   // void reserve(int);
-  gonk::bind::void_member_function<QString, int, &QString::reserve>(string, "reserve").create();
+  gonk::bind::void_member_function<QString, int, &QString::reserve>(c, "reserve").create();
   // void squeeze();
-  gonk::bind::void_member_function<QString, &QString::squeeze>(string, "squeeze").create();
+  gonk::bind::void_member_function<QString, &QString::squeeze>(c, "squeeze").create();
   // const QChar* unicode() const;
   /// TODO: const QChar* unicode() const;
   // QChar* data();
@@ -333,31 +326,31 @@ static void register_string_class(script::Namespace ns)
   // const QChar* constData() const;
   /// TODO: const QChar* constData() const;
   // void detach();
-  gonk::bind::void_member_function<QString, &QString::detach>(string, "detach").create();
+  gonk::bind::void_member_function<QString, &QString::detach>(c, "detach").create();
   // bool isDetached() const;
-  gonk::bind::member_function<QString, bool, &QString::isDetached>(string, "isDetached").create();
+  gonk::bind::member_function<QString, bool, &QString::isDetached>(c, "isDetached").create();
   // bool isSharedWith(const QString&) const;
-  gonk::bind::member_function<QString, bool, const QString&, &QString::isSharedWith>(string, "isSharedWith").create();
+  gonk::bind::member_function<QString, bool, const QString&, &QString::isSharedWith>(c, "isSharedWith").create();
   // void clear();
-  gonk::bind::void_member_function<QString, &QString::clear>(string, "clear").create();
+  gonk::bind::void_member_function<QString, &QString::clear>(c, "clear").create();
   // const QChar at(int) const;
-  gonk::bind::member_function<QString, const QChar, int, &QString::at>(string, "at").create();
+  gonk::bind::member_function<QString, const QChar, int, &QString::at>(c, "at").create();
   // const QChar operator[](int) const;
-  gonk::bind::memop_const_subscript<QString, const QChar, int>(string);
+  gonk::bind::memop_const_subscript<QString, const QChar, int>(c);
   // QCharRef operator[](int);
-  gonk::bind::memop_subscript<QString, QCharRef, int>(string);
+  gonk::bind::memop_subscript<QString, QCharRef, int>(c);
   // const QChar operator[](uint) const;
   /// TODO: const QChar operator[](uint) const;
   // QCharRef operator[](uint);
   /// TODO: QCharRef operator[](uint);
   // QChar front() const;
-  gonk::bind::member_function<QString, QChar, &QString::front>(string, "front").create();
+  gonk::bind::member_function<QString, QChar, &QString::front>(c, "front").create();
   // QCharRef front();
-  gonk::bind::member_function<QString, QCharRef, &QString::front>(string, "front").create();
+  gonk::bind::member_function<QString, QCharRef, &QString::front>(c, "front").create();
   // QChar back() const;
-  gonk::bind::member_function<QString, QChar, &QString::back>(string, "back").create();
+  gonk::bind::member_function<QString, QChar, &QString::back>(c, "back").create();
   // QCharRef back();
-  gonk::bind::member_function<QString, QCharRef, &QString::back>(string, "back").create();
+  gonk::bind::member_function<QString, QCharRef, &QString::back>(c, "back").create();
   // QString arg(qlonglong, int, int, QChar) const;
   /// TODO: QString arg(qlonglong, int, int, QChar) const;
   // QString arg(qulonglong, int, int, QChar) const;
@@ -367,7 +360,7 @@ static void register_string_class(script::Namespace ns)
   // QString arg(ulong, int, int, QChar) const;
   /// TODO: QString arg(ulong, int, int, QChar) const;
   // QString arg(int, int, int, QChar) const;
-  gonk::bind::member_function<QString, QString, int, int, int, QChar, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, int, int, int, QChar, &QString::arg>(c, "arg").create();
   // QString arg(uint, int, int, QChar) const;
   /// TODO: QString arg(uint, int, int, QChar) const;
   // QString arg(short, int, int, QChar) const;
@@ -375,29 +368,33 @@ static void register_string_class(script::Namespace ns)
   // QString arg(ushort, int, int, QChar) const;
   /// TODO: QString arg(ushort, int, int, QChar) const;
   // QString arg(double, int, char, int, QChar) const;
-  gonk::bind::member_function<QString, QString, double, int, char, int, QChar, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, double, int, char, int, QChar, &QString::arg>(c, "arg").create();
   // QString arg(char, int, QChar) const;
-  gonk::bind::member_function<QString, QString, char, int, QChar, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, char, int, QChar, &QString::arg>(c, "arg").create();
   // QString arg(QChar, int, QChar) const;
-  gonk::bind::member_function<QString, QString, QChar, int, QChar, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, QChar, int, QChar, &QString::arg>(c, "arg").create();
   // QString arg(const QString&, int, QChar) const;
-  gonk::bind::member_function<QString, QString, const QString&, int, QChar, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, const QString&, int, QChar, &QString::arg>(c, "arg").create();
   // QString arg(QStringView, int, QChar) const;
   /// TODO: QString arg(QStringView, int, QChar) const;
   // QString arg(QLatin1String, int, QChar) const;
-  gonk::bind::member_function<QString, QString, QLatin1String, int, QChar, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, QLatin1String, int, QChar, &QString::arg>(c, "arg").create();
   // QString arg(const QString&, const QString&) const;
-  gonk::bind::member_function<QString, QString, const QString&, const QString&, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, &QString::arg>(c, "arg").create();
   // QString arg(const QString&, const QString&, const QString&) const;
-  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, &QString::arg>(c, "arg").create();
   // QString arg(const QString&, const QString&, const QString&, const QString&) const;
-  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, &QString::arg>(c, "arg").create();
   // QString arg(const QString&, const QString&, const QString&, const QString&, const QString&) const;
-  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(c, "arg").create();
   // QString arg(const QString&, const QString&, const QString&, const QString&, const QString&, const QString&) const;
-  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(c, "arg").create();
   // QString arg(const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&) const;
-  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(string, "arg").create();
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(c, "arg").create();
+  // QString arg(const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&) const;
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(c, "arg").create();
+  // QString arg(const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&) const;
+  gonk::bind::member_function<QString, QString, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, const QString&, &QString::arg>(c, "arg").create();
   // QString& vsprintf(const char*, va_list);
   /// TODO: QString& vsprintf(const char*, va_list);
   // QString& sprintf(const char*);
@@ -473,19 +470,19 @@ static void register_string_class(script::Namespace ns)
   // QString section(const QRegularExpression&, int, int, QString::SectionFlags) const;
   /// TODO: QString section(const QRegularExpression&, int, int, QString::SectionFlags) const;
   // QString left(int) const;
-  gonk::bind::member_function<QString, QString, int, &QString::left>(string, "left").create();
+  gonk::bind::member_function<QString, QString, int, &QString::left>(c, "left").create();
   // QString right(int) const;
-  gonk::bind::member_function<QString, QString, int, &QString::right>(string, "right").create();
+  gonk::bind::member_function<QString, QString, int, &QString::right>(c, "right").create();
   // QString mid(int, int) const;
-  gonk::bind::member_function<QString, QString, int, int, &QString::mid>(string, "mid").create();
+  gonk::bind::member_function<QString, QString, int, int, &QString::mid>(c, "mid").create();
   // QString chopped(int) const;
-  gonk::bind::member_function<QString, QString, int, &QString::chopped>(string, "chopped").create();
+  gonk::bind::member_function<QString, QString, int, &QString::chopped>(c, "chopped").create();
   // QStringRef leftRef(int) const;
-  gonk::bind::member_function<QString, QStringRef, int, &QString::leftRef>(string, "leftRef").create();
+  gonk::bind::member_function<QString, QStringRef, int, &QString::leftRef>(c, "leftRef").create();
   // QStringRef rightRef(int) const;
-  gonk::bind::member_function<QString, QStringRef, int, &QString::rightRef>(string, "rightRef").create();
+  gonk::bind::member_function<QString, QStringRef, int, &QString::rightRef>(c, "rightRef").create();
   // QStringRef midRef(int, int) const;
-  gonk::bind::member_function<QString, QStringRef, int, int, &QString::midRef>(string, "midRef").create();
+  gonk::bind::member_function<QString, QStringRef, int, int, &QString::midRef>(c, "midRef").create();
   // bool startsWith(const QString&, Qt::CaseSensitivity) const;
   /// TODO: bool startsWith(const QString&, Qt::CaseSensitivity) const;
   // bool startsWith(const QStringRef&, Qt::CaseSensitivity) const;
@@ -507,73 +504,73 @@ static void register_string_class(script::Namespace ns)
   // bool endsWith(QChar, Qt::CaseSensitivity) const;
   /// TODO: bool endsWith(QChar, Qt::CaseSensitivity) const;
   // QString leftJustified(int, QChar, bool) const;
-  gonk::bind::member_function<QString, QString, int, QChar, bool, &QString::leftJustified>(string, "leftJustified").create();
+  gonk::bind::member_function<QString, QString, int, QChar, bool, &QString::leftJustified>(c, "leftJustified").create();
   // QString rightJustified(int, QChar, bool) const;
-  gonk::bind::member_function<QString, QString, int, QChar, bool, &QString::rightJustified>(string, "rightJustified").create();
+  gonk::bind::member_function<QString, QString, int, QChar, bool, &QString::rightJustified>(c, "rightJustified").create();
   // QString toLower() const;
-  gonk::bind::fn_as_memfn<QString, QString, &string_toLower>(string, "toLower").create();
+  gonk::bind::fn_as_memfn<QString, QString, &string_toLower>(c, "toLower").create();
   // QString toUpper() const;
-  gonk::bind::fn_as_memfn<QString, QString, &string_toUpper>(string, "toUpper").create();
+  gonk::bind::fn_as_memfn<QString, QString, &string_toUpper>(c, "toUpper").create();
   // QString toCaseFolded() const;
-  gonk::bind::fn_as_memfn<QString, QString, &string_toCaseFolded>(string, "toCaseFolded").create();
+  gonk::bind::fn_as_memfn<QString, QString, &string_toCaseFolded>(c, "toCaseFolded").create();
   // QString trimmed() const;
-  gonk::bind::fn_as_memfn<QString, QString, &string_trimmed>(string, "trimmed").create();
+  gonk::bind::fn_as_memfn<QString, QString, &string_trimmed>(c, "trimmed").create();
   // QString simplified() const;
-  gonk::bind::fn_as_memfn<QString, QString, &string_simplified>(string, "simplified").create();
+  gonk::bind::fn_as_memfn<QString, QString, &string_simplified>(c, "simplified").create();
   // QString toHtmlEscaped() const;
-  gonk::bind::member_function<QString, QString, &QString::toHtmlEscaped>(string, "toHtmlEscaped").create();
+  gonk::bind::member_function<QString, QString, &QString::toHtmlEscaped>(c, "toHtmlEscaped").create();
   // QString& insert(int, QChar);
-  gonk::bind::member_function<QString, QString&, int, QChar, &QString::insert>(string, "insert").create();
+  gonk::bind::member_function<QString, QString&, int, QChar, &QString::insert>(c, "insert").create();
   // QString& insert(int, const QChar*, int);
   /// TODO: QString& insert(int, const QChar*, int);
   // QString& insert(int, const QString&);
-  gonk::bind::member_function<QString, QString&, int, const QString&, &QString::insert>(string, "insert").create();
+  gonk::bind::member_function<QString, QString&, int, const QString&, &QString::insert>(c, "insert").create();
   // QString& insert(int, const QStringRef&);
-  gonk::bind::member_function<QString, QString&, int, const QStringRef&, &QString::insert>(string, "insert").create();
+  gonk::bind::member_function<QString, QString&, int, const QStringRef&, &QString::insert>(c, "insert").create();
   // QString& insert(int, QLatin1String);
-  gonk::bind::member_function<QString, QString&, int, QLatin1String, &QString::insert>(string, "insert").create();
+  gonk::bind::member_function<QString, QString&, int, QLatin1String, &QString::insert>(c, "insert").create();
   // QString& append(QChar);
-  gonk::bind::member_function<QString, QString&, QChar, &QString::append>(string, "append").create();
+  gonk::bind::member_function<QString, QString&, QChar, &QString::append>(c, "append").create();
   // QString& append(const QChar*, int);
   /// TODO: QString& append(const QChar*, int);
   // QString& append(const QString&);
-  gonk::bind::member_function<QString, QString&, const QString&, &QString::append>(string, "append").create();
+  gonk::bind::member_function<QString, QString&, const QString&, &QString::append>(c, "append").create();
   // QString& append(const QStringRef&);
-  gonk::bind::member_function<QString, QString&, const QStringRef&, &QString::append>(string, "append").create();
+  gonk::bind::member_function<QString, QString&, const QStringRef&, &QString::append>(c, "append").create();
   // QString& append(QLatin1String);
-  gonk::bind::member_function<QString, QString&, QLatin1String, &QString::append>(string, "append").create();
+  gonk::bind::member_function<QString, QString&, QLatin1String, &QString::append>(c, "append").create();
   // QString& prepend(QChar);
-  gonk::bind::member_function<QString, QString&, QChar, &QString::prepend>(string, "prepend").create();
+  gonk::bind::member_function<QString, QString&, QChar, &QString::prepend>(c, "prepend").create();
   // QString& prepend(const QChar*, int);
   /// TODO: QString& prepend(const QChar*, int);
   // QString& prepend(const QString&);
-  gonk::bind::member_function<QString, QString&, const QString&, &QString::prepend>(string, "prepend").create();
+  gonk::bind::member_function<QString, QString&, const QString&, &QString::prepend>(c, "prepend").create();
   // QString& prepend(const QStringRef&);
-  gonk::bind::member_function<QString, QString&, const QStringRef&, &QString::prepend>(string, "prepend").create();
+  gonk::bind::member_function<QString, QString&, const QStringRef&, &QString::prepend>(c, "prepend").create();
   // QString& prepend(QLatin1String);
-  gonk::bind::member_function<QString, QString&, QLatin1String, &QString::prepend>(string, "prepend").create();
+  gonk::bind::member_function<QString, QString&, QLatin1String, &QString::prepend>(c, "prepend").create();
   // QString& operator+=(QChar);
-  gonk::bind::memop_add_assign<QString, QChar>(string);
+  gonk::bind::memop_add_assign<QString, QChar>(c);
   // QString& operator+=(QChar::SpecialCharacter);
-  gonk::bind::memop_add_assign<QString, QChar::SpecialCharacter>(string);
+  gonk::bind::memop_add_assign<QString, QChar::SpecialCharacter>(c);
   // QString& operator+=(const QString&);
-  gonk::bind::memop_add_assign<QString, const QString&>(string);
+  gonk::bind::memop_add_assign<QString, const QString&>(c);
   // QString& operator+=(const QStringRef&);
-  gonk::bind::memop_add_assign<QString, const QStringRef&>(string);
+  gonk::bind::memop_add_assign<QString, const QStringRef&>(c);
   // QString& operator+=(QLatin1String);
-  gonk::bind::memop_add_assign<QString, QLatin1String>(string);
+  gonk::bind::memop_add_assign<QString, QLatin1String>(c);
   // QString& remove(int, int);
-  gonk::bind::member_function<QString, QString&, int, int, &QString::remove>(string, "remove").create();
+  gonk::bind::member_function<QString, QString&, int, int, &QString::remove>(c, "remove").create();
   // QString& remove(QChar, Qt::CaseSensitivity);
   /// TODO: QString& remove(QChar, Qt::CaseSensitivity);
   // QString& remove(const QString&, Qt::CaseSensitivity);
   /// TODO: QString& remove(const QString&, Qt::CaseSensitivity);
   // QString& replace(int, int, QChar);
-  gonk::bind::member_function<QString, QString&, int, int, QChar, &QString::replace>(string, "replace").create();
+  gonk::bind::member_function<QString, QString&, int, int, QChar, &QString::replace>(c, "replace").create();
   // QString& replace(int, int, const QChar*, int);
   /// TODO: QString& replace(int, int, const QChar*, int);
   // QString& replace(int, int, const QString&);
-  gonk::bind::member_function<QString, QString&, int, int, const QString&, &QString::replace>(string, "replace").create();
+  gonk::bind::member_function<QString, QString&, int, int, const QString&, &QString::replace>(c, "replace").create();
   // QString& replace(QChar, QChar, Qt::CaseSensitivity);
   /// TODO: QString& replace(QChar, QChar, Qt::CaseSensitivity);
   // QString& replace(const QChar*, int, const QChar*, int, Qt::CaseSensitivity);
@@ -615,17 +612,17 @@ static void register_string_class(script::Namespace ns)
   // QVector<QStringRef> splitRef(const QRegularExpression&, QString::SplitBehavior) const;
   /// TODO: QVector<QStringRef> splitRef(const QRegularExpression&, QString::SplitBehavior) const;
   // QString normalized(QString::NormalizationForm, QChar::UnicodeVersion) const;
-  gonk::bind::member_function<QString, QString, QString::NormalizationForm, QChar::UnicodeVersion, &QString::normalized>(string, "normalized").create();
+  gonk::bind::member_function<QString, QString, QString::NormalizationForm, QChar::UnicodeVersion, &QString::normalized>(c, "normalized").create();
   // QString repeated(int) const;
-  gonk::bind::member_function<QString, QString, int, &QString::repeated>(string, "repeated").create();
+  gonk::bind::member_function<QString, QString, int, &QString::repeated>(c, "repeated").create();
   // const ushort* utf16() const;
   /// TODO: const ushort* utf16() const;
   // QByteArray toLatin1() const;
-  gonk::bind::fn_as_memfn<QString, QByteArray, &string_toLatin1>(string, "toLatin1").create();
+  gonk::bind::fn_as_memfn<QString, QByteArray, &string_toLatin1>(c, "toLatin1").create();
   // QByteArray toUtf8() const;
-  gonk::bind::fn_as_memfn<QString, QByteArray, &string_toUtf8>(string, "toUtf8").create();
+  gonk::bind::fn_as_memfn<QString, QByteArray, &string_toUtf8>(c, "toUtf8").create();
   // QByteArray toLocal8Bit() const;
-  gonk::bind::fn_as_memfn<QString, QByteArray, &string_toLocal8Bit>(string, "toLocal8Bit").create();
+  gonk::bind::fn_as_memfn<QString, QByteArray, &string_toLocal8Bit>(c, "toLocal8Bit").create();
   // QVector<uint> toUcs4() const;
   /// TODO: QVector<uint> toUcs4() const;
   // static QString fromLatin1(const char*, int);
@@ -635,11 +632,11 @@ static void register_string_class(script::Namespace ns)
   // static QString fromLocal8Bit(const char*, int);
   /// TODO: static QString fromLocal8Bit(const char*, int);
   // static QString fromLatin1(const QByteArray&);
-  gonk::bind::static_member_function<QString, QString, const QByteArray&, &QString::fromLatin1>(string, "fromLatin1").create();
+  gonk::bind::static_member_function<QString, QString, const QByteArray&, &QString::fromLatin1>(c, "fromLatin1").create();
   // static QString fromUtf8(const QByteArray&);
-  gonk::bind::static_member_function<QString, QString, const QByteArray&, &QString::fromUtf8>(string, "fromUtf8").create();
+  gonk::bind::static_member_function<QString, QString, const QByteArray&, &QString::fromUtf8>(c, "fromUtf8").create();
   // static QString fromLocal8Bit(const QByteArray&);
-  gonk::bind::static_member_function<QString, QString, const QByteArray&, &QString::fromLocal8Bit>(string, "fromLocal8Bit").create();
+  gonk::bind::static_member_function<QString, QString, const QByteArray&, &QString::fromLocal8Bit>(c, "fromLocal8Bit").create();
   // static QString fromUtf16(const ushort*, int);
   /// TODO: static QString fromUtf16(const ushort*, int);
   // static QString fromUcs4(const uint*, int);
@@ -675,13 +672,13 @@ static void register_string_class(script::Namespace ns)
   // static int compare(const QString&, const QStringRef&, Qt::CaseSensitivity);
   /// TODO: static int compare(const QString&, const QStringRef&, Qt::CaseSensitivity);
   // int localeAwareCompare(const QString&) const;
-  gonk::bind::member_function<QString, int, const QString&, &QString::localeAwareCompare>(string, "localeAwareCompare").create();
+  gonk::bind::member_function<QString, int, const QString&, &QString::localeAwareCompare>(c, "localeAwareCompare").create();
   // static int localeAwareCompare(const QString&, const QString&);
-  gonk::bind::static_member_function<QString, int, const QString&, const QString&, &QString::localeAwareCompare>(string, "localeAwareCompare").create();
+  gonk::bind::static_member_function<QString, int, const QString&, const QString&, &QString::localeAwareCompare>(c, "localeAwareCompare").create();
   // int localeAwareCompare(const QStringRef&) const;
-  gonk::bind::member_function<QString, int, const QStringRef&, &QString::localeAwareCompare>(string, "localeAwareCompare").create();
+  gonk::bind::member_function<QString, int, const QStringRef&, &QString::localeAwareCompare>(c, "localeAwareCompare").create();
   // static int localeAwareCompare(const QString&, const QStringRef&);
-  gonk::bind::static_member_function<QString, int, const QString&, const QStringRef&, &QString::localeAwareCompare>(string, "localeAwareCompare").create();
+  gonk::bind::static_member_function<QString, int, const QString&, const QStringRef&, &QString::localeAwareCompare>(c, "localeAwareCompare").create();
   // short toShort(bool*, int) const;
   /// TODO: short toShort(bool*, int) const;
   // ushort toUShort(bool*, int) const;
@@ -707,7 +704,7 @@ static void register_string_class(script::Namespace ns)
   // QString& setNum(ushort, int);
   /// TODO: QString& setNum(ushort, int);
   // QString& setNum(int, int);
-  gonk::bind::member_function<QString, QString&, int, int, &QString::setNum>(string, "setNum").create();
+  gonk::bind::member_function<QString, QString&, int, int, &QString::setNum>(c, "setNum").create();
   // QString& setNum(uint, int);
   /// TODO: QString& setNum(uint, int);
   // QString& setNum(long, int);
@@ -719,11 +716,11 @@ static void register_string_class(script::Namespace ns)
   // QString& setNum(qulonglong, int);
   /// TODO: QString& setNum(qulonglong, int);
   // QString& setNum(float, char, int);
-  gonk::bind::member_function<QString, QString&, float, char, int, &QString::setNum>(string, "setNum").create();
+  gonk::bind::member_function<QString, QString&, float, char, int, &QString::setNum>(c, "setNum").create();
   // QString& setNum(double, char, int);
-  gonk::bind::member_function<QString, QString&, double, char, int, &QString::setNum>(string, "setNum").create();
+  gonk::bind::member_function<QString, QString&, double, char, int, &QString::setNum>(c, "setNum").create();
   // static QString number(int, int);
-  gonk::bind::static_member_function<QString, QString, int, int, &QString::number>(string, "number").create();
+  gonk::bind::static_member_function<QString, QString, int, int, &QString::number>(c, "number").create();
   // static QString number(uint, int);
   /// TODO: static QString number(uint, int);
   // static QString number(long, int);
@@ -735,47 +732,47 @@ static void register_string_class(script::Namespace ns)
   // static QString number(qulonglong, int);
   /// TODO: static QString number(qulonglong, int);
   // static QString number(double, char, int);
-  gonk::bind::static_member_function<QString, QString, double, char, int, &QString::number>(string, "number").create();
+  gonk::bind::static_member_function<QString, QString, double, char, int, &QString::number>(c, "number").create();
   // bool operator==(QLatin1String) const;
-  gonk::bind::memop_eq<QString, QLatin1String>(string);
+  gonk::bind::memop_eq<QString, QLatin1String>(c);
   // bool operator<(QLatin1String) const;
-  gonk::bind::memop_less<QString, QLatin1String>(string);
+  gonk::bind::memop_less<QString, QLatin1String>(c);
   // bool operator>(QLatin1String) const;
-  gonk::bind::memop_greater<QString, QLatin1String>(string);
+  gonk::bind::memop_greater<QString, QLatin1String>(c);
   // bool operator!=(QLatin1String) const;
-  gonk::bind::memop_neq<QString, QLatin1String>(string);
+  gonk::bind::memop_neq<QString, QLatin1String>(c);
   // bool operator<=(QLatin1String) const;
-  gonk::bind::memop_leq<QString, QLatin1String>(string);
+  gonk::bind::memop_leq<QString, QLatin1String>(c);
   // bool operator>=(QLatin1String) const;
-  gonk::bind::memop_geq<QString, QLatin1String>(string);
+  gonk::bind::memop_geq<QString, QLatin1String>(c);
   // QString(const char*);
   /// TODO: QString(const char*);
   // QString(const QByteArray&);
-  gonk::bind::constructor<QString, const QByteArray&>(string).create();
+  gonk::bind::constructor<QString, const QByteArray&>(c).create();
   // QString& operator=(const char*);
   /// TODO: QString& operator=(const char*);
   // QString& operator=(const QByteArray&);
-  gonk::bind::memop_assign<QString, const QByteArray&>(string);
+  gonk::bind::memop_assign<QString, const QByteArray&>(c);
   // QString& operator=(char);
-  gonk::bind::memop_assign<QString, char>(string);
+  gonk::bind::memop_assign<QString, char>(c);
   // QString& prepend(const char*);
   /// TODO: QString& prepend(const char*);
   // QString& prepend(const QByteArray&);
-  gonk::bind::member_function<QString, QString&, const QByteArray&, &QString::prepend>(string, "prepend").create();
+  gonk::bind::member_function<QString, QString&, const QByteArray&, &QString::prepend>(c, "prepend").create();
   // QString& append(const char*);
   /// TODO: QString& append(const char*);
   // QString& append(const QByteArray&);
-  gonk::bind::member_function<QString, QString&, const QByteArray&, &QString::append>(string, "append").create();
+  gonk::bind::member_function<QString, QString&, const QByteArray&, &QString::append>(c, "append").create();
   // QString& insert(int, const char*);
   /// TODO: QString& insert(int, const char*);
   // QString& insert(int, const QByteArray&);
-  gonk::bind::member_function<QString, QString&, int, const QByteArray&, &QString::insert>(string, "insert").create();
+  gonk::bind::member_function<QString, QString&, int, const QByteArray&, &QString::insert>(c, "insert").create();
   // QString& operator+=(const char*);
   /// TODO: QString& operator+=(const char*);
   // QString& operator+=(const QByteArray&);
-  gonk::bind::memop_add_assign<QString, const QByteArray&>(string);
+  gonk::bind::memop_add_assign<QString, const QByteArray&>(c);
   // QString& operator+=(char);
-  gonk::bind::memop_add_assign<QString, char>(string);
+  gonk::bind::memop_add_assign<QString, char>(c);
   // bool operator==(const char*) const;
   /// TODO: bool operator==(const char*) const;
   // bool operator!=(const char*) const;
@@ -789,17 +786,17 @@ static void register_string_class(script::Namespace ns)
   // bool operator>=(const char*) const;
   /// TODO: bool operator>=(const char*) const;
   // bool operator==(const QByteArray&) const;
-  gonk::bind::memop_eq<QString, const QByteArray&>(string);
+  gonk::bind::memop_eq<QString, const QByteArray&>(c);
   // bool operator!=(const QByteArray&) const;
-  gonk::bind::memop_neq<QString, const QByteArray&>(string);
+  gonk::bind::memop_neq<QString, const QByteArray&>(c);
   // bool operator<(const QByteArray&) const;
-  gonk::bind::memop_less<QString, const QByteArray&>(string);
+  gonk::bind::memop_less<QString, const QByteArray&>(c);
   // bool operator>(const QByteArray&) const;
-  gonk::bind::memop_greater<QString, const QByteArray&>(string);
+  gonk::bind::memop_greater<QString, const QByteArray&>(c);
   // bool operator<=(const QByteArray&) const;
-  gonk::bind::memop_leq<QString, const QByteArray&>(string);
+  gonk::bind::memop_leq<QString, const QByteArray&>(c);
   // bool operator>=(const QByteArray&) const;
-  gonk::bind::memop_geq<QString, const QByteArray&>(string);
+  gonk::bind::memop_geq<QString, const QByteArray&>(c);
   // QString::iterator begin();
   /// TODO: QString::iterator begin();
   // QString::const_iterator begin() const;
@@ -829,19 +826,19 @@ static void register_string_class(script::Namespace ns)
   // QString::const_reverse_iterator crend() const;
   /// TODO: QString::const_reverse_iterator crend() const;
   // void push_back(QChar);
-  gonk::bind::void_member_function<QString, QChar, &QString::push_back>(string, "push_back").create();
+  gonk::bind::void_member_function<QString, QChar, &QString::push_back>(c, "push_back").create();
   // void push_back(const QString&);
-  gonk::bind::void_member_function<QString, const QString&, &QString::push_back>(string, "push_back").create();
+  gonk::bind::void_member_function<QString, const QString&, &QString::push_back>(c, "push_back").create();
   // void push_front(QChar);
-  gonk::bind::void_member_function<QString, QChar, &QString::push_front>(string, "push_front").create();
+  gonk::bind::void_member_function<QString, QChar, &QString::push_front>(c, "push_front").create();
   // void push_front(const QString&);
-  gonk::bind::void_member_function<QString, const QString&, &QString::push_front>(string, "push_front").create();
+  gonk::bind::void_member_function<QString, const QString&, &QString::push_front>(c, "push_front").create();
   // void shrink_to_fit();
-  gonk::bind::void_member_function<QString, &QString::shrink_to_fit>(string, "shrink_to_fit").create();
+  gonk::bind::void_member_function<QString, &QString::shrink_to_fit>(c, "shrink_to_fit").create();
   // static QString fromStdString(const std::string&);
-  gonk::bind::static_member_function<QString, QString, const std::string&, &QString::fromStdString>(string, "fromStdString").create();
+  gonk::bind::static_member_function<QString, QString, const std::string&, &QString::fromStdString>(c, "fromStdString").create();
   // std::string toStdString() const;
-  gonk::bind::member_function<QString, std::string, &QString::toStdString>(string, "toStdString").create();
+  gonk::bind::member_function<QString, std::string, &QString::toStdString>(c, "toStdString").create();
   // static QString fromStdWString(const std::wstring&);
   /// TODO: static QString fromStdWString(const std::wstring&);
   // std::wstring toStdWString() const;
@@ -855,15 +852,15 @@ static void register_string_class(script::Namespace ns)
   // std::u32string toStdU32String() const;
   /// TODO: std::u32string toStdU32String() const;
   // QString(const QString::Null&);
-  gonk::bind::constructor<QString, const QString::Null&>(string).create();
+  gonk::bind::constructor<QString, const QString::Null&>(c).create();
   // QString& operator=(const QString::Null&);
-  gonk::bind::memop_assign<QString, const QString::Null&>(string);
+  gonk::bind::memop_assign<QString, const QString::Null&>(c);
   // bool isNull() const;
-  gonk::bind::member_function<QString, bool, &QString::isNull>(string, "isNull").create();
+  gonk::bind::member_function<QString, bool, &QString::isNull>(c, "isNull").create();
   // bool isSimpleText() const;
-  gonk::bind::member_function<QString, bool, &QString::isSimpleText>(string, "isSimpleText").create();
+  gonk::bind::member_function<QString, bool, &QString::isSimpleText>(c, "isSimpleText").create();
   // bool isRightToLeft() const;
-  gonk::bind::member_function<QString, bool, &QString::isRightToLeft>(string, "isRightToLeft").create();
+  gonk::bind::member_function<QString, bool, &QString::isRightToLeft>(c, "isRightToLeft").create();
   // QString(int, Qt::Initialization);
   /// TODO: QString(int, Qt::Initialization);
   // QString(QStringDataPtr);
@@ -872,22 +869,24 @@ static void register_string_class(script::Namespace ns)
   /// TODO: QString::DataPtr& data_ptr();
 }
 
-
-static void register_char_ref_class(script::Namespace ns)
+static void register_char_ref(script::Namespace& parent)
 {
   using namespace script;
+  
+  Class char_ref = parent.newClass("QCharRef").setId(script::Type::make<QCharRef>().data())
+    .get();
 
-  Class char_ref = ns.newClass("QCharRef").setId(script::Type::make<QCharRef>().data()).get();
-
+  Class& c = char_ref;
+  
 
   // QCharRef& operator=(QChar);
-  gonk::bind::memop_assign<QCharRef, QChar>(char_ref);
+  gonk::bind::memop_assign<QCharRef, QChar>(c);
   // QCharRef& operator=(char);
-  gonk::bind::memop_assign<QCharRef, char>(char_ref);
+  gonk::bind::memop_assign<QCharRef, char>(c);
   // QCharRef& operator=(uchar);
   /// TODO: QCharRef& operator=(uchar);
   // QCharRef& operator=(const QCharRef&);
-  gonk::bind::memop_assign<QCharRef, const QCharRef&>(char_ref);
+  gonk::bind::memop_assign<QCharRef, const QCharRef&>(c);
   // QCharRef& operator=(ushort);
   /// TODO: QCharRef& operator=(ushort);
   // QCharRef& operator=(short);
@@ -895,61 +894,61 @@ static void register_char_ref_class(script::Namespace ns)
   // QCharRef& operator=(uint);
   /// TODO: QCharRef& operator=(uint);
   // QCharRef& operator=(int);
-  gonk::bind::memop_assign<QCharRef, int>(char_ref);
+  gonk::bind::memop_assign<QCharRef, int>(c);
   // bool isNull() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isNull>(char_ref, "isNull").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isNull>(c, "isNull").create();
   // bool isPrint() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isPrint>(char_ref, "isPrint").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isPrint>(c, "isPrint").create();
   // bool isPunct() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isPunct>(char_ref, "isPunct").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isPunct>(c, "isPunct").create();
   // bool isSpace() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isSpace>(char_ref, "isSpace").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isSpace>(c, "isSpace").create();
   // bool isMark() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isMark>(char_ref, "isMark").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isMark>(c, "isMark").create();
   // bool isLetter() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isLetter>(char_ref, "isLetter").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isLetter>(c, "isLetter").create();
   // bool isNumber() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isNumber>(char_ref, "isNumber").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isNumber>(c, "isNumber").create();
   // bool isLetterOrNumber();
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isLetterOrNumber>(char_ref, "isLetterOrNumber").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isLetterOrNumber>(c, "isLetterOrNumber").create();
   // bool isDigit() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isDigit>(char_ref, "isDigit").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isDigit>(c, "isDigit").create();
   // bool isLower() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isLower>(char_ref, "isLower").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isLower>(c, "isLower").create();
   // bool isUpper() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isUpper>(char_ref, "isUpper").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isUpper>(c, "isUpper").create();
   // bool isTitleCase() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::isTitleCase>(char_ref, "isTitleCase").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::isTitleCase>(c, "isTitleCase").create();
   // int digitValue() const;
-  gonk::bind::member_function<QCharRef, int, &QCharRef::digitValue>(char_ref, "digitValue").create();
+  gonk::bind::member_function<QCharRef, int, &QCharRef::digitValue>(c, "digitValue").create();
   // QChar toLower() const;
-  gonk::bind::member_function<QCharRef, QChar, &QCharRef::toLower>(char_ref, "toLower").create();
+  gonk::bind::member_function<QCharRef, QChar, &QCharRef::toLower>(c, "toLower").create();
   // QChar toUpper() const;
-  gonk::bind::member_function<QCharRef, QChar, &QCharRef::toUpper>(char_ref, "toUpper").create();
+  gonk::bind::member_function<QCharRef, QChar, &QCharRef::toUpper>(c, "toUpper").create();
   // QChar toTitleCase() const;
-  gonk::bind::member_function<QCharRef, QChar, &QCharRef::toTitleCase>(char_ref, "toTitleCase").create();
+  gonk::bind::member_function<QCharRef, QChar, &QCharRef::toTitleCase>(c, "toTitleCase").create();
   // QChar::Category category() const;
-  gonk::bind::member_function<QCharRef, QChar::Category, &QCharRef::category>(char_ref, "category").create();
+  gonk::bind::member_function<QCharRef, QChar::Category, &QCharRef::category>(c, "category").create();
   // QChar::Direction direction() const;
-  gonk::bind::member_function<QCharRef, QChar::Direction, &QCharRef::direction>(char_ref, "direction").create();
+  gonk::bind::member_function<QCharRef, QChar::Direction, &QCharRef::direction>(c, "direction").create();
   // QChar::JoiningType joiningType() const;
-  gonk::bind::member_function<QCharRef, QChar::JoiningType, &QCharRef::joiningType>(char_ref, "joiningType").create();
+  gonk::bind::member_function<QCharRef, QChar::JoiningType, &QCharRef::joiningType>(c, "joiningType").create();
   // QChar::Joining joining() const;
-  gonk::bind::member_function<QCharRef, QChar::Joining, &QCharRef::joining>(char_ref, "joining").create();
+  gonk::bind::member_function<QCharRef, QChar::Joining, &QCharRef::joining>(c, "joining").create();
   // bool hasMirrored() const;
-  gonk::bind::member_function<QCharRef, bool, &QCharRef::hasMirrored>(char_ref, "hasMirrored").create();
+  gonk::bind::member_function<QCharRef, bool, &QCharRef::hasMirrored>(c, "hasMirrored").create();
   // QChar mirroredChar() const;
-  gonk::bind::member_function<QCharRef, QChar, &QCharRef::mirroredChar>(char_ref, "mirroredChar").create();
+  gonk::bind::member_function<QCharRef, QChar, &QCharRef::mirroredChar>(c, "mirroredChar").create();
   // QString decomposition() const;
-  gonk::bind::member_function<QCharRef, QString, &QCharRef::decomposition>(char_ref, "decomposition").create();
+  gonk::bind::member_function<QCharRef, QString, &QCharRef::decomposition>(c, "decomposition").create();
   // QChar::Decomposition decompositionTag() const;
-  gonk::bind::member_function<QCharRef, QChar::Decomposition, &QCharRef::decompositionTag>(char_ref, "decompositionTag").create();
+  gonk::bind::member_function<QCharRef, QChar::Decomposition, &QCharRef::decompositionTag>(c, "decompositionTag").create();
   // uchar combiningClass() const;
   /// TODO: uchar combiningClass() const;
   // QChar::Script script() const;
-  gonk::bind::member_function<QCharRef, QChar::Script, &QCharRef::script>(char_ref, "script").create();
+  gonk::bind::member_function<QCharRef, QChar::Script, &QCharRef::script>(c, "script").create();
   // QChar::UnicodeVersion unicodeVersion() const;
-  gonk::bind::member_function<QCharRef, QChar::UnicodeVersion, &QCharRef::unicodeVersion>(char_ref, "unicodeVersion").create();
+  gonk::bind::member_function<QCharRef, QChar::UnicodeVersion, &QCharRef::unicodeVersion>(c, "unicodeVersion").create();
   // uchar cell() const;
   /// TODO: uchar cell() const;
   // uchar row() const;
@@ -959,47 +958,49 @@ static void register_char_ref_class(script::Namespace ns)
   // void setRow(uchar);
   /// TODO: void setRow(uchar);
   // char toLatin1() const;
-  gonk::bind::member_function<QCharRef, char, &QCharRef::toLatin1>(char_ref, "toLatin1").create();
+  gonk::bind::member_function<QCharRef, char, &QCharRef::toLatin1>(c, "toLatin1").create();
   // ushort unicode() const;
   /// TODO: ushort unicode() const;
   // ushort& unicode();
   /// TODO: ushort& unicode();
 }
 
-
-static void register_string_ref_class(script::Namespace ns)
+static void register_string_ref(script::Namespace& parent)
 {
   using namespace script;
+  
+  Class string_ref = parent.newClass("QStringRef").setId(script::Type::make<QStringRef>().data())
+    .get();
 
-  Class string_ref = ns.newClass("QStringRef").setId(script::Type::make<QStringRef>().data()).get();
-
+  Class& c = string_ref;
+  
 
   // QStringRef();
-  gonk::bind::default_constructor<QStringRef>(string_ref).create();
+  gonk::bind::default_constructor<QStringRef>(c).create();
   // QStringRef(const QString*, int, int);
   /// TODO: QStringRef(const QString*, int, int);
   // QStringRef(const QString*);
   /// TODO: QStringRef(const QString*);
   // QStringRef(const QStringRef&);
-  gonk::bind::constructor<QStringRef, const QStringRef&>(string_ref).create();
+  gonk::bind::constructor<QStringRef, const QStringRef&>(c).create();
   // QStringRef(QStringRef&&);
-  gonk::bind::constructor<QStringRef, QStringRef&&>(string_ref).create();
+  gonk::bind::constructor<QStringRef, QStringRef&&>(c).create();
   // QStringRef& operator=(QStringRef&&);
-  gonk::bind::memop_assign<QStringRef, QStringRef&&>(string_ref);
+  gonk::bind::memop_assign<QStringRef, QStringRef&&>(c);
   // QStringRef& operator=(const QStringRef&);
-  gonk::bind::memop_assign<QStringRef, const QStringRef&>(string_ref);
+  gonk::bind::memop_assign<QStringRef, const QStringRef&>(c);
   // ~QStringRef();
-  gonk::bind::destructor<QStringRef>(string_ref).create();
+  gonk::bind::destructor<QStringRef>(c).create();
   // const QString* string() const;
   /// TODO: const QString* string() const;
   // int position() const;
-  gonk::bind::member_function<QStringRef, int, &QStringRef::position>(string_ref, "position").create();
+  gonk::bind::member_function<QStringRef, int, &QStringRef::position>(c, "position").create();
   // int size() const;
-  gonk::bind::member_function<QStringRef, int, &QStringRef::size>(string_ref, "size").create();
+  gonk::bind::member_function<QStringRef, int, &QStringRef::size>(c, "size").create();
   // int count() const;
-  gonk::bind::member_function<QStringRef, int, &QStringRef::count>(string_ref, "count").create();
+  gonk::bind::member_function<QStringRef, int, &QStringRef::count>(c, "count").create();
   // int length() const;
-  gonk::bind::member_function<QStringRef, int, &QStringRef::length>(string_ref, "length").create();
+  gonk::bind::member_function<QStringRef, int, &QStringRef::length>(c, "length").create();
   // int indexOf(const QString&, int, Qt::CaseSensitivity) const;
   /// TODO: int indexOf(const QString&, int, Qt::CaseSensitivity) const;
   // int indexOf(QChar, int, Qt::CaseSensitivity) const;
@@ -1035,19 +1036,19 @@ static void register_string_ref_class(script::Namespace ns)
   // QVector<QStringRef> split(QChar, QString::SplitBehavior, Qt::CaseSensitivity) const;
   /// TODO: QVector<QStringRef> split(QChar, QString::SplitBehavior, Qt::CaseSensitivity) const;
   // QStringRef left(int) const;
-  gonk::bind::member_function<QStringRef, QStringRef, int, &QStringRef::left>(string_ref, "left").create();
+  gonk::bind::member_function<QStringRef, QStringRef, int, &QStringRef::left>(c, "left").create();
   // QStringRef right(int) const;
-  gonk::bind::member_function<QStringRef, QStringRef, int, &QStringRef::right>(string_ref, "right").create();
+  gonk::bind::member_function<QStringRef, QStringRef, int, &QStringRef::right>(c, "right").create();
   // QStringRef mid(int, int) const;
-  gonk::bind::member_function<QStringRef, QStringRef, int, int, &QStringRef::mid>(string_ref, "mid").create();
+  gonk::bind::member_function<QStringRef, QStringRef, int, int, &QStringRef::mid>(c, "mid").create();
   // QStringRef chopped(int) const;
-  gonk::bind::member_function<QStringRef, QStringRef, int, &QStringRef::chopped>(string_ref, "chopped").create();
+  gonk::bind::member_function<QStringRef, QStringRef, int, &QStringRef::chopped>(c, "chopped").create();
   // void truncate(int);
-  gonk::bind::void_member_function<QStringRef, int, &QStringRef::truncate>(string_ref, "truncate").create();
+  gonk::bind::void_member_function<QStringRef, int, &QStringRef::truncate>(c, "truncate").create();
   // void chop(int);
-  gonk::bind::void_member_function<QStringRef, int, &QStringRef::chop>(string_ref, "chop").create();
+  gonk::bind::void_member_function<QStringRef, int, &QStringRef::chop>(c, "chop").create();
   // bool isRightToLeft() const;
-  gonk::bind::member_function<QStringRef, bool, &QStringRef::isRightToLeft>(string_ref, "isRightToLeft").create();
+  gonk::bind::member_function<QStringRef, bool, &QStringRef::isRightToLeft>(c, "isRightToLeft").create();
   // bool startsWith(QStringView, Qt::CaseSensitivity) const;
   /// TODO: bool startsWith(QStringView, Qt::CaseSensitivity) const;
   // bool startsWith(QLatin1String, Qt::CaseSensitivity) const;
@@ -1097,31 +1098,31 @@ static void register_string_ref_class(script::Namespace ns)
   // QStringRef::const_reverse_iterator crend() const;
   /// TODO: QStringRef::const_reverse_iterator crend() const;
   // QByteArray toLatin1() const;
-  gonk::bind::member_function<QStringRef, QByteArray, &QStringRef::toLatin1>(string_ref, "toLatin1").create();
+  gonk::bind::member_function<QStringRef, QByteArray, &QStringRef::toLatin1>(c, "toLatin1").create();
   // QByteArray toUtf8() const;
-  gonk::bind::member_function<QStringRef, QByteArray, &QStringRef::toUtf8>(string_ref, "toUtf8").create();
+  gonk::bind::member_function<QStringRef, QByteArray, &QStringRef::toUtf8>(c, "toUtf8").create();
   // QByteArray toLocal8Bit() const;
-  gonk::bind::member_function<QStringRef, QByteArray, &QStringRef::toLocal8Bit>(string_ref, "toLocal8Bit").create();
+  gonk::bind::member_function<QStringRef, QByteArray, &QStringRef::toLocal8Bit>(c, "toLocal8Bit").create();
   // QVector<uint> toUcs4() const;
   /// TODO: QVector<uint> toUcs4() const;
   // void clear();
-  gonk::bind::void_member_function<QStringRef, &QStringRef::clear>(string_ref, "clear").create();
+  gonk::bind::void_member_function<QStringRef, &QStringRef::clear>(c, "clear").create();
   // QString toString() const;
-  gonk::bind::member_function<QStringRef, QString, &QStringRef::toString>(string_ref, "toString").create();
+  gonk::bind::member_function<QStringRef, QString, &QStringRef::toString>(c, "toString").create();
   // bool isEmpty() const;
-  gonk::bind::member_function<QStringRef, bool, &QStringRef::isEmpty>(string_ref, "isEmpty").create();
+  gonk::bind::member_function<QStringRef, bool, &QStringRef::isEmpty>(c, "isEmpty").create();
   // bool isNull() const;
-  gonk::bind::member_function<QStringRef, bool, &QStringRef::isNull>(string_ref, "isNull").create();
+  gonk::bind::member_function<QStringRef, bool, &QStringRef::isNull>(c, "isNull").create();
   // QStringRef appendTo(QString*) const;
   /// TODO: QStringRef appendTo(QString*) const;
   // const QChar at(int) const;
-  gonk::bind::member_function<QStringRef, const QChar, int, &QStringRef::at>(string_ref, "at").create();
+  gonk::bind::member_function<QStringRef, const QChar, int, &QStringRef::at>(c, "at").create();
   // QChar operator[](int) const;
-  gonk::bind::memop_const_subscript<QStringRef, QChar, int>(string_ref);
+  gonk::bind::memop_const_subscript<QStringRef, QChar, int>(c);
   // QChar front() const;
-  gonk::bind::member_function<QStringRef, QChar, &QStringRef::front>(string_ref, "front").create();
+  gonk::bind::member_function<QStringRef, QChar, &QStringRef::front>(c, "front").create();
   // QChar back() const;
-  gonk::bind::member_function<QStringRef, QChar, &QStringRef::back>(string_ref, "back").create();
+  gonk::bind::member_function<QStringRef, QChar, &QStringRef::back>(c, "back").create();
   // bool operator==(const char*) const;
   /// TODO: bool operator==(const char*) const;
   // bool operator!=(const char*) const;
@@ -1149,15 +1150,15 @@ static void register_string_ref_class(script::Namespace ns)
   // static int compare(const QStringRef&, QLatin1String, Qt::CaseSensitivity);
   /// TODO: static int compare(const QStringRef&, QLatin1String, Qt::CaseSensitivity);
   // int localeAwareCompare(const QString&) const;
-  gonk::bind::member_function<QStringRef, int, const QString&, &QStringRef::localeAwareCompare>(string_ref, "localeAwareCompare").create();
+  gonk::bind::member_function<QStringRef, int, const QString&, &QStringRef::localeAwareCompare>(c, "localeAwareCompare").create();
   // int localeAwareCompare(const QStringRef&) const;
-  gonk::bind::member_function<QStringRef, int, const QStringRef&, &QStringRef::localeAwareCompare>(string_ref, "localeAwareCompare").create();
+  gonk::bind::member_function<QStringRef, int, const QStringRef&, &QStringRef::localeAwareCompare>(c, "localeAwareCompare").create();
   // static int localeAwareCompare(const QStringRef&, const QString&);
-  gonk::bind::static_member_function<QStringRef, int, const QStringRef&, const QString&, &QStringRef::localeAwareCompare>(string_ref, "localeAwareCompare").create();
+  gonk::bind::static_member_function<QStringRef, int, const QStringRef&, const QString&, &QStringRef::localeAwareCompare>(c, "localeAwareCompare").create();
   // static int localeAwareCompare(const QStringRef&, const QStringRef&);
-  gonk::bind::static_member_function<QStringRef, int, const QStringRef&, const QStringRef&, &QStringRef::localeAwareCompare>(string_ref, "localeAwareCompare").create();
+  gonk::bind::static_member_function<QStringRef, int, const QStringRef&, const QStringRef&, &QStringRef::localeAwareCompare>(c, "localeAwareCompare").create();
   // QStringRef trimmed() const;
-  gonk::bind::member_function<QStringRef, QStringRef, &QStringRef::trimmed>(string_ref, "trimmed").create();
+  gonk::bind::member_function<QStringRef, QStringRef, &QStringRef::trimmed>(c, "trimmed").create();
   // short toShort(bool*, int) const;
   /// TODO: short toShort(bool*, int) const;
   // ushort toUShort(bool*, int) const;
@@ -1180,16 +1181,17 @@ static void register_string_ref_class(script::Namespace ns)
   /// TODO: double toDouble(bool*) const;
 }
 
+#endif // METAGONK_SOURCE
 
 void register_string_file(script::Namespace ns)
 {
   using namespace script;
 
 
-  register_latin1_string_class(ns);
-  register_string_class(ns);
-  register_char_ref_class(ns);
-  register_string_ref_class(ns);
+  register_latin1_string(ns);
+  register_string(ns);
+  register_char_ref(ns);
+  register_string_ref(ns);
 
   // bool operator==(QString::Null, QString::Null);
   gonk::bind::op_eq<QString::Null, QString::Null>(ns);
