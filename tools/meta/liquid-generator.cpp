@@ -86,22 +86,108 @@ public:
 };
 
 
+class RecursiveTypeCollector : public NodeVisitor
+{
+public:
+
+  ProjectRef project;
+  json::Array result;
+
+  RecursiveTypeCollector(ProjectRef p)
+    : project(p)
+  {
+
+  }
+
+  json::Object serialize(const Type& t)
+  {
+    json::Object obj;
+    obj["name"] = t.name.toStdString();
+    obj["id"] = t.id.toStdString();
+    obj["enum"] = t.is_enum;
+    obj["class"] = t.is_class;
+    return obj;
+  }
+
+  json::Array operator()(Module& m)
+  {
+    for (auto e : m.elements)
+      e->accept(*this);
+    return result;
+  }
+
+  void visit(Class& c) override
+  {
+    for (auto e : c.elements)
+      e->accept(*this);
+
+    if (c.type_id != -1)
+    {
+      auto t = project->getType(c.type_id);
+      result.push(serialize(*t));
+    }
+  }
+
+  void visit(Module& m) override
+  {
+
+  }
+
+  void visit(Enum& e) override
+  {
+    if (e.type_id != -1)
+    {
+      auto t = project->getType(e.type_id);
+      result.push(serialize(*t));
+    }
+  }
+
+  void visit(Enumerator& e) override
+  {
+
+  }
+
+  void visit(File& f) override
+  {
+    for (auto e : f.elements)
+      e->accept(*this);
+  }
+
+  void visit(Function& f) override
+  {
+
+  }
+
+  void visit(Namespace& n) override
+  {
+    for (auto e : n.elements)
+      e->accept(*this);
+  }
+
+  void visit(Statement& s)
+  {
+
+  }
+};
+
+
 class ProjectSerializer : public NodeVisitor
 {
 public:
 
+  ProjectRef project;
   SerializationMaps& map;
   json::Json result;
 
-  ProjectSerializer(SerializationMaps& m)
-    : map(m)
+  ProjectSerializer(ProjectRef pro, SerializationMaps& m)
+    : project(pro), map(m)
   {
 
   }
 
   json::Json serialize(Node& n)
   {
-    ProjectSerializer s{ map };
+    ProjectSerializer s{ project, map };
     n.accept(s);
     return s.result;
   }
@@ -122,13 +208,13 @@ public:
     return ret;
   }
 
-  json::Json serialize(ProjectRef pro)
+  json::Json serialize()
   {
     json::Json result;
 
     json::Array modules;
 
-    for (auto m : pro->modules)
+    for (auto m : project->modules)
       modules.push(serialize(*m));
 
     result["modules"] = modules;
@@ -172,6 +258,9 @@ public:
 
       result["elements"] = elements;
     }
+
+    RecursiveTypeCollector collector{ project };
+    result["types"] = collector(m);
   }
 
   void visit(Enum& e) override
@@ -284,8 +373,8 @@ void LiquidGenerator::generate(const ProjectRef & p)
 
   mProject = p;
 
-  ProjectSerializer serializer{ m_serialization_map };
-  mSerializedProject = serializer.serialize(mProject);
+  ProjectSerializer serializer{ mProject, m_serialization_map };
+  mSerializedProject = serializer.serialize();
 
   {
     QFile pro_json{ "project.json" };
@@ -576,6 +665,11 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   {
     NodeRef node = mProject->getSymbol(QString::fromStdString(args.at(0).toString()), QString::fromStdString(args.at(1).toString()));
     return m_serialization_map.get(node);
+  }
+  else if (name == "get_module")
+  {
+    ModuleRef m = mProject->get<Module>(QString::fromStdString(args.at(0).toString()));
+    return m_serialization_map.get(m);
   }
   else if (name == "parent")
   {
