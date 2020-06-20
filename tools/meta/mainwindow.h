@@ -31,7 +31,6 @@ protected Q_SLOTS:
   void createNewType();
   void importCpp();
   void generateBinding();
-  void generateBinding2();
 
 protected:
   void showEvent(QShowEvent *e);

@@ -5,7 +5,6 @@
 #include "mainwindow.h"
 
 #include "controller.h"
-#include "generator.h"
 #include "liquid-generator.h"
 
 #include "dialogs/newtypedialog.h"
@@ -58,7 +57,6 @@ MainWindow::MainWindow()
   menuBar()->addAction("New type", this, SLOT(createNewType()));
   menuBar()->addAction("Import", this, SLOT(importCpp()));
   menuBar()->addAction("Generate", this, SLOT(generateBinding()));
-  menuBar()->addAction("Generate 2", this, SLOT(generateBinding2()));
 }
 
 void MainWindow::openProject()
@@ -173,30 +171,6 @@ void MainWindow::importCpp()
 }
 
 void MainWindow::generateBinding()
-{
-  QString path = mSettings->value("generatedir").toString();
-  if (path.isEmpty())
-    path = QFileDialog::getExistingDirectory(this, "Save directory");
-  
-  if (path.isEmpty())
-    return;
-
-  mSettings->setValue("generatedir", path);
-
-  QProgressDialog progress("Generating files...", "Abort", 0, mProject->fileCount(), this);
-  progress.setWindowTitle("Binding generation");
-  progress.setWindowModality(Qt::WindowModal);
-  progress.setMinimumDuration(2000);
-
-  Generator gen{ path };
-  gen.setProgressCallback([&progress](const QString & filename) -> bool {
-    progress.setValue(progress.value() + 1);
-    return !progress.wasCanceled();
-  });
-  gen.generate(mProject);
-}
-
-void MainWindow::generateBinding2()
 {
   QString path = mSettings->value("generatedir").toString();
   if (path.isEmpty())
