@@ -40,7 +40,7 @@ MainWindow::MainWindow()
   //}
   
   if (mProject == nullptr)
-    mProject = std::make_shared<Project>();
+    mProject = std::make_shared<MGProject>();
 
   mTabWidget = new QTabWidget();
 
@@ -148,14 +148,8 @@ void MainWindow::createNewType()
     return;
 
   auto t = dialog->getType();
-  Type::Category cat = dialog->getCategory();
 
-  if (cat == Type::FundamentalType)
-    mProject->types.fundamentals.append(t);
-  else if (cat == Type::EnumType)
-    mProject->types.enums.append(t);
-  else if (cat == Type::ClassType)
-    mProject->types.classes.append(t);
+  mProject->types.push_back(t);
 
   mTypeTreeWidget->fetchNewNodes();
 }

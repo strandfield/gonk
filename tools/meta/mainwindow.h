@@ -38,7 +38,7 @@ protected:
 
 private:
   Controller *m_controller;
-  ProjectRef mProject;
+  MGProjectPtr mProject;
   QSettings *mSettings;
 
   QTabWidget *mTabWidget;

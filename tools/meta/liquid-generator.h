@@ -6,10 +6,6 @@
 #define METAGONK_LIQUIDGENERATOR_H
 
 #include "project.h"
-#include "project/class.h"
-#include "project/enum.h"
-#include "project/file.h"
-#include "project/function.h"
 
 #include <liquid/renderer.h>
 
@@ -28,23 +24,43 @@ class QTextStream;
 
 struct SerializationMaps
 {
-  std::unordered_map<std::shared_ptr<json::details::Node>, NodeRef> backward;
-  std::unordered_map<NodeRef, json::Json> forward;
+  std::unordered_map<std::shared_ptr<json::details::Node>, std::shared_ptr<cxx::Entity>> backward;
+  std::unordered_map<std::shared_ptr<cxx::Entity>, json::Json> forward;
 
-  json::Json get(const NodeRef& n) const
+  std::unordered_map<std::shared_ptr<json::details::Node>, MGModulePtr> module_backward;
+  std::unordered_map<MGModulePtr, json::Json> module_forward;
+
+  json::Json get(const std::shared_ptr<cxx::Entity>& n) const
   {
     return forward.at(n);
   }
 
-  NodeRef get(const json::Json& obj) const
+  std::shared_ptr<cxx::Entity> get(const json::Json& obj) const
   {
     return backward.at(obj.impl());
   }
 
-  void bind(const NodeRef& n, const json::Json& o)
+  void bind(const std::shared_ptr<cxx::Entity>& n, const json::Json& o)
   {
     backward[o.impl()] = n;
     forward[n] = o;
+  }
+
+  json::Json get(const MGModulePtr& n) const
+  {
+    return module_forward.at(n);
+  }
+
+  MGModulePtr getModule(const json::Json& obj) const
+  {
+    return module_backward.at(obj.impl());
+  }
+
+
+  void bind(const MGModulePtr& n, const json::Json& o)
+  {
+    module_backward[o.impl()] = n;
+    module_forward[n] = o;
   }
 };
 
@@ -53,17 +69,17 @@ class LiquidGenerator : protected liquid::Renderer
 public:
   LiquidGenerator(const QString & dir);
 
-  void generate(const ProjectRef & pro);
+  void generate(const MGProjectPtr & pro);
 
   const std::function<bool(const QString &)> & progressCallback() const { return mProgressCallback; }
   void setProgressCallback(std::function<bool(const QString &)> f) { mProgressCallback = f; }
 
-  inline const ProjectRef & project() const { return mProject; }
+  inline const MGProjectPtr& project() const { return mProject; }
 
-  struct TypeInfo : Type
+  struct TypeInfo : MGType
   {
     TypeInfo() = default;
-    TypeInfo(const Type & t);
+    TypeInfo(const MGType& t);
   };
 
   int numberOfFiles() const;
@@ -126,12 +142,12 @@ private:
 
   json::Json applyFilter(const std::string& name, const json::Json& object, const std::vector<json::Json>& args) override;
 
-  QString operatorName(const Function& fn) const;
+  QString operatorName(const cxx::Function& fn) const;
 
-  static QString mangledName(const Function& fun);
-  static QString computeWrapperName(const Function& fun);
+  static QString mangledName(const cxx::Function& fun);
+  static QString computeWrapperName(const cxx::Function& fun);
 
-  bool isExposable(const Function& fun);
+  bool isExposable(const cxx::Function& fun);
   bool isExposed(QString t);
 
 private:
@@ -146,8 +162,8 @@ private:
 
 private:
   friend class LiquidGenStateGuard;
-  ProjectRef mProject;
-  QMap<QString, TypeInfo> mTypeInfos;
+  MGProjectPtr mProject;
+  std::map<std::string, TypeInfo> mTypeInfos;
 
   json::Json mSerializedProject;
   SerializationMaps m_serialization_map;

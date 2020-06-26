@@ -7,7 +7,7 @@
 
 #include "abstractnodeeditor.h"
 
-#include "project/class.h"
+#include <cxx/class.h>
 
 class QCheckBox;
 class QLineEdit;
@@ -16,13 +16,13 @@ class ClassNodeEditor : public AbstractNodeEditor
 {
   Q_OBJECT
 public:
-  ClassNodeEditor(const ClassRef & cla, QWidget *p = nullptr);
+  ClassNodeEditor(const std::shared_ptr<cxx::Class>& cla, QWidget *p = nullptr);
   ~ClassNodeEditor() = default;
 
   void write() override;
-  void read(ClassRef cla);
+  void read(std::shared_ptr<cxx::Class> cla);
 
-  inline ClassRef getClass() const { return std::static_pointer_cast<Class>(getNode()); }
+  inline std::shared_ptr<cxx::Class> getClass() const { return std::static_pointer_cast<cxx::Class>(getNode()); }
 
 private:
   QLineEdit *mName;

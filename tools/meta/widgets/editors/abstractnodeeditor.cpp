@@ -4,7 +4,7 @@
 
 #include "abstractnodeeditor.h"
 
-AbstractNodeEditor::AbstractNodeEditor(NodeRef n, QWidget *p)
+AbstractNodeEditor::AbstractNodeEditor(std::shared_ptr<cxx::Entity> n, QWidget *p)
   : QWidget(p)
   , mNode(n)
 {

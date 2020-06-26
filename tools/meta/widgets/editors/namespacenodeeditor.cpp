@@ -11,7 +11,7 @@
 #include <QFontMetrics>
 #include <QLineEdit>
 
-NamespaceNodeEditor::NamespaceNodeEditor(const NamespaceRef & ns, QWidget *p)
+NamespaceNodeEditor::NamespaceNodeEditor(const std::shared_ptr<cxx::Namespace>& ns, QWidget *p)
   : AbstractNodeEditor(ns, p)
 {
   QFontMetrics fm{ font() };
@@ -35,9 +35,9 @@ void NamespaceNodeEditor::write()
   Controller::Instance().projectController().update(*ns, mName->text());
 }
 
-void NamespaceNodeEditor::read(NamespaceRef ns)
+void NamespaceNodeEditor::read(std::shared_ptr<cxx::Namespace> ns)
 {
   setNode(ns);
 
-  mName->setText(ns->name);
+  mName->setText(QString::fromStdString(ns->name));
 }

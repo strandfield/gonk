@@ -7,7 +7,7 @@
 
 #include <QDialog>
 
-#include "project/type.h"
+#include "project.h"
 
 class QComboBox;
 class QLineEdit;
@@ -19,14 +19,13 @@ public:
   NewTypeDialog(QWidget *parent = nullptr);
   ~NewTypeDialog() = default;
 
-  Type::Category getCategory() const;
-  std::shared_ptr<Type> getType() const;
+  MGType::Category getCategory() const;
+  std::shared_ptr<MGType> getType() const;
 
 private:
   QComboBox *mTypeCategoryComboBox;
   QLineEdit *mNameLineEdit;
   QLineEdit *mIdLineEdit;
-  QLineEdit *mHeaderLineEdit;
 };
 
 #endif // METAGONK_NEWTYPEDIALOG_H

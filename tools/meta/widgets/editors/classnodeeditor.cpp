@@ -12,7 +12,7 @@
 #include <QFontMetrics>
 #include <QLineEdit>
 
-ClassNodeEditor::ClassNodeEditor(const ClassRef & cla, QWidget *p)
+ClassNodeEditor::ClassNodeEditor(const std::shared_ptr<cxx::Class> & cla, QWidget *p)
   : AbstractNodeEditor(cla, p)
 {
   QFontMetrics fm{ font() };
@@ -48,11 +48,13 @@ void ClassNodeEditor::write()
     mBase->text());
 }
 
-void ClassNodeEditor::read(ClassRef cla)
+void ClassNodeEditor::read(std::shared_ptr<cxx::Class> cla)
 {
   setNode(cla);
 
-  mName->setText(cla->name);
-  mFinal->setChecked(cla->isFinal);
-  mBase->setText(cla->base);
+  mName->setText(QString::fromStdString(cla->name));
+  mFinal->setChecked(cla->is_final);
+  
+  if(!cla->bases.empty())
+    mBase->setText(QString::fromStdString(cla->bases.front().base->name));
 }

@@ -4,13 +4,6 @@
 
 #include "cppparser.h"
 
-#include "project/class.h"
-#include "project/enum.h"
-#include "project/file.h"
-#include "project/function.h"
-#include "project/module.h"
-#include "project/namespace.h"
-
 #include <cxx/class-declaration.h>
 #include <cxx/namespace-declaration.h>
 #include <cxx/function-declaration.h>
@@ -24,7 +17,7 @@
 
 static QString gCurrentFile = QString{};
 
-CppParser::CppParser(const ProjectRef & pro)
+CppParser::CppParser(const MGProjectPtr& pro)
   : mProject(pro)
 {
 
@@ -37,29 +30,20 @@ void CppParser::addIncludeDirectory(const QString & str)
 
 struct FileVisitor
 {
-  ProjectRef project;
-  ModuleRef curModule;
-  NodeRef curNode;
-
-  void fill(Function& f, const cxx::Function& cxxfunc)
-  {
-    f.returnType = QString::fromStdString(cxxfunc.return_type.toString());
-
-    for (auto p : cxxfunc.parameters)
-    {
-      f.parameters.push_back(QString::fromStdString(p->type.toString()));
-    }
-  }
+  MGProjectPtr project;
+  MGModulePtr curModule;
+  std::shared_ptr<cxx::Entity> curNode;
 
   void visit(const cxx::NamespaceDeclaration& decl)
   {
-    Namespace& ns = dynamic_cast<Namespace&>(*curNode);
-
-    auto inner = ns.getNamespace(QString::fromStdString(decl.namespace_->name));
+    if (!curNode)
+    {
+      curModule->entities.push_back(decl.namespace_);
+    }
 
     {
-      RAIINodeGuard guard{ curNode };
-      curNode = inner;
+      RAIICxxElemGuard guard{ curNode };
+      curNode = decl.namespace_;
 
       visitAll(decl.declarations);
     }
@@ -70,108 +54,36 @@ struct FileVisitor
     if (decl.isForwardDeclaration())
       return;
 
-    visit(*decl.class_);
-  }
-
-  void visit(const cxx::Class& cxxclass)
-  {
-    NodeRef inner;
-
-    if (curNode->is<Class>())
+    if (!curNode)
     {
-      Class& cla = static_cast<Class&>(*curNode);
-      inner = cla.get<Class>(QString::fromStdString(cxxclass.name));
-    }
-    else if (curNode->is<Namespace>())
-    {
-      Namespace& ns = static_cast<Namespace&>(*curNode);
-      inner = ns.get<Class>(QString::fromStdString(cxxclass.name));
-    }
-
-    if (inner)
-    {
-      RAIINodeGuard guard{ curNode };
-      curNode = inner;
-
-      for (const auto m : cxxclass.members)
-        visitNode(*m);
+      curModule->entities.push_back(decl.class_);
     }
   }
 
   void visit(const cxx::EnumDeclaration& decl)
   {
-    visit(*decl.enum_);
-  }
-
-  void visit(const cxx::Enum& cxxenum)
-  {
-    EnumRef enm;
-
-    if (curNode->is<Class>())
+    if (!curNode)
     {
-      Class& cla = static_cast<Class&>(*curNode);
-      enm = cla.get<Enum>(QString::fromStdString(cxxenum.name));
-    }
-    else if (curNode->is<Namespace>())
-    {
-      Namespace& ns = static_cast<Namespace&>(*curNode);
-      enm = ns.get<Enum>(QString::fromStdString(cxxenum.name));
-    }
-
-    for (auto val : cxxenum.values)
-    {
-      enm->enumerators.append(std::make_shared<Enumerator>(QString::fromStdString(val->name)));
+      curModule->entities.push_back(decl.enum_);
     }
   }
 
   void visit(const cxx::FunctionDeclaration& decl)
   {
-    if (decl.function->parent()->is<cxx::Class>())
-      return;
-
-    visit(*decl.function);
-  }
-
-  void visit(const cxx::Function& cxxfunc)
-  {
-    FunctionRef func = nullptr;
-
-    if (curNode->is<Class>())
+    if (!curNode)
     {
-      if (cxxfunc.getAccessSpecifier() != cxx::AccessSpecifier::PUBLIC)
-        return;
-
-      Class& cla = static_cast<Class&>(*curNode);
-
-      func = cla.add<Function>(QString::fromStdString(cxxfunc.name));
-      func->isConst = cxxfunc.isConst();
-      func->isStatic = cxxfunc.isStatic();
-      func->isConstructor = cxxfunc.isConstructor();
-      func->isDestructor = cxxfunc.isDestructor();
+      curModule->entities.push_back(decl.function);
     }
-    else if (curNode->is<Namespace>())
-    {
-      Namespace& ns = static_cast<Namespace&>(*curNode);
-      func = ns.add<Function>(QString::fromStdString(cxxfunc.name));
-    }
-
-    fill(*func, cxxfunc);
   }
 
   void visit(const cxx::File& file)
   {
     QFileInfo fileinfo{ QString::fromStdString(file.path()) };
 
-    auto project_file = std::make_shared<File>(fileinfo.baseName());
-    RAIINodeGuard guard{ curNode };
-    curNode = project_file;
-
     for (auto n : file.nodes)
     {
       visitNode(*n);
     }
-
-    curModule->elements.append(project_file);
   }
 
   void visitNode(const cxx::Node& n)
@@ -192,18 +104,6 @@ struct FileVisitor
     {
       visit(static_cast<const cxx::FunctionDeclaration&>(n));
     }
-    else if (n.is<cxx::Function>())
-    {
-      visit(static_cast<const cxx::Function&>(n));
-    }
-    else if (n.is<cxx::Class>())
-    {
-      visit(static_cast<const cxx::Class&>(n));
-    }
-    else if (n.is<cxx::Enum>())
-    {
-      visit(static_cast<const cxx::Enum&>(n));
-    }
   }
 
   template<typename T>
@@ -216,7 +116,7 @@ struct FileVisitor
   }
 };
 
-void CppParser::parse(const QString & file, const ModuleRef & mo)
+void CppParser::parse(const QString & file, const MGModulePtr & mo)
 {
   mActiveModule = mo;
 

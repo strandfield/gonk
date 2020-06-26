@@ -4,11 +4,10 @@
 
 #include "liquid-generator.h"
 
-#include "gen/cppfile.h"
-#include "gen/format.h"
-
-#include "project/statement.h"
-#include "project/node-visitor.h"
+#include <cxx/class.h>
+#include <cxx/enum.h>
+#include <cxx/function.h>
+#include <cxx/namespace.h>
 
 #include <json-toolkit/stringify.h>
 
@@ -23,87 +22,99 @@
 
 #include <stdexcept>
 
+class NodeVisitor
+{
+public:
+  virtual void visit(cxx::Class& c) = 0;
+  virtual void visit(cxx::Enum& e) = 0;
+  virtual void visit(cxx::EnumValue& e) = 0;
+  virtual void visit(cxx::Function& f) = 0;
+  virtual void visit(cxx::Namespace& n) = 0;
+
+
+  void dispatch(cxx::Entity& e)
+  {
+    if (e.is<cxx::Class>())
+      visit(static_cast<cxx::Class&>(e));
+    else if (e.is<cxx::Function>())
+      visit(static_cast<cxx::Function&>(e));
+    else if (e.is<cxx::Namespace>())
+      visit(static_cast<cxx::Namespace&>(e));
+    if (e.is<cxx::Enum>())
+      visit(static_cast<cxx::Enum&>(e));
+    if (e.is<cxx::EnumValue>())
+      visit(static_cast<cxx::EnumValue&>(e));
+  }
+
+};
+
 class RecursiveTypeCollector : public NodeVisitor
 {
 public:
 
-  ProjectRef project;
+  MGProjectPtr project;
   json::Array result;
 
-  RecursiveTypeCollector(ProjectRef p)
+  RecursiveTypeCollector(MGProjectPtr p)
     : project(p)
   {
 
   }
 
-  json::Object serialize(const Type& t)
+  json::Object serialize(const MGType& t)
   {
     json::Object obj;
-    obj["name"] = t.name.toStdString();
-    obj["id"] = t.id.toStdString();
-    obj["enum"] = t.is_enum;
-    obj["class"] = t.is_class;
+    obj["name"] = t.name;
+    obj["id"] = t.id;
+    obj["enum"] = t.category == MGType::EnumType;
+    obj["class"] = t.category == MGType::ClassType;
     return obj;
   }
 
-  json::Array operator()(Module& m)
+  json::Array operator()(MGModule& m)
   {
-    for (auto e : m.elements)
-      e->accept(*this);
+    for (auto e : m.entities)
+      dispatch(*e);
     return result;
   }
 
-  void visit(Class& c) override
+  void visit(cxx::Class& c) override
   {
-    for (auto e : c.elements)
-      e->accept(*this);
+    for (auto e : c.members)
+      dispatch(*e);
 
-    if (c.type_id != -1)
+    auto it = project->entity_type_map.find(c.shared_from_this());
+
+    if (it != project->entity_type_map.end())
     {
-      auto t = project->getType(c.type_id);
-      result.push(serialize(*t));
+      result.push(serialize(*(it->second)));
     }
   }
 
-  void visit(Module& m) override
+  void visit(cxx::Enum& e) override
   {
+    auto it = project->entity_type_map.find(e.shared_from_this());
 
-  }
-
-  void visit(Enum& e) override
-  {
-    if (e.type_id != -1)
+    if (it != project->entity_type_map.end())
     {
-      auto t = project->getType(e.type_id);
-      result.push(serialize(*t));
+      result.push(serialize(*(it->second)));
     }
   }
 
-  void visit(Enumerator& e) override
+  void visit(cxx::EnumValue& e) override
   {
 
   }
 
-  void visit(File& f) override
-  {
-    for (auto e : f.elements)
-      e->accept(*this);
-  }
-
-  void visit(Function& f) override
+  void visit(cxx::Function& f) override
   {
 
   }
 
-  void visit(Namespace& n) override
+  void visit(cxx::Namespace& n) override
   {
-    for (auto e : n.elements)
-      e->accept(*this);
-  }
-
-  void visit(Statement& s)
-  {
-
+    for (auto e : n.entities)
+      dispatch(*e);
   }
 };
 
@@ -112,24 +123,32 @@ class ProjectSerializer : public NodeVisitor
 {
 public:
 
-  ProjectRef project;
+  MGProjectPtr project;
   SerializationMaps& map;
   json::Json result;
 
-  ProjectSerializer(ProjectRef pro, SerializationMaps& m)
+  ProjectSerializer(MGProjectPtr pro, SerializationMaps& m)
     : project(pro), map(m)
   {
 
   }
 
-  json::Json serialize(Node& n)
+  json::Json serialize(cxx::Entity& n)
   {
     ProjectSerializer s{ project, map };
-    n.accept(s);
+    dispatch(n);
     return s.result;
   }
 
-  json::Array serialize(const QList<NodeRef>& nodes)
+  json::Json serialize(MGModule& n)
+  {
+    ProjectSerializer s{ project, map };
+    visit(n);
+    return s.result;
+  }
+
+
+  json::Array serialize(const std::vector<std::shared_ptr<cxx::Entity>>& nodes)
   {
     json::Array ret;
 
@@ -159,38 +178,36 @@ public:
     return result;
   }
 
-  void visit(Class& c) override
+  void visit(cxx::Class& c) override
   {
     map.bind(c.shared_from_this(), result);
 
     result["type"] = "class";
-    result["name"] = c.name.toStdString();
+    result["name"] = c.name;
     
-    if (!c.base.isEmpty())
-      result["base"] = c.base.toStdString();
+    if (!c.bases.empty())
+      result["base"] = c.bases.front().base->name;
 
-    if (c.isFinal)
+    if (c.is_final)
       result["final"] = true;
 
-    if (!c.elements.isEmpty())
-      result["members"] = serialize(c.elements);
+    result["members"] = serialize(c.members);
   }
 
-  void visit(Module& m) override
+  void visit(MGModule& m)
   {
     map.bind(m.shared_from_this(), result);
 
     result["type"] = "module";
-    result["name"] = m.name.toStdString();
+    result["name"] = m.name;
 
-    if (!m.elements.isEmpty())
+    if (!m.entities.empty())
     {
       json::Array elements;
 
-      for (auto f : m.elements)
+      for (auto e : m.entities)
       {
-        for (auto e : static_cast<File&>(*f).elements)
-          elements.push(serialize(*e));
+        elements.push(serialize(*e));
       }
 
       result["elements"] = elements;
@@ -200,98 +217,89 @@ public:
     result["types"] = collector(m);
   }
 
-  void visit(Enum& e) override
+  void visit(cxx::Enum& e) override
   {
     map.bind(e.shared_from_this(), result);
 
     result["type"] = "enum";
-    result["name"] = e.name.toStdString();
+    result["name"] = e.name;
 
     json::Array values;
 
-    for (auto ev : e.enumerators)
+    for (auto ev : e.values)
       values.push(serialize(*ev));
 
     result["values"] = values;
   }
 
-  void visit(Enumerator& e) override
+  void visit(cxx::EnumValue& e) override
   {
     map.bind(e.shared_from_this(), result);
 
     result["type"] = "enumerator";
-    result["name"] = e.name.toStdString();
+    result["name"] = e.name;
   }
 
-  void visit(File& f) override
-  {
-
-  }
-
-  void visit(Function& f) override
+  void visit(cxx::Function& f) override
   {
     map.bind(f.shared_from_this(), result);
 
     result["type"] = "function";
-    result["name"] = f.name.toStdString();
+    result["name"] = f.name;
     
-    if (!f.isConstructor && !f.isDestructor)
-      result["return_type"] = f.returnType.toStdString();
+    if (!f.isConstructor() && !f.isDestructor())
+      result["return_type"] = f.return_type.toString();
 
-    if (f.isConstructor)
+    if (f.isConstructor())
       result["constructor"] = true;
-    else if (f.isDestructor)
+    else if (f.isDestructor())
       result["destructor"] = true;
-    else if (f.isOperator())
+    else if (f.name.find("operator", 0) == 0)
       result["operator"] = true;
 
     json::Array parameters;
     for (auto p : f.parameters)
     {
-      parameters.push(p.toStdString());
+      parameters.push(p->type.toString());
     }
     result["parameters"] = parameters;
 
-    if (f.isConst)
+    if (f.isConst())
       result["const"] = true;
 
-    if (f.isExplicit)
+    if (f.isExplicit())
       result["explicit"] = true;
 
-    if (f.isStatic)
+    if (f.isStatic())
       result["static"] = true;
 
-    if (f.bindingMethod != Function::BindingMethod::AutoBinding)
-    {
-      result["binding"] = Function::serialize(f.bindingMethod).toStdString();
+    //if (f.bindingMethod != Function::BindingMethod::AutoBinding)
+    //{
+    //  result["binding"] = Function::serialize(f.bindingMethod).toStdString();
 
-      if (f.bindingMethod == Function::GenWrapperBinding)
-        result["genwrapper"] = true;
-    }
+    //  if (f.bindingMethod == Function::GenWrapperBinding)
+    //    result["genwrapper"] = true;
+    //}
 
-    if (!f.implementation.isEmpty())
-      result["implementation"] = f.implementation.toStdString();
+    //if (!f.implementation.isEmpty())
+    //  result["implementation"] = f.implementation.toStdString();
   }
 
-  void visit(Namespace& n) override
+  void visit(cxx::Namespace& n) override
   {
     map.bind(n.shared_from_this(), result);
 
     result["type"] = "namespace";
-    result["name"] = n.name.toStdString();
+    result["name"] = n.name;
 
-    if (!n.elements.isEmpty())
-      result["elements"] = serialize(n.elements);
+    if (!n.entities.empty())
+      result["elements"] = serialize(n.entities);
   }
 
-  void visit(Statement& s)
-  {
-
-  }
 };
 
-LiquidGenerator::TypeInfo::TypeInfo(const Type & t)
-  : Type(t)
+LiquidGenerator::TypeInfo::TypeInfo(const MGType & t)
+  : MGType(t)
 {
 
 }
@@ -303,7 +311,7 @@ LiquidGenerator::LiquidGenerator(const QString & dir)
 
 }
 
-void LiquidGenerator::generate(const ProjectRef & p)
+void LiquidGenerator::generate(const MGProjectPtr & p)
 {
   QElapsedTimer timer;
   timer.start();
@@ -603,66 +611,60 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   }
   else if (name == "qualified_name")
   {
-    NodeRef node = m_serialization_map.get(object);
-    return node->qualifiedName().toStdString();
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    return qualifiedName(*node);
   }
   else if (name == "typeid")
   {
-    NodeRef node = m_serialization_map.get(object);
-    if (node->is<Class>())
-    {
-      auto t = project()->getType(node->as<Class>().type_id);
-      return t->id.toStdString();
-    }
-    else if (node->is<Enum>())
-    {
-      auto t = project()->getType(node->as<Enum>().type_id);
-      return t->id.toStdString();
-    }
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    auto it = project()->entity_type_map.find(node);
+
+    if (it != project()->entity_type_map.end())
+      return it->second->id;
     else
-    {
       return "";
-    }
   }
   else if (name == "get_symbol")
   {
-    NodeRef node = mProject->getSymbol(QString::fromStdString(args.at(0).toString()), QString::fromStdString(args.at(1).toString()));
+    MGModulePtr m = mProject->getModule(args.at(0).toString());
+    std::shared_ptr<cxx::Entity> node = m->getSymbol(args.at(1).toString());
     return m_serialization_map.get(node);
   }
   else if (name == "get_module")
   {
-    ModuleRef m = mProject->get<Module>(QString::fromStdString(args.at(0).toString()));
+    MGModulePtr m = mProject->getModule(args.at(0).toString());
     return m_serialization_map.get(m);
   }
   else if (name == "parent")
   {
-    NodeRef node = m_serialization_map.get(object);
-    node = node->parent.lock();
-    return node && ! node->is<File>() ? m_serialization_map.get(node) : json::null;
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    node = node->weak_parent.lock();
+    return node ? m_serialization_map.get(node) : json::null;
   }
   else if (name == "signature")
   {
-    NodeRef node = m_serialization_map.get(object);
-    FunctionRef fn = std::static_pointer_cast<Function>(node);
-    return fn->signature().toStdString();
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    auto fn = std::static_pointer_cast<cxx::Function>(node);
+    return ::signature(*fn);
   }
   else if (name == "funaddr")
   {
-    NodeRef node = m_serialization_map.get(object);
-    FunctionRef fn = std::static_pointer_cast<Function>(node);
-    return ("&" + (fn->implementation.isEmpty() ? (fn->qualifiedName()) : fn->implementation)).toStdString();
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    auto fn = std::static_pointer_cast<cxx::Function>(node);
+    //return ("&" + (fn->implementation.isEmpty() ? (::qualifiedName(*fn) : fn->implementation)).toStdString();
+    return ::qualifiedName(*fn);
   }
   else if (name == "operator_name")
   {
-    NodeRef node = m_serialization_map.get(object);
-    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    auto fn = std::static_pointer_cast<cxx::Function>(node);
     return operatorName(*fn).toStdString();
   }
   else if (name == "operator_need_return_type")
   {
-    NodeRef node = m_serialization_map.get(object);
-    FunctionRef fn = std::static_pointer_cast<Function>(node);
-    OperatorSymbol opsym = getOperatorSymbol(fn->name);
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    auto fn = std::static_pointer_cast<cxx::Function>(node);
+    OperatorSymbol opsym = getOperatorSymbol(QString::fromStdString(fn->name));
 
     static std::set<OperatorSymbol> assignment_ops = {
       Greater,
@@ -693,14 +695,14 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   }
   else if (name == "mangled_name")
   {
-    NodeRef node = m_serialization_map.get(object);
-    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    auto fn = std::static_pointer_cast<cxx::Function>(node);
     return mangledName(*fn).toStdString();
   }
   else if (name == "check_params")
   {
-    NodeRef node = m_serialization_map.get(object);
-    FunctionRef fn = std::static_pointer_cast<Function>(node);
+    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
+    auto fn = std::static_pointer_cast<cxx::Function>(node);
     return isExposable(*fn);
   }
   else
@@ -709,23 +711,23 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   }
 }
 
-QString LiquidGenerator::operatorName(const Function& fn) const
+QString LiquidGenerator::operatorName(const cxx::Function& fn) const
 {
-  OperatorSymbol op = getOperatorSymbol(fn.name);
+  OperatorSymbol op = getOperatorSymbol(QString::fromStdString(fn.name));
 
-  QString result = fn.parent.lock()->is<Class>() ? "memop_" : "op_";
+  QString result = fn.weak_parent.lock()->is<cxx::Class>() ? "memop_" : "op_";
 
-  const bool is_member = fn.parent.lock()->is<Class>();
+  const bool is_member = fn.weak_parent.lock()->is<cxx::Class>();
   const int implicit_param_count = is_member ? 1 : 0;
 
   if (op == Plus)
-    op = fn.parameters.count() + implicit_param_count == 1 ? UnaryPlus : Add;
+    op = fn.parameters.size() + implicit_param_count == 1 ? UnaryPlus : Add;
   else if (op == Minus)
-    op = fn.parameters.count() + implicit_param_count == 1 ? UnaryMinus : Sub;
+    op = fn.parameters.size() + implicit_param_count == 1 ? UnaryMinus : Sub;
   else if (op == PlusPlus)
-    op = fn.parameters.count() + implicit_param_count == 1 ? PreIncrement : PostIncrement;
+    op = fn.parameters.size() + implicit_param_count == 1 ? PreIncrement : PostIncrement;
   else if (op == MinusMinus)
-    op = fn.parameters.count() + implicit_param_count == 1 ? PreDecrement : PostDecrement;
+    op = fn.parameters.size() + implicit_param_count == 1 ? PreDecrement : PostDecrement;
 
   if (op == FunctionCall)
   {
@@ -734,7 +736,7 @@ QString LiquidGenerator::operatorName(const Function& fn) const
   else if (op == Subscript)
   {
     // operator[] cannot be non-member
-    if (fn.isConst)
+    if (fn.isConst())
       return result + "const_subscript";
     else
       return result + "subscript";
@@ -745,7 +747,7 @@ QString LiquidGenerator::operatorName(const Function& fn) const
     {
       if (!is_member)
       {
-        if (fn.returnType == fn.parameters.at(0))
+        if (fn.return_type == fn.parameters.at(0)->type)
         {
           result += (op == LeftShift ? "put_to" : "read_from");
           return result;
@@ -763,18 +765,20 @@ QString LiquidGenerator::operatorName(const Function& fn) const
   }
 }
 
-QString LiquidGenerator::mangledName(const Function& fun)
+QString LiquidGenerator::mangledName(const cxx::Function& fun)
 {
-  QString ret = fun.name;
+  QString ret = QString::fromStdString(fun.name);
 
-  if (fun.parent.lock() != nullptr && fun.parent.lock()->is<Class>())
-    ret = fun.parent.lock()->name + "_" + ret;
+  if (fun.weak_parent.lock() != nullptr && fun.weak_parent.lock()->is<cxx::Class>())
+    ret = QString::fromStdString(fun.weak_parent.lock()->name) + "_" + ret;
 
-  if (fun.isStatic)
+  if (fun.isStatic())
     ret += "_static";
 
-  for (QString p : fun.parameters)
+  for (auto funparam : fun.parameters)
   {
+    QString p = QString::fromStdString(funparam->type.toString());
+
     p.remove("const");
     p.remove("&");
     p.remove("<");
@@ -789,21 +793,24 @@ QString LiquidGenerator::mangledName(const Function& fun)
   return ret;
 }
 
-QString LiquidGenerator::computeWrapperName(const Function& fun)
+QString LiquidGenerator::computeWrapperName(const cxx::Function& fun)
 {
-  return fun.implementation.isEmpty() ? mangledName(fun) : fun.implementation;
+  //return fun.implementation.isEmpty() ? mangledName(fun) : fun.implementation;
+  return mangledName(fun);
 }
 
-bool LiquidGenerator::isExposable(const Function& fun)
+bool LiquidGenerator::isExposable(const cxx::Function& fun)
 {
   try
   {
-    if (!fun.returnType.isEmpty() && !isExposed(fun.returnType))
+    if (!isExposed(QString::fromStdString(fun.return_type.toString())))
       return false;
       
 
-    for (const QString p : fun.parameters)
+    for (auto funparam : fun.parameters)
     {
+      const QString p = QString::fromStdString(funparam->type.toString());
+
       if (!isExposed(p))
         return false;
     }
@@ -848,7 +855,7 @@ bool LiquidGenerator::isExposed(QString t)
   if (t.isEmpty())
     return false;
 
-  auto it = mTypeInfos.find(t);
+  auto it = mTypeInfos.find(t.toStdString());
   if (it == mTypeInfos.end())
   {
     unsupported_types.insert(t);
@@ -868,13 +875,7 @@ void LiquidGenerator::buildTypeInfo()
 {
   mTypeInfos.clear();
 
-  for (const auto & t : mProject->types.fundamentals)
-    mTypeInfos[t->name] = *t;
-
-  for (const auto & t : mProject->types.enums)
-    mTypeInfos[t->name] = *t;
-
-  for (const auto & t : mProject->types.classes)
+  for (const auto & t : mProject->types)
     mTypeInfos[t->name] = *t;
 }
 
@@ -883,11 +884,11 @@ LiquidGenerator::TypeInfo & LiquidGenerator::typeinfo(const QString & t)
   if (t.isEmpty())
     throw UnsupportedType{ t };
 
-  auto it = mTypeInfos.find(t);
+  auto it = mTypeInfos.find(t.toStdString());
   if (it == mTypeInfos.end())
   {
     unsupported_types.insert(t);
     throw UnsupportedType{ t };
   }
-  return it.value();
+  return it->second;
 }

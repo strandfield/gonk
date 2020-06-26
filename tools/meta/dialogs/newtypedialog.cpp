@@ -20,13 +20,11 @@ NewTypeDialog::NewTypeDialog(QWidget *parent)
 
   mNameLineEdit = new QLineEdit();
   mIdLineEdit = new QLineEdit();
-  mHeaderLineEdit = new QLineEdit();
 
   auto *form = new QFormLayout();
   form->addRow("Category:", mTypeCategoryComboBox);
   form->addRow("C++ type:", mNameLineEdit);
   form->addRow("Id:", mIdLineEdit);
-  form->addRow("Header:", mHeaderLineEdit);
 
   auto *okButton = new QPushButton("OK");
   connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
@@ -36,18 +34,17 @@ NewTypeDialog::NewTypeDialog(QWidget *parent)
   layout->addWidget(okButton, 0, Qt::AlignCenter);
 }
 
-Type::Category NewTypeDialog::getCategory() const
+MGType::Category NewTypeDialog::getCategory() const
 {
   if (mTypeCategoryComboBox->currentIndex() == 0)
-    return Type::FundamentalType;
+    return MGType::FundamentalType;
   else if (mTypeCategoryComboBox->currentIndex() == 1)
-    return Type::EnumType;
-  return Type::ClassType;
+    return MGType::EnumType;
+  return MGType::ClassType;
 }
 
-std::shared_ptr<Type> NewTypeDialog::getType() const
+std::shared_ptr<MGType> NewTypeDialog::getType() const
 {
-  auto ret =std::make_shared<Type>( mNameLineEdit->text(), mIdLineEdit->text());
-  ret->header = mHeaderLineEdit->text();
+  auto ret =std::make_shared<MGType>( mNameLineEdit->text().toStdString(), mIdLineEdit->text().toStdString());
   return ret;
 }

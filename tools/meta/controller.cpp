@@ -81,20 +81,20 @@ QSqlDatabase& Controller::database() const
 
 void Controller::loadProject()
 {
-  ProjectLoader loader{ database() };
+  MGProjectLoader loader{ database() };
   loader.load();
   m_project = loader.project;
   m_project_controller.reset(new ProjectController(database(), m_project));
 }
 
-ProjectRef Controller::project() const
+MGProjectPtr Controller::project() const
 {
   return m_project;
 }
 
-void Controller::importSymbols(ProjectRef other)
+void Controller::importSymbols(MGProjectPtr other)
 {
-  ProjectMerger merger{ database(), m_project, other };
+  MGProjectMerger merger{ database(), m_project, other };
   merger.merge();
 }
 

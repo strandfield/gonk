@@ -4,190 +4,241 @@
 
 #include "project.h"
 
-#include "project/class.h"
-#include "project/enum.h"
-#include "project/file.h"
-#include "project/namespace.h"
-
-#include <QFile>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QStack>
+#include <cxx/function.h>
 
 #include <QDebug>
 
 #include <algorithm>
 #include <stdexcept>
 
-template<typename T>
-void remove_unchekced_recursively(QList<T> & nodes)
+MGType::MGType(std::string n, std::string id)
+  : name(std::move(n)), id(std::move(id))
 {
-  for (int i(0); i < nodes.size(); ++i)
-  {
-    if (nodes.at(i)->checkState == Qt::Unchecked)
+
+}
+
+static std::vector<std::string> split_str(std::string s)
+{
+  std::vector<std::string> result;
+  size_t pos = 0;
+  while ((pos = s.find("::")) != std::string::npos) {
+    result.push_back(s.substr(0, pos));
+    s.erase(0, pos + 1);
+  }
+  result.push_back(s);
+  return result;
+}
+
+
+
+std::shared_ptr<cxx::Entity> MGModule::getSymbol(const std::string& name) const
+{
+  std::vector<std::string> names = split_str(name);
+
+  auto elem = [&]() -> std::shared_ptr<cxx::Entity> {
+    for (auto e : this->entities)
     {
-      nodes.removeAt(i);
-      --i;
-    }
-    else
-    {
-      remove_unchekced_recursively(nodes.at(i));
-    }
-  }
-}
-
-static void remove_unchekced_recursively(const NodeRef & node)
-{
-  if (node->is<Namespace>())
-  {
-    Namespace & ns = node->as<Namespace>();
-    remove_unchekced_recursively(ns.elements);
-  }
-  else if (node->is<Module>())
-  {
-    Module &m = node->as<Module>();
-    remove_unchekced_recursively(m.elements);
-  }
-  else if (node->is<Class>())
-  {
-    Class &cla = node->as<Class>();
-    remove_unchekced_recursively(cla.elements);
-  }
-  else if (node->is<Enum>())
-  {
-    Enum &enm = node->as<Enum>();
-    remove_unchekced_recursively(enm.enumerators);
-  }
-}
-
-void Project::removeUncheckedSymbols()
-{
-  remove_unchekced_recursively(this->modules);
-}
-
-bool Project::hasEnumType(const QString & name) const
-{
-  for (const auto & t : types.enums)
-  {
-    if (t->name == name)
-      return true;
-  }
-
-  return false;
-}
-
-bool Project::hasClassType(const QString & name) const
-{
-  for (const auto & t : types.classes)
-  {
-    if (t->name == name)
-      return true;
-  }
-
-  return false;
-}
-
-Type & Project::getType(const QString & name)
-{
-  for (auto & t : types.fundamentals)
-  {
-    if (t->name == name)
-      return *t;
-  }
-
-  for (auto & t : types.classes)
-  {
-    if (t->name == name)
-      return *t;
-  }
-
-  for (auto & t : types.enums)
-  {
-    if (t->name == name)
-      return *t;
-  }
-
-  throw std::runtime_error{ "Project::getType() : Unsupported type" };
-}
-
-std::shared_ptr<Type> Project::getType(int id) const
-{
-  auto it = type_map.find(id);  
-  return it != type_map.end() ? it->second : nullptr;
-}
-
-NodeRef Project::getSymbol(const QString& module_name, const QString& name) const
-{
-  auto m = [&]() -> ModuleRef {
-    for (const auto& e : modules)
-    {
-      if (e->name == module_name)
-        return  e;
-    }
-    return nullptr;
-  }();
-
-  QStringList names = name.split("::", QString::SkipEmptyParts);
-
-  NodeRef elem = [&]() -> NodeRef {
-    for (auto f : m->elements)
-    {
-      for (auto e : static_cast<File&>(*f).elements)
-      {
-        if (e->name == names.first())
-          return e;
-      }
+      if (e->name == names.front())
+        return e;
     }
 
     return nullptr;
   }();
 
-  names.pop_front();
+  names.erase(names.begin());
 
   while (!names.empty())
   {
-    elem = [&]() -> NodeRef {
+    elem = [&]() -> std::shared_ptr<cxx::Entity> {
       for (size_t i(0); i < elem->childCount(); ++i)
       {
-        if (elem->childAt(i)->name == names.front())
-          return elem->childAt(i);
+        if (std::static_pointer_cast<cxx::Entity>(elem->childAt(i))->name == names.front())
+          return std::static_pointer_cast<cxx::Entity>(elem->childAt(i));
       }
 
       return nullptr;
     }();
 
-    names.pop_front();
-
+    names.erase(names.begin());
   }
 
   return elem;
 }
 
-void Project::sort(QList<Type> & types)
+MGModulePtr MGProject::getModule(const std::string& name) const
 {
-  struct LessThan
-  {
-    bool operator()(const Type & a, const Type & b)
-    {
-      return QString::compare(a.name, b.name, Qt::CaseInsensitive) < 0;
-    }
-  };
+  auto it = std::find_if(modules.begin(), modules.end(), [&name](const MGModulePtr& m) {
+    return m->name == name;
+    });
 
-  qSort(types.begin(), types.end(), LessThan{});
+  return it != modules.end() ? *it : nullptr;
 }
 
-int Project::fileCount() const
+bool MGProject::hasType(const std::string& name) const
 {
-  int n = 0;
+  return std::any_of(types.begin(), types.end(), [&name](const MGTypePtr& t) -> bool {
+    return t->name == name;
+    });
+}
 
-  for (const auto & m : modules)
+MGTypePtr MGProject::getTypeById(const std::string& id) const
+{
+  auto it = std::find_if(types.begin(), types.end(), [&id](const MGTypePtr& t) {
+    return t->id == id;
+    });
+
+  return it != types.end() ? *it : nullptr;
+}
+
+bool MGProject::inDB(std::shared_ptr<cxx::Entity> e) const
+{
+  auto it = this->database_ids.find(e.get());
+  return it != this->database_ids.end() && it->second.global_id != -1;
+}
+
+bool eq(const std::shared_ptr<cxx::Entity>& a, const std::shared_ptr<cxx::Entity>& b)
+{
+  if (a->node_kind() != b->node_kind())
+    return false;
+
+  if (a == b)
+    return true;
+
+  if (a->is<cxx::Function>())
   {
-    for (const auto & e : m->elements)
+    if (a->name != b->name)
+      return false;
+
+    const cxx::Function& af = static_cast<const cxx::Function&>(*a);
+    const cxx::Function& bf = static_cast<const cxx::Function&>(*b);
+
+    if (af.parameters.size() != bf.parameters.size())
+      return false;
+
+    for (size_t i(0); i < af.parameters.size(); ++i)
     {
-      if (e->is<File>())
-        n++;
+      if (af.parameters.at(i)->type.toString() != bf.parameters.at(i)->type.toString())
+        return false;
     }
+
+    if (af.return_type.toString() != bf.return_type.toString())
+      return false;
+
+    return true;
+
+  }
+  else
+  {
+    return a->name == b->name;
+  }
+}
+
+std::string qualifiedName(const cxx::Entity& e)
+{
+  std::string result = e.name;
+
+  auto p = e.weak_parent.lock();
+
+  while (p != nullptr)
+  {
+    result = p->name + "::" + result;
+    p = p->weak_parent.lock();
   }
 
-  return n;
+  return result;
+}
+
+std::vector<std::shared_ptr<cxx::Entity>> children(const cxx::Entity& e)
+{
+  std::vector<std::shared_ptr<cxx::Entity>> ret;
+
+  for (size_t i(0); i < e.childCount(); ++i)
+  {
+    auto child = e.childAt(i);
+
+    if (child->isEntity())
+      ret.push_back(std::static_pointer_cast<cxx::Entity>(child));
+  }
+
+  return ret;
+}
+
+std::string signature(const cxx::Function& f)
+{
+  if (f.isConstructor())
+  {
+    std::string result;
+    if (f.isExplicit())
+      result += "explicit ";
+    result += f.name;
+    result += "(";
+    {
+      QStringList params;
+
+      for (auto p : f.parameters)
+      {
+        params.append(QString::fromStdString(p->type.toString()));
+
+        if (!p->name.empty())
+          params += " " + QString::fromStdString(p->name);
+      }
+
+      result += params.join(", ").toStdString();
+    }
+    result += ")";
+
+    if (f.specifiers & cxx::FunctionSpecifier::Delete)
+      result += " = delete";
+
+    result += ";";
+
+    return result;
+  }
+  else if (f.isDestructor())
+  {
+    std::string result;
+
+    result += f.name;
+    result += "()";
+
+    if (f.specifiers & cxx::FunctionSpecifier::Delete)
+      result += " = delete";
+
+    result += ";";
+    return result;
+  }
+
+  std::string result;
+  if (f.isExplicit())
+    result += "explicit ";
+  if (f.isStatic())
+    result += "static ";
+
+  result += f.return_type.toString();
+  result += " " + f.name;
+  result += "(";
+  {
+    QStringList params;
+
+    for (auto p : f.parameters)
+    {
+      params.append(QString::fromStdString(p->type.toString()));
+
+      if (!p->name.empty())
+        params += " " + QString::fromStdString(p->name);
+    }
+
+    result += params.join(", ").toStdString();
+  }
+  result += ")";
+
+  if (f.isConst())
+    result += " const";
+
+  if (f.specifiers & cxx::FunctionSpecifier::Delete)
+    result += " = delete";
+
+  result += ";";
+
+  return result;
 }

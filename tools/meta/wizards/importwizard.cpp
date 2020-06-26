@@ -10,12 +10,12 @@
 
 #include <QDebug>
 
-ImportWizard::ImportWizard(ProjectRef pro)
+ImportWizard::ImportWizard(MGProjectPtr pro)
   : mProject(pro)
 {
   setWindowTitle("Import C++ symbols");
 
-  mFields.importedSymbols = std::make_shared<Project>();
+  mFields.importedSymbols = std::make_shared<MGProject>();
 
   this->pages.startProject = new StartImportPage();
   this->pages.selectInputs = new SelectInputsPage();

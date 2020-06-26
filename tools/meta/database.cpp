@@ -6,6 +6,9 @@
 
 #include "controller.h"
 
+#include <cxx/class.h>
+#include <cxx/function.h>
+
 #include <QSqlError>
 
 #include <QFile>
@@ -72,4 +75,58 @@ bool Database::run(const QString& filepath)
   }
 
   return true;
+}
+
+QString Database::base(const cxx::Class& c)
+{
+  if (c.bases.empty())
+    return QString();
+
+  // TODO: should be the qualified name I believe
+  return QString::fromStdString(c.bases.front().base->name);
+}
+
+QString Database::parameters(const cxx::Function& f)
+{
+  QStringList params;
+
+  for (auto p : f.parameters)
+  {
+    QString p_str = QString::fromStdString(p->type.toString());
+
+    if (!p->name.empty())
+      p_str += "@" + QString::fromStdString(p->name);
+
+    if(p->default_value != cxx::Expression())
+      p_str += "#" + QString::fromStdString(p->default_value.toString());
+
+    params.push_back(p_str);
+  }
+
+  return params.join(";");
+}
+
+QString Database::specifiers(const cxx::Function& f)
+{
+  QStringList specs;
+
+  if (f.isConstructor())
+    specs.push_back("ctor");
+  else if (f.isDestructor())
+    specs.push_back("dtor");
+  
+  if (f.isConst())
+    specs.push_back("const");
+  if (f.isConstexpr())
+    specs.push_back("constexpr");
+  if (f.isExplicit())
+    specs.push_back("explicit");
+  if (f.isStatic())
+    specs.push_back("static");
+  if (f.isInline())
+    specs.push_back("inline");
+  if (f.isVirtual())
+    specs.push_back("virtual");
+
+  return specs.join(",");
 }

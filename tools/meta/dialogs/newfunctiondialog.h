@@ -7,7 +7,7 @@
 
 #include <QDialog>
 
-#include "project/function.h"
+#include <cxx/function.h>
 
 class QComboBox;
 class QLineEdit;
@@ -17,10 +17,10 @@ class NewFunctionDialog : public QDialog
   Q_OBJECT
 public:
   NewFunctionDialog(QWidget *parent = nullptr);
-  NewFunctionDialog(FunctionRef fun, QWidget *parent = nullptr);
+  NewFunctionDialog(std::shared_ptr<cxx::Function> fun, QWidget *parent = nullptr);
   ~NewFunctionDialog() = default;
 
-  const FunctionRef & function() const { return mFunction; }
+  const std::shared_ptr<cxx::Function>& function() const { return mFunction; }
   void sync();
 
 private:
@@ -31,10 +31,7 @@ private:
   QLineEdit *mReturnTypeLineEdit;
   QLineEdit *mParametersLineEdit;
   QLineEdit *mSpecifiersLineEdit;
-  QComboBox *mBindingMethodComboBox;
-  QLineEdit* m_impl_lineedit;
-  QLineEdit* m_condition_lineedit;
-  FunctionRef mFunction;
+  std::shared_ptr<cxx::Function> mFunction;
 };
 
 #endif // METAGONK_NEWFUNCTIONDIALOG_H

@@ -4,9 +4,13 @@
 
 #include "project-controller.h"
 
-#include "project/node-visitor.h"
-
 #include "database.h"
+#include "project-loader.h" // TODO: remove this include
+
+#include <cxx/function.h>
+#include <cxx/class.h>
+#include <cxx/enum.h>
+#include <cxx/namespace.h>
 
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -16,208 +20,87 @@
 
 #include <list>
 
-void ProjectController::addStatement(Node& node, const QString& content)
+void ProjectController::insert(std::shared_ptr<cxx::Function> func, std::shared_ptr<cxx::Entity> parent)
 {
-  auto stmt = std::make_shared<Statement>(content);
-  stmt->order = static_cast<int>(node.childCount());
-
-  if (node.entity_id != -1)
+  if (project->inDB(parent))
   {
-    QSqlQuery query = Database::exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(stmt->name));
-    stmt->statement_id = query.lastInsertId().toInt();
+    auto& ids = project->dbid(func);
 
-    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, rank) VALUES(%1, %2, %3)")
-      .arg(QString::number(node.entity_id), QString::number(stmt->statement_id), QString::number(stmt->order)));
-    stmt->entity_id = query.lastInsertId().toInt();
-
-    project->statements[stmt->statement_id] = stmt;
-  }
-
-  node.appendChild(stmt);
-}
-
-void ProjectController::insert(FunctionRef f, NodeRef parent)
-{
-  f->order = static_cast<int>(parent->childCount());
-
-  if (parent->entity_id != -1)
-  {
     QSqlQuery query = Database::exec(QString("INSERT INTO functions(name, return_type, parameters, specifiers) VALUES('%1', '%2', '%3', '%4')")
-      .arg(f->name, f->returnType, f->parameters.join(';'), f->getSpecifiers().join(',')));
-    f->function_id = query.lastInsertId().toInt();
+      .arg(QString::fromStdString(func->name), QString::fromStdString(func->return_type.toString()), Database::parameters(*func), Database::specifiers(*func)));
+    ids.id = query.lastInsertId().toInt();
 
-    query = Database::exec(QString("INSERT INTO entities(parent, function_id, rank) VALUES(%1, %2, %3)")
-      .arg(QString::number(parent->entity_id), QString::number(f->function_id), QString::number(f->order)));
-    f->entity_id = query.lastInsertId().toInt();
-
-    project->functions[f->function_id] = f;
-    project->entities[f->entity_id] = f;
+    query = Database::exec(QString("INSERT INTO entities(parent, function_id) VALUES(%1, %2)")
+      .arg(QString::number(project->dbid(parent).global_id), QString::number(ids.id)));
+    ids.global_id = query.lastInsertId().toInt();
   }
 
-  parent->appendChild(f);
+  parent->appendChild(func);
 }
 
-bool ProjectController::update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes)
+void ProjectController::update(cxx::Class& c, const QString& name, bool is_final, const QString& base)
 {
-  if (file.file_id != -1)
-  {
-    QSqlQuery query = database.exec(QString("UPDATE files SET name='%1', hincludes='%2', cppincludes='%3' WHERE id = %4").arg(
-      name, hincludes.join(','), cppincludes.join(','), QString::number(file.file_id)
-    ));
-
-    if (query.lastError().isValid())
-      return false;
-  }
-
-  file.name = name;
-  file.hincludes = hincludes;
-  file.cppincludes = cppincludes;
-
-  return true;
-}
-
-void ProjectController::update(Class& c, const QString& name, bool is_final, const QString& base)
-{
-  if (c.class_id != -1)
+  if (project->inDB(c.shared_from_this()))
   {
     Database::exec(QString("UPDATE classes SET name='%1', base='%2', final=%3 WHERE id = %4").arg(
-      name, base, is_final ? "1" : "0", QString::number(c.class_id)
+      name, base, is_final ? "1" : "0", QString::number(project->dbid(c.shared_from_this()).global_id)
     ));
   }
 
-  c.name = name;
-  c.isFinal = is_final;
-  c.base = base;
-}
+  c.name = name.toStdString();
+  c.is_final = is_final;
 
-bool ProjectController::update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition)
-{
-  if (fun.function_id != -1)
+  if (base.isEmpty() != c.bases.empty() || !c.bases.empty() && c.bases.front().base->name != base.toStdString())
   {
-    QString bm = Function::serialize(method);
-    
-    if (bm == "auto")
+    c.bases.clear();
+
+    if (!base.isEmpty())
     {
-      Database::exec(QString("UPDATE functions SET name='%1', return_type='%2', parameters='%3', "
-        "specifiers='%4', binding=NULL, implementation='%6', condition='%7' "
-        "WHERE id = %8")
-        .arg(name, return_type, parameters.join(';'), specifiers.join(','), impl, condition, QString::number(fun.function_id)));
-    }
-    else
-    {
-      Database::exec(QString("UPDATE functions SET name='%1', return_type='%2', parameters='%3', "
-        "specifiers='%4', binding='%5', implementation='%6', condition='%7' "
-        "WHERE id = %8")
-        .arg(name, return_type, parameters.join(';'), specifiers.join(','), bm, impl, condition, QString::number(fun.function_id)));
+      cxx::BaseClass bc;
+      bc.base = std::make_shared<cxx::Class>(base.toStdString());
+      c.bases.push_back(bc);
     }
   }
+}
 
-  fun.name = name;
-  fun.returnType = return_type;
-  fun.parameters = parameters;
-  fun.setSpecifiers(specifiers);
-  fun.bindingMethod = method;
-  fun.condition = condition;
-  fun.implementation = impl;
+bool ProjectController::update(cxx::Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers)
+{
+  if (project->inDB(fun.shared_from_this()))
+  {
+    Database::exec(QString("UPDATE functions SET name='%1', return_type='%2', parameters='%3', specifiers='%4' "
+      "WHERE id = %5")
+      .arg(name, return_type, parameters.join(';'), specifiers.join(','), QString::number(project->dbid(fun.shared_from_this()).id)));
+  }
+
+  fun.name = name.toStdString();
+  fun.return_type = cxx::Type(return_type.toStdString());
+  fun.parameters.clear();
+  fun.specifiers = 0;
+  MGProjectLoader::writeSpecifiers(fun, specifiers.join(','));
+  MGProjectLoader::write(fun.parameters, parameters.join(';'));
 
   return true;
 }
 
-void ProjectController::update(Statement& stmt, const QString& content)
+void ProjectController::update(cxx::Namespace& ns, const QString& name)
 {
-  if (stmt.statement_id != -1)
-  {
-    Database::exec(QString("UPDATE statements SET content='%1'"
-      "WHERE id = %2")
-      .arg(content, QString::number(stmt.statement_id)));
-  }
-
-  stmt.name = content;
-}
-
-void ProjectController::update(Namespace& ns, const QString& name)
-{
-  if (ns.entity_id != -1)
+  if (project->inDB(ns.shared_from_this()))
   {
     Database::exec(QString("UPDATE namespaces SET name='%1'"
       "WHERE id = %2")
-      .arg(name, QString::number(ns.namespace_id)));
+      .arg(name, QString::number(project->dbid(ns.shared_from_this()).id)));
   }
 
-  ns.name = name;
+  ns.name = name.toStdString();
 }
 
-void ProjectController::update(Node& node, const QString& name, const QString& condition)
+struct DBNodeDeleter
 {
-  if (node.entity_id != -1)
-  {
-    if (node.is<Statement>())
-    {
-      Database::exec(QString("UPDATE statements SET content='%1'"
-        "WHERE id = %2")
-        .arg(name, QString::number(node.as<Statement>().statement_id)));
-    }
-    else if (node.is<Enumerator>())
-    {
-      Database::exec(QString("UPDATE enumerators SET name='%1'"
-        "WHERE id = %2")
-        .arg(name, QString::number(node.as<Enumerator>().enumerator_id)));
-    }
-  }
-
-  node.name = name;
-  node.condition = condition;
-}
-
-void ProjectController::update(Node& node, Qt::CheckState cs)
-{
-  if (node.entity_id != -1)
-  {
-    if (node.is<Function>())
-    {
-      Function& f = node.as<Function>();
-      QString cond = f.condition;
-
-      if (cs == Qt::Unchecked)
-      {
-        if (cond.isEmpty())
-          cond = "0";
-        else 
-          cond.prepend("0 &&");
-      }
-
-      Database::exec(QString("UPDATE functions SET condition='%1'"
-        "WHERE id = %2")
-        .arg(cond, QString::number(f.function_id)));
-    }
-    else if (node.is<Enumerator>())
-    {
-      Enumerator& enm = node.as<Enumerator>();
-      QString cond = enm.condition;
-
-      if (cs == Qt::Unchecked)
-      {
-        if (cond.isEmpty())
-          cond = "0";
-        else
-          cond.prepend("0 &&");
-      }
-
-      Database::exec(QString("UPDATE enumerators SET condition='%1'"
-        "WHERE id = %2")
-        .arg(cond, QString::number(enm.enumerator_id)));
-    }
-  }
-
-  node.checkState = cs;
-}
-
-struct NodeDeleter : public NodeVisitor
-{
+  MGProjectPtr project;
   QSqlDatabase& database;
 
-  NodeDeleter(QSqlDatabase& db)
-    : database(db)
+  DBNodeDeleter(MGProjectPtr pro, QSqlDatabase& db)
+    : project(pro), database(db)
   {
 
   }
@@ -230,145 +113,137 @@ struct NodeDeleter : public NodeVisitor
       qDebug() << database.lastError().text();
   }
 
-
   void exec(QString table_name, int id)
   {
     exec(QString("DELETE FROM %1 WHERE id = %2").arg(table_name, QString::number(id)));
   }
 
-  void visit(Class& c) override
+  void dewit(std::shared_ptr<cxx::Entity> e)
   {
-    exec("classes", c.class_id);
+    if(e->is<cxx::Class>())
+      exec("classes", project->dbid(e).id);
+    else if (e->is<cxx::Function>())
+      exec("functions", project->dbid(e).id);
+    else if (e->is<cxx::Namespace>())
+      exec("namespaces", project->dbid(e).id);
+    else if (e->is<cxx::Enum>())
+      exec("enums", project->dbid(e).id);
+    else if (e->is<cxx::EnumValue>())
+      exec("enumerators", project->dbid(e).id);
   }
-
-  void visit(Module& m) override
-  {
-    exec("modules", m.module_id);
-  }
-
-  void visit(Enum& e) override
-  {
-    exec("enums", e.enum_id);
-  }
-
-  void visit(Enumerator& e) override
-  {
-    exec("enumerators", e.enumerator_id);
-  }
-
-  void visit(File& f)  override
-  {
-    exec("files", f.file_id);
-  }
-
-  void visit(Function& f)  override
-  {
-    exec("functions", f.function_id);
-  }
-
-  void visit(Namespace& n) override
-  {
-    exec("namespaces", n.namespace_id);
-  }
-
-  void visit(Statement& s)  override
-  {
-    exec("statements", s.statement_id);
-  }
-
 };
 
-void ProjectController::remove(NodeRef node, ProjectRef pro)
+void ProjectController::remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr pro)
 {
-  if (node->entity_id != -1)
+  if (pro->inDB(node))
   {
-    std::vector<NodeRef> nodes_to_delete;
+    std::vector<std::shared_ptr<cxx::Entity>> nodes_to_delete;
 
     {
       // Compute nodes to delete
 
-      std::list<NodeRef> nodes_to_process;
+      std::list<std::shared_ptr<cxx::Entity>> nodes_to_process;
 
       nodes_to_process.push_back(node);
 
       while (!nodes_to_process.empty())
       {
-        NodeRef n = nodes_to_process.front();
+        std::shared_ptr<cxx::Entity> n = nodes_to_process.front();
         nodes_to_process.pop_front();
 
         nodes_to_delete.push_back(n);
 
         for (size_t i(0); i < n->childCount(); ++i)
-          nodes_to_process.push_back(n->childAt(i));
+          nodes_to_process.push_back(std::static_pointer_cast<cxx::Entity>(n->childAt(i))); // TODO: check all childs are actually entities
       }
 
       std::reverse(nodes_to_delete.begin(), nodes_to_delete.end());
     }
 
-    for (NodeRef n : nodes_to_delete)
+    for (std::shared_ptr<cxx::Entity> n : nodes_to_delete)
     {
       QSqlQuery query = database.exec(QString("DELETE FROM entities WHERE id = %1")
-        .arg(QString::number(n->entity_id)));
+        .arg(QString::number(project->dbid(n).global_id)));
 
       if (database.lastError().isValid())
         qDebug() << database.lastError().text();
     }
 
-    if (node->parent.lock())
+    DBNodeDeleter deleter{ pro, database };
+
+    for (std::shared_ptr<cxx::Entity> n : nodes_to_delete)
     {
-      NodeRef parent = node->parent.lock();
-
-      Database::exec(QString("UPDATE entities SET rank = rank - 1 WHERE parent = %1 AND rank > %2")
-        .arg(QString::number(parent->entity_id), QString::number(node->order)));
-
-      for (size_t i(static_cast<size_t>(node->order)); i < parent->childCount(); ++i)
-        parent->childAt(i)->order -= 1;
-    }
-
-    NodeDeleter deleter{ database };
-
-    for (NodeRef n : nodes_to_delete)
-    {
-      n->accept(deleter);
+      deleter.dewit(n);
     }
   }
 
   {
-    NodeRef parent = node->parent.lock();
+    auto parent = node->weak_parent.lock();
 
     if (parent == nullptr)
     {
-      ModuleRef m = std::static_pointer_cast<Module>(node);
-      pro->modules.removeOne(m);
+      for (auto m : pro->modules)
+      {
+        for (auto it = m->entities.begin(); it != m->entities.end(); ++it)
+        {
+          if (*it == node)
+          {
+            m->entities.erase(it);
+            return;
+          }
+        }
+      }
     }
     else
     {
-      for (size_t i(0); i < parent->childCount(); ++i)
+      if (parent->is<cxx::Class>())
       {
-        if (parent->childAt(i) == node)
+        auto& p = static_cast<cxx::Class&>(*parent);
+
+        for (auto it = p.members.begin(); it != p.members.end(); ++it)
         {
-          parent->removeChild(i);
-          break;
+          if (*it == node)
+          {
+            p.members.erase(it);
+            break;
+          }
+        }
+      }
+      else if (parent->is<cxx::Namespace>())
+      {
+        auto& p = static_cast<cxx::Namespace&>(*parent);
+
+        for (auto it = p.entities.begin(); it != p.entities.end(); ++it)
+        {
+          if (*it == node)
+          {
+            p.entities.erase(it);
+            break;
+          }
+        }
+      }
+      else if (parent->is<cxx::Enum>())
+      {
+        auto& p = static_cast<cxx::Enum&>(*parent);
+
+        for (auto it = p.values.begin(); it != p.values.end(); ++it)
+        {
+          if (*it == node)
+          {
+            p.values.erase(it);
+            break;
+          }
         }
       }
     }
   }
 }
 
-void ProjectController::remove(std::shared_ptr<Type> t, ProjectRef pro)
+void ProjectController::remove(MGTypePtr t, MGProjectPtr pro)
 {
-  auto& list = [&]() -> QList<std::shared_ptr<Type>>& {
-    if (t->is_class)
-      return pro->types.classes;
-    else if (t->is_enum)
-      return pro->types.enums;
-    else
-      return pro->types.fundamentals;
-  }();
+  auto it = std::find(pro->types.begin(), pro->types.end(), t);
 
-  int index = list.indexOf(t);
-
-  if (index == -1)
+  if (it == pro->types.end())
     return;
 
   if (t->database_id != -1)
@@ -377,61 +252,5 @@ void ProjectController::remove(std::shared_ptr<Type> t, ProjectRef pro)
       .arg(QString::number(t->database_id)));
   }
 
-  list.removeAt(index);
-}
-
-void ProjectController::move(NodeRef node, ProjectRef pro, int dest)
-{
-  if (node->is<Module>())
-    return; // @TODO: implement module move
-
-  Q_ASSERT(dest >= 0 && dest < node->parent.lock()->childCount());
-
-  if (node->order == dest)
-    return;
-
-  if (node->entity_id != -1)
-  {
-    QString parent_id = node->parent.lock() != nullptr ? QString::number(node->parent.lock()->entity_id) : QString("NULL");
-
-    Database::exec(QString("UPDATE entities SET rank = rank - 1 WHERE parent = %2 AND rank > %3")
-      .arg(parent_id, QString::number(node->order)));
-
-    Database::exec(QString("UPDATE entities SET rank = rank + 1 WHERE parent = %2 AND rank >= %3")
-      .arg(parent_id, QString::number(dest)));
-
-    Database::exec(QString("UPDATE entities SET rank = %1 WHERE id = %2")
-      .arg(QString::number(dest), QString::number(node->entity_id)));
-  }
-
-  auto parent = node->parent.lock();
-
-  for (int i(node->order + 1); i < parent->childCount(); ++i)
-    parent->childAt(i)->order -= 1;
-
-  if (parent->is<Class>())
-  {
-    parent->as<Class>().elements.takeAt(node->order);
-    parent->as<Class>().elements.insert(dest, node);
-  }
-  else if (parent->is<Namespace>())
-  {
-    parent->as<Namespace>().elements.takeAt(node->order);
-    parent->as<Namespace>().elements.insert(dest, node);
-  }
-  else if (parent->is<Module>())
-  {
-    parent->as<Module>().elements.takeAt(node->order);
-    parent->as<Module>().elements.insert(dest, node);
-  }
-  else if (parent->is<Enum>())
-  {
-    parent->as<Enum>().enumerators.takeAt(node->order);
-    parent->as<Enum>().enumerators.insert(dest, std::static_pointer_cast<Enumerator>(node));
-  }
-
-  for (int i(dest); i < parent->childCount(); ++i)
-    parent->childAt(i)->order += 1;
-
-  node->order = dest;
+  pro->types.erase(it);
 }

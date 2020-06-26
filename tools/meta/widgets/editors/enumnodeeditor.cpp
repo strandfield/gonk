@@ -9,14 +9,10 @@
 #include <QFontMetrics>
 #include <QLineEdit>
 
-EnumNodeEditor::EnumNodeEditor(const EnumRef & enm, QWidget *p)
+EnumNodeEditor::EnumNodeEditor(const std::shared_ptr<cxx::Enum>& enm, QWidget *p)
   : AbstractNodeEditor(enm, p)
 {
   QFontMetrics fm{ font() };
-
-  mCondition = new QLineEdit;
-  mCondition->setPlaceholderText("condition");
-  mCondition->setFixedWidth(fm.width("condition") + 8);
 
   mName = new QLineEdit();
   mName->setPlaceholderText("name");
@@ -27,7 +23,6 @@ EnumNodeEditor::EnumNodeEditor(const EnumRef & enm, QWidget *p)
 
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mCondition);
   layout->addWidget(mName);
   layout->addWidget(mToEnumClass);
   layout->addWidget(mFromEnumClass);
@@ -41,18 +36,16 @@ void EnumNodeEditor::write()
 {
   auto enm = getEnum();
 
-  enm->condition = mCondition->text();
-  enm->name = mName->text();
-  enm->isEnumClass = mToEnumClass->isChecked();
-  enm->isCppEnumClass = mFromEnumClass->isChecked();
+  enm->name = mName->text().toStdString();
+  //enm->isEnumClass = mToEnumClass->isChecked();
+  //enm->isCppEnumClass = mFromEnumClass->isChecked();
 }
 
-void EnumNodeEditor::read(EnumRef enm)
+void EnumNodeEditor::read(std::shared_ptr<cxx::Enum> enm)
 {
   setNode(enm);
 
-  mCondition->setText(enm->condition);
-  mName->setText(enm->name);
-  mToEnumClass->setChecked(enm->isEnumClass);
-  mFromEnumClass->setChecked(enm->isCppEnumClass);
+  mName->setText(QString::fromStdString(enm->name));
+  //mToEnumClass->setChecked(enm->isEnumClass);
+  //mFromEnumClass->setChecked(enm->isCppEnumClass);
 }

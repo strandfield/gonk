@@ -29,8 +29,8 @@ public:
   QSqlDatabase& database() const;
 
   void loadProject();
-  ProjectRef project() const;
-  void importSymbols(ProjectRef other);
+  MGProjectPtr project() const;
+  void importSymbols(MGProjectPtr other);
   ProjectController& projectController();
 
   static Controller& Instance();
@@ -41,7 +41,7 @@ private:
   static Controller* m_singleton;
   std::unique_ptr<QSqlDatabase> m_database;
   QString m_database_path;
-  ProjectRef m_project;
+  MGProjectPtr m_project;
   std::unique_ptr<ProjectController> m_project_controller;
 };
 

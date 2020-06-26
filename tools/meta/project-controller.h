@@ -17,37 +17,24 @@ class ProjectController : QObject
 
 public:
   QSqlDatabase& database;
-  ProjectRef project;
+  MGProjectPtr project;
 
-  ProjectController(QSqlDatabase & db, ProjectRef pro)
+  ProjectController(QSqlDatabase & db, MGProjectPtr pro)
     : database(db), project(pro)
   {
   }
 
+  void insert(std::shared_ptr<cxx::Function> func, std::shared_ptr<cxx::Entity> parent);
 
-  void addStatement(Node& node, const QString& content);
+  void update(cxx::Class& c, const QString& name, bool is_final, const QString& base);
 
-  void insert(FunctionRef func, NodeRef parent);
+  bool update(cxx::Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers);
 
-  bool update(File& file, const QString& name, const QStringList& hincludes, const QStringList& cppincludes);
+  void update(cxx::Namespace& ns, const QString& name);
 
-  void update(Class& c, const QString& name, bool is_final, const QString& base);
+  void remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr pro);
 
-  bool update(Function& fun, const QString& name, const QString& return_type, const QStringList& parameters, const QStringList& specifiers, Function::BindingMethod method, const QString& impl, const QString& condition);
-
-  void update(Statement& stmt, const QString& content);
-
-  void update(Namespace& ns, const QString& name);
-
-  void update(Node& node, const QString& name, const QString& condition);
-
-  void update(Node& node, Qt::CheckState cs);
-
-  void remove(NodeRef node, ProjectRef pro);
-
-  void remove(std::shared_ptr<Type> t, ProjectRef pro);
-
-  void move(NodeRef node, ProjectRef pro, int dest);
+  void remove(MGTypePtr t, MGProjectPtr pro);
 
 protected:
 };

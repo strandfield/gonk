@@ -7,24 +7,24 @@
 #include "controller.h"
 #include "project-controller.h"
 
-#include "project/type.h"
+#include "project.h"
 
 #include <QKeyEvent>
 
 #include <stdexcept>
 
-TypeTreeWidget::TypeTreeWidget(const ProjectRef & pro)
+TypeTreeWidget::TypeTreeWidget(const MGProjectPtr& pro)
   : mProject(pro)
 {
-  setColumnCount(3);
-  setHeaderLabels(QStringList() << "C++ type" << "Id" << "Header");
+  setColumnCount(2);
+  setHeaderLabels(QStringList() << "C++ type" << "Id");
 
   fillTreeWidget(pro);
 
   connect(this, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(updateItem(QTreeWidgetItem*, int)));
 }
 
-void TypeTreeWidget::setProject(const ProjectRef & pro)
+void TypeTreeWidget::setProject(const MGProjectPtr& pro)
 {
   mProject = pro;
   fillTreeWidget(pro);
@@ -32,38 +32,29 @@ void TypeTreeWidget::setProject(const ProjectRef & pro)
 
 void TypeTreeWidget::fetchNewNodes()
 {
-  for (int i(mFundamentalTypes->childCount()); i < mProject->types.fundamentals.size(); ++i)
-    mFundamentalTypes->addChild(createItem(*mProject->types.fundamentals.at(i)));
+  int offset = mFundamentalTypes->childCount() + mEnums->childCount() + mClasses->childCount();
 
-  for (int i(mEnums->childCount()); i < mProject->types.enums.size(); ++i)
-    mEnums->addChild(createItem(*mProject->types.enums.at(i)));
+  for (auto it = mProject->types.begin() + static_cast<size_t>(offset); it != mProject->types.end(); ++it)
+  {
+    MGTypePtr t = *it;
 
-  for (int i(mClasses->childCount()); i < mProject->types.classes.size(); ++i)
-    mClasses->addChild(createItem(*mProject->types.classes.at(i)));
+    QTreeWidgetItem* item = createItem(*t);
+
+    if (t->category == MGType::ClassType)
+      mClasses->addChild(item);
+    else if (t->category == MGType::EnumType)
+      mEnums->addChild(item);
+    else if (t->category == MGType::FundamentalType)
+      mFundamentalTypes->addChild(item);
+  }
 }
 
-QList<std::shared_ptr<Type>> & TypeTreeWidget::getTypeList(QTreeWidgetItem *item)
+MGType& TypeTreeWidget::getType(QTreeWidgetItem *item)
 {
-  if (item->parent() == mFundamentalTypes)
-    return mProject->types.fundamentals;
-  else if (item->parent() == mEnums)
-    return mProject->types.enums;
-  else
-    return mProject->types.classes;
+  return *mProject->getTypeById(item->text(IdColumn).toStdString());
 }
 
-Type & TypeTreeWidget::getType(QTreeWidgetItem *item)
-{
-  const int item_index = item->parent()->indexOfChild(item);
-  if (item->parent() == mFundamentalTypes)
-    return *mProject->types.fundamentals[item_index];
-  else if (item->parent() == mEnums)
-    return *mProject->types.enums[item_index];
-  else
-    return *mProject->types.classes[item_index];
-}
-
-QString & TypeTreeWidget::getField(Type & t, int col)
+std::string & TypeTreeWidget::getField(MGType & t, int col)
 {
   switch (col)
   {
@@ -71,8 +62,6 @@ QString & TypeTreeWidget::getField(Type & t, int col)
     return t.name;
   case IdColumn:
     return t.id;
-  case HeaderColumn:
-    return t.header;
   }
 
   throw std::runtime_error{ "TypeTreeWidget::getField() : invalid column" };
@@ -82,8 +71,6 @@ void TypeTreeWidget::keyPressEvent(QKeyEvent *e)
 {
   if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
     removeSelectedRows();
-  else if ((e->key() == Qt::Key_Up || e->key() == Qt::Key_Down) && e->modifiers() == Qt::CTRL)
-    moveSelectedRow(e->key());
   else
     QTreeWidget::keyPressEvent(e);
 }
@@ -94,16 +81,10 @@ void TypeTreeWidget::removeSelectedRows()
 
   for (auto item : selecteds)
   {
-    const int item_index = item->parent()->indexOfChild(item);
-
     try
     {
-      if (item->parent() == mFundamentalTypes)
-        Controller::Instance().projectController().remove(mProject->types.fundamentals.at(item_index), mProject);
-      else if (item->parent() == mEnums)
-        Controller::Instance().projectController().remove(mProject->types.enums.at(item_index), mProject);
-      else
-        Controller::Instance().projectController().remove(mProject->types.classes.at(item_index), mProject);
+      auto t = mProject->getTypeById(item->text(IdColumn).toStdString());
+      Controller::Instance().projectController().remove(t, mProject);
     }
     catch (...)
     {
@@ -114,80 +95,37 @@ void TypeTreeWidget::removeSelectedRows()
   }
 }
 
-void TypeTreeWidget::moveSelectedRow(int k)
-{
-  const QList<QTreeWidgetItem*> selecteds = selectedItems();
-  if (selecteds.size() != 1)
-    return;
-
-  QTreeWidgetItem *item = selecteds.first();
-  QTreeWidgetItem *parent = item->parent();
-  const int item_index = parent->indexOfChild(item);
-
-  if (item_index == 0 && k == Qt::Key_Up)
-    return;
-  else if (item_index == parent->childCount() - 1 && k == Qt::Key_Down)
-    return;
-
-  QList<std::shared_ptr<Type>> & types = getTypeList(item);
-
-  if (k == Qt::Key_Up)
-  {
-    types.swap(item_index, item_index - 1);
-    QTreeWidgetItem *sibling = parent->takeChild(item_index - 1);
-    parent->insertChild(item_index, sibling);
-  }
-  else if (k == Qt::Key_Down)
-  {
-    types.swap(item_index, item_index + 1);
-
-    QTreeWidgetItem *sibling = parent->takeChild(item_index + 1);
-    parent->insertChild(item_index, sibling);
-  }
-}
-
 void TypeTreeWidget::updateItem(QTreeWidgetItem *item, int col)
 {
-  Type & t = getType(item);
-  getField(t, col) = item->text(col);
+  MGType& t = getType(item);
+  getField(t, col) = item->text(col).toStdString();
 }
 
-void TypeTreeWidget::fillTreeWidget(const ProjectRef & pro)
+void TypeTreeWidget::fillTreeWidget(const MGProjectPtr & pro)
 {
   clear();
 
   mFundamentalTypes = new QTreeWidgetItem();
   mFundamentalTypes->setText(0, "Fundamental types");
-  fill(mFundamentalTypes, pro->types.fundamentals);
 
   mEnums = new QTreeWidgetItem();
   mEnums->setText(0, "Enumerations");
-  fill(mEnums, pro->types.enums);
 
   mClasses = new QTreeWidgetItem();
   mClasses->setText(0, "Classes");
-  fill(mClasses, pro->types.classes);
+
+  fetchNewNodes();
 
   invisibleRootItem()->addChild(mFundamentalTypes);
   invisibleRootItem()->addChild(mEnums);
   invisibleRootItem()->addChild(mClasses);
 }
 
-void TypeTreeWidget::fill(QTreeWidgetItem *parent, const QList<std::shared_ptr<Type>> & types)
-{
-  for (const auto & t : types)
-  {
-    QTreeWidgetItem *item = createItem(*t);
-    parent->addChild(item);
-  }
-}
-
-QTreeWidgetItem* TypeTreeWidget::createItem(const Type & t)
+QTreeWidgetItem* TypeTreeWidget::createItem(const MGType & t)
 {
   QTreeWidgetItem *item = new QTreeWidgetItem();
   item->setFlags(item->flags() | Qt::ItemIsEditable);
-  item->setText(NameColumn, t.name);
-  item->setText(IdColumn, t.id);
-  item->setText(HeaderColumn, t.header);
+  item->setText(NameColumn, QString::fromStdString(t.name));
+  item->setText(IdColumn, QString::fromStdString(t.id));
   return item;
 }

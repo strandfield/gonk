@@ -11,14 +11,10 @@
 #include <QFontMetrics>
 #include <QLineEdit>
 
-SimpleNodeEditor::SimpleNodeEditor(NodeRef node, QWidget *p)
+SimpleNodeEditor::SimpleNodeEditor(std::shared_ptr<cxx::Entity> node, QWidget *p)
   : AbstractNodeEditor(node, p)
 {
   QFontMetrics fm{ font() };
-
-  mCondition = new QLineEdit;
-  mCondition->setPlaceholderText("condition");
-  mCondition->setFixedWidth(fm.width("condition") + 8);
 
   mName = new QLineEdit();
   mName->setPlaceholderText("name");
@@ -26,7 +22,6 @@ SimpleNodeEditor::SimpleNodeEditor(NodeRef node, QWidget *p)
 
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mCondition);
   layout->addWidget(mName);
 
   setAutoFillBackground(true);
@@ -36,15 +31,14 @@ SimpleNodeEditor::SimpleNodeEditor(NodeRef node, QWidget *p)
 
 void SimpleNodeEditor::write()
 {
-  Controller::Instance().projectController().update(*getNode(),
-    mName->text(),
-    mCondition->text());
+  // TODO: update the node name
+  //Controller::Instance().projectController().update(*getNode(),
+  //  mName->text());
 }
 
-void SimpleNodeEditor::read(NodeRef node)
+void SimpleNodeEditor::read(std::shared_ptr<cxx::Entity> node)
 {
   setNode(node);
 
-  mCondition->setText(node->condition);
-  mName->setText(node->name);
+  mName->setText(QString::fromStdString(node->name));
 }

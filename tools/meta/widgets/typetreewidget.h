@@ -9,29 +9,25 @@
 
 #include "project.h"
 
-class Type;
-
 class TypeTreeWidget : public QTreeWidget
 {
   Q_OBJECT
 public:
-  TypeTreeWidget(const ProjectRef & pro);
+  TypeTreeWidget(const MGProjectPtr & pro);
 
   void fetchNewNodes();
 
-  inline ProjectRef project() const { return mProject; }
-  void setProject(const ProjectRef & pro);
+  inline MGProjectPtr project() const { return mProject; }
+  void setProject(const MGProjectPtr& pro);
 
 protected:
   enum Columns {
     NameColumn = 0,
     IdColumn,
-    HeaderColumn,
   };
 
-  QList<std::shared_ptr<Type>> & getTypeList(QTreeWidgetItem *item);
-  Type & getType(QTreeWidgetItem *item);
-  QString & getField(Type & t, int col);
+  MGType& getType(QTreeWidgetItem *item);
+  std::string & getField(MGType & t, int col);
 
 protected:
   void keyPressEvent(QKeyEvent *e) override;
@@ -41,15 +37,13 @@ protected Q_SLOTS:
 
 protected:
   void removeSelectedRows();
-  void moveSelectedRow(int k);
 
 protected:
-  void fillTreeWidget(const ProjectRef & pro);
-  void fill(QTreeWidgetItem *parent, const QList<std::shared_ptr<Type>> & types);
-  QTreeWidgetItem* createItem(const Type & t);
+  void fillTreeWidget(const MGProjectPtr& pro);
+  QTreeWidgetItem* createItem(const MGType& t);
 
 private:
-  ProjectRef mProject;
+  MGProjectPtr mProject;
   QTreeWidgetItem *mFundamentalTypes;
   QTreeWidgetItem *mEnums;
   QTreeWidgetItem *mClasses;
