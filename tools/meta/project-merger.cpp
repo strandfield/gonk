@@ -196,7 +196,7 @@ void MGProjectMerger::merge_recursively(std::vector<std::shared_ptr<cxx::Entity>
   {
     std::shared_ptr<cxx::Entity> node = find_or_set(target, srcItem);
 
-    auto prev_parent = m_parent;
+    RAIICxxElemGuard guard{ m_parent };
     m_parent = node;
 
     if (node == srcItem)
@@ -239,8 +239,6 @@ void MGProjectMerger::merge_recursively(std::vector<std::shared_ptr<cxx::Entity>
     {
       qDebug() << "Element already exists in project";
     }
-
-    m_parent = prev_parent;
   }
 }
 

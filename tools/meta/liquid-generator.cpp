@@ -137,12 +137,12 @@ public:
   json::Json serialize(cxx::Entity& n)
   {
     ProjectSerializer s{ project, map };
-    dispatch(n);
+    s.dispatch(n);
 
     if (project->getMetadata(n.shared_from_this(), metadata))
     {
       for (const auto& key_value : metadata.data())
-        result[key_value.first] = key_value.second;
+        s.result[key_value.first] = key_value.second;
     }
 
     return s.result;
@@ -151,12 +151,12 @@ public:
   json::Json serialize(MGModule& n)
   {
     ProjectSerializer s{ project, map };
-    visit(n);
+    s.visit(n);
 
     if (project->getMetadata(n.shared_from_this(), metadata))
     {
       for (const auto& key_value : metadata.data())
-        result[key_value.first] = key_value.second;
+        s.result[key_value.first] = key_value.second;
     }
 
     return s.result;
@@ -667,7 +667,7 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
     std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
     auto fn = std::static_pointer_cast<cxx::Function>(node);
     //return ("&" + (fn->implementation.isEmpty() ? (::qualifiedName(*fn) : fn->implementation)).toStdString();
-    return ::qualifiedName(*fn);
+    return "&" + ::qualifiedName(*fn);
   }
   else if (name == "operator_name")
   {

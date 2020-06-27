@@ -80,7 +80,7 @@ bool Database::run(const QString& filepath)
 
 QString Database::sqlEscape(QString str)
 {
-  return str.replace("'", "'+CHAR(39)+'");
+  return str.replace("'", "' || CHAR(39) || '");
 }
 
 QString Database::base(const cxx::Class& c)

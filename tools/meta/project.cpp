@@ -224,10 +224,12 @@ std::string signature(const cxx::Function& f)
 
       for (auto p : f.parameters)
       {
-        params.append(QString::fromStdString(p->type.toString()));
+        QString p_str = QString::fromStdString(p->type.toString());
 
         if (!p->name.empty())
-          params += " " + QString::fromStdString(p->name);
+          p_str += " " + QString::fromStdString(p->name);
+
+        params.append(p_str);
       }
 
       result += params.join(", ").toStdString();
@@ -269,10 +271,12 @@ std::string signature(const cxx::Function& f)
 
     for (auto p : f.parameters)
     {
-      params.append(QString::fromStdString(p->type.toString()));
+      QString p_str = QString::fromStdString(p->type.toString());
 
       if (!p->name.empty())
-        params += " " + QString::fromStdString(p->name);
+        p_str += " " + QString::fromStdString(p->name);
+
+      params.append(p_str);
     }
 
     result += params.join(", ").toStdString();

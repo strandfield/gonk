@@ -36,11 +36,21 @@ void MGProjectLoader::write(std::vector<std::shared_ptr<cxx::FunctionParameter>>
 
   for (QString pstr : plist)
   {
-    QStringList type_and_rest = pstr.split("@", QString::SkipEmptyParts);
-    QStringList name_and_default = type_and_rest.size() == 1 ? QStringList() : type_and_rest.at(1).split("#", QString::SkipEmptyParts);
-    cxx::Type ptype{ type_and_rest.at(0).toStdString() };
-    std::string name{ name_and_default.isEmpty() ? "" : name_and_default.at(0).toStdString() };
-    std::string default_value{ name_and_default.size() == 2 ? name_and_default.at(1).toStdString() : "" };
+    int pname_index = pstr.indexOf("@");
+    int pvalue_index = pstr.indexOf("#");
+
+    if (pname_index == -1)
+      pname_index = pstr.length();
+    if (pvalue_index == -1)
+      pvalue_index = pstr.length();
+
+    QString ptype_str = pstr.mid(0, std::min(pname_index, pvalue_index));
+    QString pname = pstr.mid(pname_index + 1, pvalue_index - pname_index - 1);
+    QString pvalue = pstr.mid(pvalue_index + 1);
+
+    cxx::Type ptype{ ptype_str.toStdString() };
+    std::string name{ pname.toStdString() };
+    std::string default_value{ pvalue.toStdString() };
     auto p = std::make_shared<cxx::FunctionParameter>(ptype, std::move(name));
     p->default_value = cxx::Expression(std::move(default_value));
     o_params.push_back(p);
@@ -180,8 +190,7 @@ void MGProjectLoader::loadEntities()
 
         project->dbid(enm).global_id = entity_id;
 
-       m_entity_map[entity_id] = enm;
-
+        m_entity_map[entity_id] = enm;
       }
     }
   }
@@ -287,7 +296,15 @@ void MGProjectLoader::loadEnums()
 
     auto enm = std::make_shared<cxx::Enum>(query.value(NAME).toString().toStdString());
 
-    project->entity_type_map[enm] = m_type_map.at(query.value(TYPE).toInt());
+    int type_id = query.value(TYPE).toInt();
+    if (type_id != -1)
+    {
+      project->entity_type_map[enm] = m_type_map.at(type_id);
+    }
+    else
+    {
+      qDebug() << "Enum is not associated with a type: " << enm->name.c_str();
+    }
 
     m_enums_map[id] = enm;
     project->dbid(enm).id = id;
@@ -399,6 +416,8 @@ void MGProjectLoader::buildEntityTree()
       int child_id = query.value(ID).toInt();
       auto child = m_entity_map[child_id];
       n->appendChild(child);
+      // @TODO: should have been done by appendChild()
+      child->weak_parent = n;
 
       queue.push_back(child);
     }

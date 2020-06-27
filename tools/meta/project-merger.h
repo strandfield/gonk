@@ -75,13 +75,11 @@ protected:
 
       getIds(item);
 
-      auto prev_parent = m_parent;
+      RAIICxxElemGuard guard{ m_parent };
       m_parent = item;
 
       std::vector<std::shared_ptr<cxx::Entity>> children = ::children(*item);
       assignIds(children);
-
-      m_parent = prev_parent;
     }
   }
 
