@@ -38,6 +38,7 @@ QSqlQuery Database::exec(const QString& query)
 
   if (result.lastError().isValid())
   {
+    qDebug() << query;
     qDebug() << result.lastError().text();
     throw std::runtime_error{ std::string("Database query error: ") + result.lastError().text().toStdString() };
   }
@@ -77,6 +78,11 @@ bool Database::run(const QString& filepath)
   return true;
 }
 
+QString Database::sqlEscape(QString str)
+{
+  return str.replace("'", "'+CHAR(39)+'");
+}
+
 QString Database::base(const cxx::Class& c)
 {
   if (c.bases.empty())
@@ -98,7 +104,7 @@ QString Database::parameters(const cxx::Function& f)
       p_str += "@" + QString::fromStdString(p->name);
 
     if(p->default_value != cxx::Expression())
-      p_str += "#" + QString::fromStdString(p->default_value.toString());
+      p_str += "#" + sqlEscape(QString::fromStdString(p->default_value.toString()));
 
     params.push_back(p_str);
   }

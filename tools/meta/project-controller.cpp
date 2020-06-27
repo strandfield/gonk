@@ -239,6 +239,28 @@ void ProjectController::remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr p
   }
 }
 
+void ProjectController::remove(MGModulePtr node, MGProjectPtr pro)
+{
+  while (!node->entities.empty())
+  {
+    remove(node->entities.back(), pro);
+  }
+
+  if (pro->inDB(node))
+  {
+    QSqlQuery query = database.exec(QString("DELETE FROM entities WHERE id = %1")
+      .arg(QString::number(project->dbid(node).global_id)));
+
+    if (database.lastError().isValid())
+      qDebug() << database.lastError().text();
+  }
+
+  auto it = std::find(pro->modules.begin(), pro->modules.end(), node);
+
+  if (it != pro->modules.end())
+    pro->modules.erase(it);
+}
+
 void ProjectController::remove(MGTypePtr t, MGProjectPtr pro)
 {
   auto it = std::find(pro->types.begin(), pro->types.end(), t);

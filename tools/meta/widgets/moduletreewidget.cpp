@@ -178,7 +178,74 @@ void ModuleTreeWidget::fetchNewNodes()
 
 bool ModuleTreeWidget::isModuleItem(QTreeWidgetItem* item) const
 {
-  return item->parent() == invisibleRootItem();
+  return item->parent() == invisibleRootItem() || item->parent() == nullptr;
+}
+
+void ModuleTreeWidget::removeUncheckedSymbols()
+{
+  using Entry = std::pair<QTreeWidgetItem*, std::pair<MGModulePtr, std::shared_ptr<cxx::Entity>>>;
+
+  auto get_child = [](std::pair<MGModulePtr, std::shared_ptr<cxx::Entity>> p, int index) ->std::shared_ptr<cxx::Entity> {
+    if (p.first)
+      return p.first->entities.at(static_cast<size_t>(index));
+    
+    if (p.second->is<cxx::Class>())
+    {
+      auto& c = static_cast<cxx::Class&>(*p.second);
+      return c.members.at(static_cast<size_t>(index));
+    }
+    else if (p.second->is<cxx::Namespace>())
+    {
+      auto& e = static_cast<cxx::Namespace&>(*p.second);
+      return e.entities.at(static_cast<size_t>(index));
+    }
+    else if (p.second->is<cxx::Enum>())
+    {
+      auto& e = static_cast<cxx::Enum&>(*p.second);
+      return e.values.at(static_cast<size_t>(index));
+    }
+    else
+    {
+      return nullptr;
+    }
+  };
+
+  std::list<Entry> entries;
+
+  for (int i(0); i < topLevelItemCount(); ++i)
+  {
+    entries.push_back({ topLevelItem(i), {mProject->modules.at(i), nullptr} });
+  }
+
+  while (!entries.empty())
+  {
+    auto e = entries.front();
+    entries.pop_front();
+
+    if (e.first->checkState(0) == Qt::Checked)
+      continue;
+
+    if (e.first->checkState(0) == Qt::PartiallyChecked)
+    {
+      for (int i(0); i < e.first->childCount(); ++i)
+      {
+        entries.push_back({ e.first->child(i), {nullptr, get_child(e.second, i)} });
+      }
+    }
+    else
+    {
+      if (e.second.first)
+      {
+        Controller::Instance().projectController().remove(e.second.first, mProject);
+        invisibleRootItem()->removeChild(e.first);
+      }
+      else
+      {
+        Controller::Instance().projectController().remove(e.second.second, mProject);
+        e.first->parent()->removeChild(e.first);
+      }
+    }
+  }
 }
 
 QString ModuleTreeWidget::display(const cxx::Entity& e)
@@ -301,7 +368,8 @@ void ModuleTreeWidget::fetchNewNodes(QTreeWidgetItem *item)
 
   if (m)
   {
-
+    for (int i(item->childCount()); i < m->entities.size(); ++i)
+      item->addChild(createItem(m->entities.at(i)));
     return;
   }
 
@@ -349,7 +417,7 @@ QTreeWidgetItem* ModuleTreeWidget::createItem(const std::shared_ptr<cxx::Entity>
   item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEditable);
   m_nodes_map[item] = node;
 
-if (node->is<cxx::Namespace>())
+  if (node->is<cxx::Namespace>())
   {
     item->setIcon(0, QIcon(":/assets/namespace.png"));
     auto& ns = static_cast<cxx::Namespace&>(*node);
@@ -411,10 +479,6 @@ void ModuleTreeWidget::fill(QTreeWidgetItem* parent, const MGModulePtr& node)
 
 void ModuleTreeWidget::updateItem(QTreeWidgetItem *item, int column)
 {
-  std::shared_ptr<cxx::Entity> node = m_nodes_map.at(item);
-  if (node == nullptr)
-    return;
-
   updateCheckState(item);
 }
 
@@ -501,7 +565,7 @@ MGModulePtr ModuleTreeWidget::getModule(QTreeWidgetItem* item) const
 {
   if (!isModuleItem(item))
     return nullptr;
-  return mProject->modules.at(item->parent()->indexOfChild(item));
+  return mProject->modules.at(invisibleRootItem()->indexOfChild(item));
 }
 
 void ModuleTreeWidget::createContextMenus()

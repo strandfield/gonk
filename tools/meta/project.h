@@ -86,12 +86,14 @@ public:
   }
 
   MGModulePtr getModule(const std::string& name) const;
+  MGModulePtr getOrCreateModule(const std::string& name);
 
   bool hasType(const std::string& name) const;
 
   MGTypePtr getTypeById(const std::string& id) const;
 
   bool inDB(std::shared_ptr<cxx::Entity> e) const;
+  bool inDB(MGModulePtr m) const;
 };
 
 typedef std::shared_ptr<MGProject> MGProjectPtr;

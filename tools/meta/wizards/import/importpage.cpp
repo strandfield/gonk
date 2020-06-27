@@ -47,7 +47,7 @@ void ImportPage::initializePage()
 {
   auto & fields = ImportWizard::get(wizard())->fields(); 
 
-  MGModulePtr m = fields.importedSymbols->getModule(fields.moduleName.toStdString());
+  MGModulePtr m = fields.importedSymbols->getOrCreateModule(fields.moduleName.toStdString());
 
   CppParser parser{ fields.importedSymbols };
   parser.setIncludeDirectories(fields.includeDirectories);
@@ -63,8 +63,7 @@ bool ImportPage::validatePage()
 {
   auto & fields = ImportWizard::get(wizard())->fields();
 
-  // @TODO: remove unchecked symbols
-  //selectionTreeWidget->removeUncheckedSymbols();
+  selectionTreeWidget->removeUncheckedSymbols();
 
   MGProjectPtr pro = ImportWizard::get(wizard())->project();
   Controller::Instance().importSymbols(fields.importedSymbols);

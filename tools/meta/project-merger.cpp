@@ -81,9 +81,23 @@ QString MGProjectMerger::parentId() const
     return "NULL";
 
   if (m_parent != nullptr)
-    return QString::number(project->dbid(m_parent).global_id);
+  {
+    auto& dbid = project->dbid(m_parent);
 
-  return QString::number(project->dbid(m_current_module).global_id);
+    if (dbid.global_id == -1)
+      throw std::runtime_error{ "missing parent id" };
+
+    return QString::number(dbid.global_id);
+  }
+  else
+  {
+    auto& dbid = project->dbid(m_current_module);
+
+    if (dbid.global_id == -1)
+      throw std::runtime_error{ "missing parent id" };
+
+    return QString::number(dbid.global_id);
+  }
 }
 
 void MGProjectMerger::getIds(std::shared_ptr<cxx::Entity> elem)
@@ -108,8 +122,10 @@ void MGProjectMerger::getIds(std::shared_ptr<cxx::Entity> elem)
   {
     auto c = std::static_pointer_cast<cxx::Class>(elem);
 
-    QSqlQuery query = Database::exec(QString("INSERT INTO classes(name, base) VALUES('%1', '%3')")
-      .arg(QString::fromStdString(c->name), Database::base(*c)));
+    auto t = m_types_map.at(c);
+
+    QSqlQuery query = Database::exec(QString("INSERT INTO classes(name, base, type) VALUES('%1', '%2', %3)")
+      .arg(QString::fromStdString(c->name), Database::base(*c), QString::number(t->database_id)));
     ids.id = query.lastInsertId().toInt();
 
     query = Database::exec(QString("INSERT INTO entities(parent, class_id) VALUES(%1, %2)")
@@ -120,7 +136,10 @@ void MGProjectMerger::getIds(std::shared_ptr<cxx::Entity> elem)
   {
     auto e = std::static_pointer_cast<cxx::Enum>(elem);
 
-    QSqlQuery query = Database::exec(QString("INSERT INTO enums(name) VALUES('%1', %2)").arg(QString::fromStdString(e->name)));
+    auto t = m_types_map.at(e);
+
+    QSqlQuery query = Database::exec(QString("INSERT INTO enums(name, type) VALUES('%1', %2)")
+      .arg(QString::fromStdString(e->name), QString::number(t->database_id)));
     ids.id = query.lastInsertId().toInt();
 
     query = Database::exec(QString("INSERT INTO entities(parent, enum_id) VALUES(%1, %2)")
@@ -153,7 +172,7 @@ void MGProjectMerger::getIds(std::shared_ptr<cxx::Entity> elem)
   }
   else
   {
-    throw std::runtime_error{ "Not implemented" };
+    return;
   }
 
   incrImportedSymbolsCount();

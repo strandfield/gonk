@@ -74,6 +74,19 @@ MGModulePtr MGProject::getModule(const std::string& name) const
   return it != modules.end() ? *it : nullptr;
 }
 
+MGModulePtr MGProject::getOrCreateModule(const std::string& name)
+{
+  MGModulePtr m = getModule(name);
+
+  if (!m)
+  {
+    m = std::make_shared<MGModule>(name);
+    this->modules.push_back(m);
+  }
+
+  return m;
+}
+
 bool MGProject::hasType(const std::string& name) const
 {
   return std::any_of(types.begin(), types.end(), [&name](const MGTypePtr& t) -> bool {
@@ -93,6 +106,12 @@ MGTypePtr MGProject::getTypeById(const std::string& id) const
 bool MGProject::inDB(std::shared_ptr<cxx::Entity> e) const
 {
   auto it = this->database_ids.find(e.get());
+  return it != this->database_ids.end() && it->second.global_id != -1;
+}
+
+bool MGProject::inDB(MGModulePtr m) const
+{
+  auto it = this->database_ids.find(m.get());
   return it != this->database_ids.end() && it->second.global_id != -1;
 }
 

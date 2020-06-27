@@ -32,7 +32,7 @@ public:
     l->addLayout(hl);
 
     includeDirectoriesListWidget = new QListWidget();
-    includeDirectoriesListWidget->addItem("C:\\Qt\\5.10.0\\msvc2017_64\\include");
+    includeDirectoriesListWidget->addItem("C:\\Qt\\5.15.0\\msvc2019_64\\include");
     hl->addWidget(includeDirectoriesListWidget);
     QVBoxLayout *vl = new QVBoxLayout();
     hl->addLayout(vl);

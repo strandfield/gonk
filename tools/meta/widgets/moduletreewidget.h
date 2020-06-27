@@ -30,6 +30,8 @@ public:
 
   bool isModuleItem(QTreeWidgetItem* item) const;
 
+  void removeUncheckedSymbols();
+
   static QString display(const cxx::Entity& e);
   static QString display(const MGModule& m);
 

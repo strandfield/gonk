@@ -72,6 +72,11 @@ struct FileVisitor
   {
     if (!curNode)
     {
+      auto p = decl.function->weak_parent.lock();
+
+      if (p && p->is<cxx::Class>())
+        return;
+
       curModule->entities.push_back(decl.function);
     }
   }

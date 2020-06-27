@@ -33,6 +33,7 @@ public:
   void update(cxx::Namespace& ns, const QString& name);
 
   void remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr pro);
+  void remove(MGModulePtr node, MGProjectPtr pro);
 
   void remove(MGTypePtr t, MGProjectPtr pro);
 

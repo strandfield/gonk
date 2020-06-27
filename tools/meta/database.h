@@ -20,6 +20,8 @@ public:
 
   static bool run(const QString& filepath);
 
+  static QString sqlEscape(QString str);
+
   static QString base(const cxx::Class& c);
   static QString parameters(const cxx::Function& f);
   static QString specifiers(const cxx::Function& f);
