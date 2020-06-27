@@ -7,6 +7,8 @@
 
 #include <cxx/entity.h>
 
+#include <json-toolkit/json.h>
+
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -74,6 +76,7 @@ public:
   std::vector<MGModulePtr> modules;
   std::unordered_map<void*, MGDatabaseId> database_ids;
   std::map<std::shared_ptr<cxx::Entity>, MGTypePtr> entity_type_map;
+  std::unordered_map<void*, json::Object> metadata;
 
   MGDatabaseId& dbid(MGModulePtr m)
   {
@@ -94,6 +97,11 @@ public:
 
   bool inDB(std::shared_ptr<cxx::Entity> e) const;
   bool inDB(MGModulePtr m) const;
+
+  bool getMetadata(std::shared_ptr<cxx::Entity> e, json::Object& out) const;
+  json::Object& getMetadata(std::shared_ptr<cxx::Entity> e);
+  bool getMetadata(MGModulePtr e, json::Object& out) const;
+  json::Object& getMetadata(MGModulePtr e);
 };
 
 typedef std::shared_ptr<MGProject> MGProjectPtr;

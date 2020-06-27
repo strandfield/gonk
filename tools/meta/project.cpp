@@ -115,6 +115,34 @@ bool MGProject::inDB(MGModulePtr m) const
   return it != this->database_ids.end() && it->second.global_id != -1;
 }
 
+bool MGProject::getMetadata(std::shared_ptr<cxx::Entity> e, json::Object& out) const
+{
+  auto it = this->metadata.find(e.get());
+  if (it != this->metadata.end())
+    return out = it->second, true;
+  else
+    return false;
+}
+
+json::Object& MGProject::getMetadata(std::shared_ptr<cxx::Entity> e)
+{
+  return this->metadata[e.get()];
+}
+
+bool MGProject::getMetadata(MGModulePtr e, json::Object& out) const
+{
+  auto it = this->metadata.find(e.get());
+  if (it != this->metadata.end())
+    return out = it->second, true;
+  else
+    return false;
+}
+
+json::Object& MGProject::getMetadata(MGModulePtr e)
+{
+  return this->metadata[e.get()];
+}
+
 bool eq(const std::shared_ptr<cxx::Entity>& a, const std::shared_ptr<cxx::Entity>& b)
 {
   if (a->node_kind() != b->node_kind())

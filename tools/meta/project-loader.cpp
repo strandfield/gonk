@@ -6,6 +6,8 @@
 
 #include "database.h"
 
+#include <json-toolkit/parsing.h>
+
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -184,6 +186,8 @@ void MGProjectLoader::loadEntities()
     }
   }
 
+  loadMetadata();
+
   buildEntityTree();
 }
 
@@ -307,6 +311,53 @@ void MGProjectLoader::loadEnumerators()
 
     m_enumerators_map[id] = enm;
     project->dbid(enm).id = id;
+  }
+}
+
+void MGProjectLoader::loadMetadata()
+{
+  setState("loading metadata");
+
+  QSqlQuery query = database.exec("SELECT entity_id, name, value FROM metadata");
+
+  int ENTITY_ID = 0;
+  int NAME = 1;
+  int VALUE = 2;
+
+  while (query.next())
+  {
+    int id = query.value(ENTITY_ID).toInt();
+
+    json::Object& json_obj = [&]() {
+      {
+        auto it = m_entity_map.find(id);
+
+        if (it != m_entity_map.end())
+        {
+          std::shared_ptr<cxx::Entity> e = it->second;
+          return project->getMetadata(e);
+        }
+      }
+
+      {
+        auto it = m_modules_map.find(id);
+
+        if (it != m_modules_map.end())
+        {
+          MGModulePtr e = it->second;
+          return project->getMetadata(e);
+        }
+      }
+
+      throw std::runtime_error{ "No such entity" };
+    }();
+
+    std::string key = query.value(NAME).toString().toStdString();
+    std::string value = query.value(VALUE).toString().toStdString();
+
+    json::Json json_value = json::parse(value);
+
+    json_obj[key] = json_value;
   }
 }
 

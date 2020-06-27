@@ -162,7 +162,13 @@ void ProjectController::remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr p
 
     for (std::shared_ptr<cxx::Entity> n : nodes_to_delete)
     {
-      QSqlQuery query = database.exec(QString("DELETE FROM entities WHERE id = %1")
+      QSqlQuery query = database.exec(QString("DELETE FROM metadata WHERE entity_id = %1")
+        .arg(QString::number(project->dbid(n).global_id)));
+
+      if (database.lastError().isValid())
+        qDebug() << database.lastError().text();
+
+      query = database.exec(QString("DELETE FROM entities WHERE id = %1")
         .arg(QString::number(project->dbid(n).global_id)));
 
       if (database.lastError().isValid())

@@ -125,6 +125,7 @@ public:
 
   MGProjectPtr project;
   SerializationMaps& map;
+  json::Object metadata;
   json::Json result;
 
   ProjectSerializer(MGProjectPtr pro, SerializationMaps& m)
@@ -137,6 +138,13 @@ public:
   {
     ProjectSerializer s{ project, map };
     dispatch(n);
+
+    if (project->getMetadata(n.shared_from_this(), metadata))
+    {
+      for (const auto& key_value : metadata.data())
+        result[key_value.first] = key_value.second;
+    }
+
     return s.result;
   }
 
@@ -144,6 +152,13 @@ public:
   {
     ProjectSerializer s{ project, map };
     visit(n);
+
+    if (project->getMetadata(n.shared_from_this(), metadata))
+    {
+      for (const auto& key_value : metadata.data())
+        result[key_value.first] = key_value.second;
+    }
+
     return s.result;
   }
 

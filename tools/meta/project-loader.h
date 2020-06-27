@@ -62,6 +62,7 @@ protected:
   void loadClasses();
   void loadEnums();
   void loadEnumerators();
+  void loadMetadata();
   void buildEntityTree();
 
 private:
