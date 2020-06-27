@@ -133,6 +133,8 @@ QString Database::specifiers(const cxx::Function& f)
     specs.push_back("inline");
   if (f.isVirtual())
     specs.push_back("virtual");
+  if (f.isNoexcept())
+    specs.push_back("noexcept");
 
   return specs.join(",");
 }

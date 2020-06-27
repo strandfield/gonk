@@ -26,8 +26,7 @@ public:
 
 private:
   QLineEdit *mName;
-  QCheckBox *mToEnumClass;
-  QCheckBox *mFromEnumClass;
+  QCheckBox *mEnumClass;
 };
 
 #endif // METAGONK_ENUM_NODE_EDITOR_H

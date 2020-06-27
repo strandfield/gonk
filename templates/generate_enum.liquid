@@ -10,7 +10,15 @@ static void register_{{ enum | qualified_name | replace: '::', '_' | snake_case 
   
   Enum {{ enum.name | snake_case }} = parent.newEnum("{{ enum.name }}").setId(script::Type::make<{{ enum | qualified_name }}>().data()).get();
 
-{% for v in enum.values %}
-{{ '  ' }}{{ enum.name | snake_case }}.addValue("{{ v.name }}", {{ enum | qualified_name }}::{{ v.name }});
-{% endfor %}
+{% if enum.enum_class %}
+    {% for v in enum.values %}
+    {{ '  ' }}{{ enum.name | snake_case }}.addValue("{{ v.name }}", static_cast<int>({{ enum | qualified_name }}::{{ v.name }}));
+{% comment %}
+    {% endfor %}
+{% else %}
+    {% for v in enum.values %}
+    {{ '  ' }}{{ enum.name | snake_case }}.addValue("{{ v.name }}", {{ enum | qualified_name }}::{{ v.name }});
+{% comment %}
+    {% endfor %}
+{% endif %}
 }

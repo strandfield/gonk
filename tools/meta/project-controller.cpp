@@ -94,6 +94,19 @@ void ProjectController::update(cxx::Namespace& ns, const QString& name)
   ns.name = name.toStdString();
 }
 
+void ProjectController::update(cxx::Enum& enm, const QString& name, bool is_enum_class)
+{
+  if (project->inDB(enm.shared_from_this()))
+  {
+    Database::exec(QString("UPDATE enums SET name='%1', enum_class=%2 "
+      "WHERE id = %3")
+      .arg(name, QString::number(is_enum_class ? 1 : 0), QString::number(project->dbid(enm.shared_from_this()).id)));
+  }
+
+  enm.name = name.toStdString();
+  enm.enum_class = is_enum_class;
+}
+
 struct DBNodeDeleter
 {
   MGProjectPtr project;

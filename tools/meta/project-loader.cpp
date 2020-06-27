@@ -71,6 +71,10 @@ void MGProjectLoader::writeSpecifiers(cxx::Function& f, QString specifiers)
       f.specifiers |= cxx::FunctionSpecifier::Explicit;
     else if (sp == "static")
       f.specifiers |= cxx::FunctionSpecifier::Static;
+    else if (sp == "noexcept")
+      f.specifiers |= cxx::FunctionSpecifier::Noexcept;
+    else if (sp == "virtual")
+      f.specifiers |= cxx::FunctionSpecifier::Virtual;
     else if (sp == "ctor")
       f.kind = cxx::FunctionKind::Constructor;
     else if (sp == "dtor")
@@ -284,17 +288,19 @@ void MGProjectLoader::loadEnums()
 {
   setState("loading enums");
 
-  QSqlQuery query = database.exec("SELECT id, name, type FROM enums");
+  QSqlQuery query = database.exec("SELECT id, name, enum_class, type FROM enums");
 
   int ID = 0;
   int NAME = 1;
-  int TYPE = 2;
+  int ENUM_CLASS = 2;
+  int TYPE = 3;
 
   while (query.next())
   {
     int id = query.value(ID).toInt();
 
     auto enm = std::make_shared<cxx::Enum>(query.value(NAME).toString().toStdString());
+    enm->enum_class = query.value(ENUM_CLASS).toInt() != 0;
 
     int type_id = query.value(TYPE).toInt();
     if (type_id != -1)

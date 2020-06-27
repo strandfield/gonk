@@ -239,6 +239,9 @@ public:
     result["type"] = "enum";
     result["name"] = e.name;
 
+    if (e.enum_class)
+      result["enum_class"] = true;
+
     json::Array values;
 
     for (auto ev : e.values)
