@@ -21,18 +21,21 @@
 			    {{ '  ' }}gonk::bind::{{ fn | operator_name }}<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' }}>(c);{% comment %}
 			{% endif %}
         {% else %}
+            {% include get_funaddr with function = fn %}
             {% if fn.static and fn.return_type == 'void' %}
-                {{ '  ' }}gonk::bind::static_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+                {{ '  ' }}gonk::bind::static_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
             {% elsif fn.const and fn.return_type == 'void' %}
-			    {{ '  ' }}gonk::bind::const_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+			    {{ '  ' }}gonk::bind::const_void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ',' }}{{ funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% elsif fn.return_type == 'void' %}
-			    {{ '  ' }}gonk::bind::void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+			    {{ '  ' }}gonk::bind::void_member_function<{{ qualified_class_name }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% elsif fn.static %}
-			    {{ '  ' }}gonk::bind::static_member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+			    {{ '  ' }}gonk::bind::static_member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% elsif fn.implementation and fn.implementation != '' %}
-			    {{ '  ' }}gonk::bind::fn_as_memfn<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+			    {{ '  ' }}gonk::bind::fn_as_memfn<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+			{% elsif fn.genwrapper %}
+			    {{ '  ' }}gonk::bind::fn_as_memfn<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% else %}
-			    {{ '  ' }}gonk::bind::member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ fn | funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
+			    {{ '  ' }}gonk::bind::member_function<{{ qualified_class_name }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ funaddr }}>(c, "{{ fn.name }}").create();{% comment %}
 			{% endif %}
 	    {% endif %}
     {% else %}

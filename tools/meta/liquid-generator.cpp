@@ -665,13 +665,6 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
     auto fn = std::static_pointer_cast<cxx::Function>(node);
     return ::signature(*fn);
   }
-  else if (name == "funaddr")
-  {
-    std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
-    auto fn = std::static_pointer_cast<cxx::Function>(node);
-    //return ("&" + (fn->implementation.isEmpty() ? (::qualifiedName(*fn) : fn->implementation)).toStdString();
-    return "&" + ::qualifiedName(*fn);
-  }
   else if (name == "operator_name")
   {
     std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);

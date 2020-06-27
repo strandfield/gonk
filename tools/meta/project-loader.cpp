@@ -378,7 +378,18 @@ void MGProjectLoader::loadMetadata()
     std::string key = query.value(NAME).toString().toStdString();
     std::string value = query.value(VALUE).toString().toStdString();
 
-    json::Json json_value = json::parse(value);
+    json::Json json_value = [&]() -> json::Json {
+      if (value == "true")
+        return true;
+      else if (value == "false")
+        return false;
+      else if (value.at(0) == '\"')
+        return std::string(value.begin() + 1, value.end() - 1);
+      else if (value.at(0) == '[' || value.at(0) == '{')
+        return json::parse(value);
+      else
+        return std::stoi(value);
+    }();
 
     json_obj[key] = json_value;
   }
