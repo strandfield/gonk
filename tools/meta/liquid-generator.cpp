@@ -22,6 +22,21 @@
 
 #include <stdexcept>
 
+static void crlf2lf(std::string& str)
+{
+  size_t w = 0, r = 0;
+
+  while (r < str.size())
+  {
+    if (str.at(r) == '\r')
+      ++r;
+    else
+      str[w++] = str.at(r++);
+  }
+
+  str.resize(w);
+}
+
 class NodeVisitor
 {
 public:
@@ -557,6 +572,7 @@ void LiquidGenerator::processFile(const QFileInfo& fileinfo)
 
   if (processed_content != content)
   {
+    crlf2lf(processed_content);
     file.open(QIODevice::WriteOnly | QIODevice::Truncate);
     file.write(processed_content.c_str());
     file.close();
