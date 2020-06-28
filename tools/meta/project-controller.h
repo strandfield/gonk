@@ -34,6 +34,8 @@ public:
 
   void update(cxx::Enum& enm, const QString& name, bool is_enum_class);
 
+  void update(cxx::Entity& e, const json::Object& metadata);
+
   void remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr pro);
   void remove(MGModulePtr node, MGProjectPtr pro);
 

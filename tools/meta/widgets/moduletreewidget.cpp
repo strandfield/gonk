@@ -8,6 +8,7 @@
 #include "project-controller.h"
 
 #include "dialogs/newfunctiondialog.h"
+#include "dialogs/metadataeditordialog.h"
 
 #include "widgets/editors/classnodeeditor.h"
 #include "widgets/editors/enumnodeeditor.h"
@@ -273,6 +274,8 @@ void ModuleTreeWidget::keyPressEvent(QKeyEvent *e)
     processCtrlN();
   else if (e->key() == Qt::Key_E && e->modifiers() == Qt::CTRL)
     processCtrlE();
+  else if (e->key() == Qt::Key_M && e->modifiers() == Qt::CTRL)
+    processCtrlM();
   else
     QTreeWidget::keyPressEvent(e);
 }
@@ -308,6 +311,29 @@ void ModuleTreeWidget::processCtrlE()
     return;
 
   auto *dialog = new NewFunctionDialog(std::static_pointer_cast<cxx::Function>(node), this);
+  int result = dialog->exec();
+  dialog->deleteLater();
+  if (result != QDialog::Accepted)
+    return;
+
+  dialog->sync();
+
+  refreshItem(item);
+}
+
+void ModuleTreeWidget::processCtrlM()
+{
+  const QList<QTreeWidgetItem*> selecteds = selectedItems();
+  if (selecteds.size() != 1)
+    return;
+
+  QTreeWidgetItem* item = selecteds.first();
+
+  std::shared_ptr<cxx::Entity> node = m_nodes_map.at(item);
+  if (node == nullptr)
+    return;
+
+  auto* dialog = new MetadataEditorDialog(mProject, node, this);
   int result = dialog->exec();
   dialog->deleteLater();
   if (result != QDialog::Accepted)

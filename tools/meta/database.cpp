@@ -83,6 +83,11 @@ QString Database::sqlEscape(QString str)
   return str.replace("'", "' || CHAR(39) || '");
 }
 
+QString Database::sqlEscape(const std::string str)
+{
+  return sqlEscape(QString::fromStdString(str));
+}
+
 QString Database::base(const cxx::Class& c)
 {
   if (c.bases.empty())

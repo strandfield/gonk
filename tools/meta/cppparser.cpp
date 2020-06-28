@@ -57,6 +57,14 @@ struct FileVisitor
     if (!curNode)
     {
       curModule->entities.push_back(decl.class_);
+
+      for (auto it = decl.class_->members.begin(); it != decl.class_->members.end(); )
+      {
+        if ((*it)->getAccessSpecifier() != cxx::AccessSpecifier::PUBLIC)
+          it = decl.class_->members.erase(it);
+        else
+          ++it;
+      }
     }
   }
 

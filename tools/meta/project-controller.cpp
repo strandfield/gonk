@@ -12,6 +12,8 @@
 #include <cxx/enum.h>
 #include <cxx/namespace.h>
 
+#include <json-toolkit/stringify.h>
+
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -105,6 +107,27 @@ void ProjectController::update(cxx::Enum& enm, const QString& name, bool is_enum
 
   enm.name = name.toStdString();
   enm.enum_class = is_enum_class;
+}
+
+void ProjectController::update(cxx::Entity& e, const json::Object& metadata)
+{
+  auto ptr = e.shared_from_this();
+
+  if (project->inDB(ptr))
+  {
+    auto& ids = project->dbid(ptr);
+
+    Database::exec(QString("DELETE FROM metadata WHERE entity_id = %1")
+      .arg(QString::number(ids.global_id)));
+
+    for (const auto& entry : metadata.data())
+    {
+      Database::exec(QString("INSERT INTO metadata(entity_id, name, value) VALUES(%1, '%2', '%3')")
+        .arg(QString::number(ids.global_id), QString::fromStdString(entry.first), Database::sqlEscape(json::stringify(entry.second))));
+    }
+  }
+
+  project->getMetadata(ptr) = metadata;
 }
 
 struct DBNodeDeleter

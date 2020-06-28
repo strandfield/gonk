@@ -41,6 +41,7 @@ protected:
 protected:
   void removeSelectedRows();
   void processCtrlE();
+  void processCtrlM();
   void processCtrlN();
 
 protected:
