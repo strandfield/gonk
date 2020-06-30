@@ -78,6 +78,20 @@ bool Database::run(const QString& filepath)
   return true;
 }
 
+int Database::getFileId(const cxx::File& file)
+{
+  QSqlQuery q = exec(QString("SELECT id FROM files WHERE path = '%1'")
+    .arg(QString::fromStdString(file.path())));
+
+  if (q.next())
+    return q.value(0).toInt();
+
+  q = exec(QString("INSERT INTO files(path) VALUES('%1')")
+    .arg(QString::fromStdString(file.path())));
+
+  return q.lastInsertId().toInt();
+}
+
 QString Database::sqlEscape(QString str)
 {
   return str.replace("'", "' || CHAR(39) || '");

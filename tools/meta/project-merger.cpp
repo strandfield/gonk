@@ -175,6 +175,17 @@ void MGProjectMerger::getIds(std::shared_ptr<cxx::Entity> elem)
     return;
   }
 
+  if (elem->location.file() != nullptr && shouldSaveSourceLocation(*elem))
+  {
+    int file_id = Database::getFileId(*elem->location.file());
+
+    Database::exec(QString("DELETE FROM source_locations WHERE entity_id = %1")
+      .arg(QString::number(ids.global_id)));
+
+    Database::exec(QString("INSERT INTO source_locations(entity_id, file_id, line, column) VALUES(%1, %2, %3, %4)")
+      .arg(QString::number(ids.global_id), QString::number(file_id), QString::number(elem->location.line()), QString::number(elem->location.column())));
+  }
+
   incrImportedSymbolsCount();
 }
 
@@ -322,4 +333,9 @@ void MGProjectMerger::fetch_types_recursively(MGProject& pro, const MGModulePtr&
 void MGProjectMerger::fetchTypes(MGProjectPtr pro)
 {
   fetch_types_recursively(*pro, pro->modules);
+}
+
+bool MGProjectMerger::shouldSaveSourceLocation(const cxx::Entity& e)
+{
+  return e.is<cxx::Function>() && e.weak_parent.lock() != nullptr && e.parent()->is<cxx::Namespace>();
 }

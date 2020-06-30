@@ -97,6 +97,8 @@ protected:
 
   void fetchTypes(MGProjectPtr pro);
 
+  bool shouldSaveSourceLocation(const cxx::Entity& e);
+
 private:
   MGModulePtr m_current_module = nullptr;
   std::shared_ptr<cxx::Entity> m_parent = nullptr;
