@@ -1,7 +1,7 @@
 
 import Qt.Core;
 
-QString str = QString::fromUtf8(QByteArray("HELLO"));
+QString str = QString::fromStdString("HELLO");
 str = str.toLower();
 
 print(str.toStdString());

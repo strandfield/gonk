@@ -62,7 +62,9 @@ bool Controller::createSqlDatabase(const QFileInfo& db_dir, const QString& savep
     && Database::run(db_dir.absoluteFilePath() + "/functions.sql")
     && Database::run(db_dir.absoluteFilePath() + "/classes.sql")
     && Database::run(db_dir.absoluteFilePath() + "/entities.sql")
-    && Database::run(db_dir.absoluteFilePath() + "/metadata.sql");
+    && Database::run(db_dir.absoluteFilePath() + "/metadata.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/files.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/source_locations.sql");
 }
 
 bool Controller::loadDatabase(const QFileInfo& db_file)

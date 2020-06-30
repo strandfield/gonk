@@ -77,6 +77,7 @@ public:
   std::unordered_map<void*, MGDatabaseId> database_ids;
   std::map<std::shared_ptr<cxx::Entity>, MGTypePtr> entity_type_map;
   std::unordered_map<void*, json::Object> metadata;
+  std::map<std::string, std::shared_ptr<cxx::File>> files;
 
   MGDatabaseId& dbid(MGModulePtr m)
   {

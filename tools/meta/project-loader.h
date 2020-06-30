@@ -42,6 +42,8 @@ public:
     loadTypes();
     loadEntities();
     project->sort();
+    loadFiles();
+    loadSourceLocations();
   }
 
   QString state() const;
@@ -65,6 +67,8 @@ protected:
   void loadEnumerators();
   void loadMetadata();
   void buildEntityTree();
+  void loadFiles();
+  void loadSourceLocations();
 
 private:
   QString m_state;
@@ -76,6 +80,7 @@ private:
   std::map<int, std::shared_ptr<cxx::Class>> m_classes_map;
   std::map<int, std::shared_ptr<cxx::Enum>> m_enums_map;
   std::map<int, std::shared_ptr<cxx::EnumValue>> m_enumerators_map;
+  std::map<int, std::shared_ptr<cxx::File>> m_files_map;
 };
 
 #endif // METAGONK_PROJECTLOADER_H

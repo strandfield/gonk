@@ -32,9 +32,7 @@ enum class EnumTypeIds
 {
   FirstTypeId,
   QByteArrayBase64Option,
-  QStringSectionFlag,
-  QStringSplitBehavior,
-  QStringNormalizationForm,
+  QByteArrayBase64DecodingStatus,
   QCharSpecialCharacter,
   QCharCategory,
   QCharScript,
@@ -44,21 +42,26 @@ enum class EnumTypeIds
   QCharJoining,
   QCharCombiningClass,
   QCharUnicodeVersion,
+  QStringSectionFlag,
+  QStringSplitBehavior,
+  QStringNormalizationForm,
   LastTypeId,
 };
 
 enum class ClassTypeIds
 {
   FirstTypeId,
+  FromBase64Result,
+  QByteArrayFromBase64Result,
   QByteArray,
   QByteRef,
+  QChar,
+  QCharRef,
+  QLatin1Char,
   QLatin1String,
   QStringNull,
   QString,
-  QCharRef,
   QStringRef,
-  QLatin1Char,
-  QChar,
   LastTypeId,
 };
 #endif // METAGONK_SOURCE

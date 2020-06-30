@@ -34,7 +34,7 @@ static void register_latin1_char(script::Namespace& parent)
   Class& c = latin1_char;
   
 
-  // QLatin1Char(char);
+  // QLatin1Char(char c);
   gonk::bind::constructor<QLatin1Char, char>(c).create();
   // char toLatin1() const;
   gonk::bind::member_function<QLatin1Char, char, &QLatin1Char::toLatin1>(c, "toLatin1").create();
@@ -52,6 +52,7 @@ static void register_char__special_character(script::Class& parent)
   special_character.addValue("Null", QChar::SpecialCharacter::Null);
   special_character.addValue("Tabulation", QChar::SpecialCharacter::Tabulation);
   special_character.addValue("LineFeed", QChar::SpecialCharacter::LineFeed);
+  special_character.addValue("FormFeed", QChar::SpecialCharacter::FormFeed);
   special_character.addValue("CarriageReturn", QChar::SpecialCharacter::CarriageReturn);
   special_character.addValue("Space", QChar::SpecialCharacter::Space);
   special_character.addValue("Nbsp", QChar::SpecialCharacter::Nbsp);
@@ -239,6 +240,31 @@ static void register_char__script(script::Class& parent)
   script.addValue("Script_Multani", QChar::Script::Script_Multani);
   script.addValue("Script_OldHungarian", QChar::Script::Script_OldHungarian);
   script.addValue("Script_SignWriting", QChar::Script::Script_SignWriting);
+  script.addValue("Script_Adlam", QChar::Script::Script_Adlam);
+  script.addValue("Script_Bhaiksuki", QChar::Script::Script_Bhaiksuki);
+  script.addValue("Script_Marchen", QChar::Script::Script_Marchen);
+  script.addValue("Script_Newa", QChar::Script::Script_Newa);
+  script.addValue("Script_Osage", QChar::Script::Script_Osage);
+  script.addValue("Script_Tangut", QChar::Script::Script_Tangut);
+  script.addValue("Script_MasaramGondi", QChar::Script::Script_MasaramGondi);
+  script.addValue("Script_Nushu", QChar::Script::Script_Nushu);
+  script.addValue("Script_Soyombo", QChar::Script::Script_Soyombo);
+  script.addValue("Script_ZanabazarSquare", QChar::Script::Script_ZanabazarSquare);
+  script.addValue("Script_Dogra", QChar::Script::Script_Dogra);
+  script.addValue("Script_GunjalaGondi", QChar::Script::Script_GunjalaGondi);
+  script.addValue("Script_HanifiRohingya", QChar::Script::Script_HanifiRohingya);
+  script.addValue("Script_Makasar", QChar::Script::Script_Makasar);
+  script.addValue("Script_Medefaidrin", QChar::Script::Script_Medefaidrin);
+  script.addValue("Script_OldSogdian", QChar::Script::Script_OldSogdian);
+  script.addValue("Script_Sogdian", QChar::Script::Script_Sogdian);
+  script.addValue("Script_Elymaic", QChar::Script::Script_Elymaic);
+  script.addValue("Script_Nandinagari", QChar::Script::Script_Nandinagari);
+  script.addValue("Script_NyiakengPuachueHmong", QChar::Script::Script_NyiakengPuachueHmong);
+  script.addValue("Script_Wancho", QChar::Script::Script_Wancho);
+  script.addValue("Script_Chorasmian", QChar::Script::Script_Chorasmian);
+  script.addValue("Script_DivesAkuru", QChar::Script::Script_DivesAkuru);
+  script.addValue("Script_KhitanSmallScript", QChar::Script::Script_KhitanSmallScript);
+  script.addValue("Script_Yezidi", QChar::Script::Script_Yezidi);
   script.addValue("ScriptCount", QChar::Script::ScriptCount);
 }
 static void register_char__direction(script::Class& parent)
@@ -370,137 +396,12 @@ static void register_char__unicode_version(script::Class& parent)
   unicode_version.addValue("Unicode_6_3", QChar::UnicodeVersion::Unicode_6_3);
   unicode_version.addValue("Unicode_7_0", QChar::UnicodeVersion::Unicode_7_0);
   unicode_version.addValue("Unicode_8_0", QChar::UnicodeVersion::Unicode_8_0);
-}
-namespace 
-{
-QChar::Category QChar_category(const QChar& self)
-{
-  return self.category();
-}
-QChar::Direction QChar_direction(const QChar& self)
-{
-  return self.direction();
-}
-QChar::JoiningType QChar_joiningType(const QChar& self)
-{
-  return self.joiningType();
-}
-QChar::Joining QChar_joining(const QChar& self)
-{
-  return self.joining();
-}
-QChar QChar_mirroredChar(const QChar& self)
-{
-  return self.mirroredChar();
-}
-bool QChar_hasMirrored(const QChar& self)
-{
-  return self.hasMirrored();
-}
-QChar::Decomposition QChar_decompositionTag(const QChar& self)
-{
-  return self.decompositionTag();
-}
-int QChar_digitValue(const QChar& self)
-{
-  return self.digitValue();
-}
-QChar QChar_toLower(const QChar& self)
-{
-  return self.toLower();
-}
-QChar QChar_toUpper(const QChar& self)
-{
-  return self.toUpper();
-}
-QChar QChar_toTitleCase(const QChar& self)
-{
-  return self.toTitleCase();
-}
-QChar QChar_toCaseFolded(const QChar& self)
-{
-  return self.toCaseFolded();
-}
-QChar::Script QChar_script(const QChar& self)
-{
-  return self.script();
-}
-QChar::UnicodeVersion QChar_unicodeVersion(const QChar& self)
-{
-  return self.unicodeVersion();
-}
-char QChar_toLatin1(const QChar& self)
-{
-  return self.toLatin1();
-}
-bool QChar_isNull(const QChar& self)
-{
-  return self.isNull();
-}
-bool QChar_isPrint(const QChar& self)
-{
-  return self.isPrint();
-}
-bool QChar_isSpace(const QChar& self)
-{
-  return self.isSpace();
-}
-bool QChar_isMark(const QChar& self)
-{
-  return self.isMark();
-}
-bool QChar_isPunct(const QChar& self)
-{
-  return self.isPunct();
-}
-bool QChar_isSymbol(const QChar& self)
-{
-  return self.isSymbol();
-}
-bool QChar_isLetter(const QChar& self)
-{
-  return self.isLetter();
-}
-bool QChar_isNumber(const QChar& self)
-{
-  return self.isNumber();
-}
-bool QChar_isLetterOrNumber(const QChar& self)
-{
-  return self.isLetterOrNumber();
-}
-bool QChar_isDigit(const QChar& self)
-{
-  return self.isDigit();
-}
-bool QChar_isLower(const QChar& self)
-{
-  return self.isLower();
-}
-bool QChar_isUpper(const QChar& self)
-{
-  return self.isUpper();
-}
-bool QChar_isTitleCase(const QChar& self)
-{
-  return self.isTitleCase();
-}
-bool QChar_isNonCharacter(const QChar& self)
-{
-  return self.isNonCharacter();
-}
-bool QChar_isHighSurrogate(const QChar& self)
-{
-  return self.isHighSurrogate();
-}
-bool QChar_isLowSurrogate(const QChar& self)
-{
-  return self.isLowSurrogate();
-}
-bool QChar_isSurrogate(const QChar& self)
-{
-  return self.isSurrogate();
-}
+  unicode_version.addValue("Unicode_9_0", QChar::UnicodeVersion::Unicode_9_0);
+  unicode_version.addValue("Unicode_10_0", QChar::UnicodeVersion::Unicode_10_0);
+  unicode_version.addValue("Unicode_11_0", QChar::UnicodeVersion::Unicode_11_0);
+  unicode_version.addValue("Unicode_12_0", QChar::UnicodeVersion::Unicode_12_0);
+  unicode_version.addValue("Unicode_12_1", QChar::UnicodeVersion::Unicode_12_1);
+  unicode_version.addValue("Unicode_13_0", QChar::UnicodeVersion::Unicode_13_0);
 }
 
 static void register_char_(script::Namespace& parent)
@@ -524,28 +425,28 @@ static void register_char_(script::Namespace& parent)
         
   // QChar();
   gonk::bind::default_constructor<QChar>(c).create();
-  // QChar(ushort);
-  /// TODO: QChar(ushort);
-  // QChar(uchar, uchar);
-  /// TODO: QChar(uchar, uchar);
-  // QChar(short);
-  /// TODO: QChar(short);
-  // QChar(uint);
-  /// TODO: QChar(uint);
-  // QChar(int);
+  // QChar(ushort rc);
+  /// TODO: QChar(ushort rc);
+  // QChar(uchar c, uchar r);
+  /// TODO: QChar(uchar c, uchar r);
+  // QChar(short rc);
+  /// TODO: QChar(short rc);
+  // QChar(uint rc);
+  /// TODO: QChar(uint rc);
+  // QChar(int rc);
   gonk::bind::constructor<QChar, int>(c).create();
-  // QChar(QChar::SpecialCharacter);
+  // QChar(QChar::SpecialCharacter s);
   gonk::bind::constructor<QChar, QChar::SpecialCharacter>(c).create();
-  // QChar(QLatin1Char);
+  // QChar(QLatin1Char ch);
   gonk::bind::constructor<QChar, QLatin1Char>(c).create();
-  // QChar(char16_t);
-  /// TODO: QChar(char16_t);
-  // QChar(wchar_t);
-  /// TODO: QChar(wchar_t);
-  // QChar(char);
+  // QChar(char16_t ch);
+  /// TODO: QChar(char16_t ch);
+  // QChar(wchar_t ch);
+  /// TODO: QChar(wchar_t ch);
+  // QChar(char c);
   gonk::bind::constructor<QChar, char>(c).create();
-  // QChar(uchar);
-  /// TODO: QChar(uchar);
+  // QChar(uchar c);
+  /// TODO: QChar(uchar c);
   // QChar::Category category() const;
   gonk::bind::member_function<QChar, QChar::Category, &QChar::category>(c, "category").create();
   // QChar::Direction direction() const;
@@ -584,7 +485,7 @@ static void register_char_(script::Namespace& parent)
   /// TODO: ushort unicode() const;
   // ushort& unicode();
   /// TODO: ushort& unicode();
-  // static QChar fromLatin1(char);
+  // static QChar fromLatin1(char c);
   gonk::bind::static_member_function<QChar, QChar, char, &QChar::fromLatin1>(c, "fromLatin1").create();
   // bool isNull() const;
   gonk::bind::member_function<QChar, bool, &QChar::isNull>(c, "isNull").create();
@@ -624,86 +525,94 @@ static void register_char_(script::Namespace& parent)
   /// TODO: uchar cell() const;
   // uchar row() const;
   /// TODO: uchar row() const;
-  // void setCell(uchar);
-  /// TODO: void setCell(uchar);
-  // void setRow(uchar);
-  /// TODO: void setRow(uchar);
-  // static bool isNonCharacter(uint);
-  /// TODO: static bool isNonCharacter(uint);
-  // static bool isHighSurrogate(uint);
-  /// TODO: static bool isHighSurrogate(uint);
-  // static bool isLowSurrogate(uint);
-  /// TODO: static bool isLowSurrogate(uint);
-  // static bool isSurrogate(uint);
-  /// TODO: static bool isSurrogate(uint);
-  // static bool requiresSurrogates(uint);
-  /// TODO: static bool requiresSurrogates(uint);
-  // static uint surrogateToUcs4(ushort, ushort);
-  /// TODO: static uint surrogateToUcs4(ushort, ushort);
-  // static uint surrogateToUcs4(QChar, QChar);
-  /// TODO: static uint surrogateToUcs4(QChar, QChar);
-  // static ushort highSurrogate(uint);
-  /// TODO: static ushort highSurrogate(uint);
-  // static ushort lowSurrogate(uint);
-  /// TODO: static ushort lowSurrogate(uint);
-  // static QChar::Category category(uint);
-  /// TODO: static QChar::Category category(uint);
-  // static QChar::Direction direction(uint);
-  /// TODO: static QChar::Direction direction(uint);
-  // static QChar::JoiningType joiningType(uint);
-  /// TODO: static QChar::JoiningType joiningType(uint);
-  // static QChar::Joining joining(uint);
-  /// TODO: static QChar::Joining joining(uint);
-  // static unsigned char combiningClass(uint);
-  /// TODO: static unsigned char combiningClass(uint);
-  // static uint mirroredChar(uint);
-  /// TODO: static uint mirroredChar(uint);
-  // static bool hasMirrored(uint);
-  /// TODO: static bool hasMirrored(uint);
-  // static QString decomposition(uint);
-  /// TODO: static QString decomposition(uint);
-  // static QChar::Decomposition decompositionTag(uint);
-  /// TODO: static QChar::Decomposition decompositionTag(uint);
-  // static int digitValue(uint);
-  /// TODO: static int digitValue(uint);
-  // static uint toLower(uint);
-  /// TODO: static uint toLower(uint);
-  // static uint toUpper(uint);
-  /// TODO: static uint toUpper(uint);
-  // static uint toTitleCase(uint);
-  /// TODO: static uint toTitleCase(uint);
-  // static uint toCaseFolded(uint);
-  /// TODO: static uint toCaseFolded(uint);
-  // static QChar::Script script(uint);
-  /// TODO: static QChar::Script script(uint);
-  // static QChar::UnicodeVersion unicodeVersion(uint);
-  /// TODO: static QChar::UnicodeVersion unicodeVersion(uint);
+  // void setCell(uchar acell);
+  /// TODO: void setCell(uchar acell);
+  // void setRow(uchar arow);
+  /// TODO: void setRow(uchar arow);
+  // static bool isNonCharacter(uint ucs4);
+  /// TODO: static bool isNonCharacter(uint ucs4);
+  // static bool isHighSurrogate(uint ucs4);
+  /// TODO: static bool isHighSurrogate(uint ucs4);
+  // static bool isLowSurrogate(uint ucs4);
+  /// TODO: static bool isLowSurrogate(uint ucs4);
+  // static bool isSurrogate(uint ucs4);
+  /// TODO: static bool isSurrogate(uint ucs4);
+  // static bool requiresSurrogates(uint ucs4);
+  /// TODO: static bool requiresSurrogates(uint ucs4);
+  // static uint surrogateToUcs4(ushort high, ushort low);
+  /// TODO: static uint surrogateToUcs4(ushort high, ushort low);
+  // static uint surrogateToUcs4(QChar high, QChar low);
+  /// TODO: static uint surrogateToUcs4(QChar high, QChar low);
+  // static ushort highSurrogate(uint ucs4);
+  /// TODO: static ushort highSurrogate(uint ucs4);
+  // static ushort lowSurrogate(uint ucs4);
+  /// TODO: static ushort lowSurrogate(uint ucs4);
+  // static QChar::Category category(uint ucs4);
+  /// TODO: static QChar::Category category(uint ucs4);
+  // static QChar::Direction direction(uint ucs4);
+  /// TODO: static QChar::Direction direction(uint ucs4);
+  // static QChar::JoiningType joiningType(uint ucs4);
+  /// TODO: static QChar::JoiningType joiningType(uint ucs4);
+  // static QChar::Joining joining(uint ucs4);
+  /// TODO: static QChar::Joining joining(uint ucs4);
+  // static unsigned char combiningClass(uint ucs4);
+  /// TODO: static unsigned char combiningClass(uint ucs4);
+  // static uint mirroredChar(uint ucs4);
+  /// TODO: static uint mirroredChar(uint ucs4);
+  // static bool hasMirrored(uint ucs4);
+  /// TODO: static bool hasMirrored(uint ucs4);
+  // static QString decomposition(uint ucs4);
+  /// TODO: static QString decomposition(uint ucs4);
+  // static QChar::Decomposition decompositionTag(uint ucs4);
+  /// TODO: static QChar::Decomposition decompositionTag(uint ucs4);
+  // static int digitValue(uint ucs4);
+  /// TODO: static int digitValue(uint ucs4);
+  // static uint toLower(uint ucs4);
+  /// TODO: static uint toLower(uint ucs4);
+  // static uint toUpper(uint ucs4);
+  /// TODO: static uint toUpper(uint ucs4);
+  // static uint toTitleCase(uint ucs4);
+  /// TODO: static uint toTitleCase(uint ucs4);
+  // static uint toCaseFolded(uint ucs4);
+  /// TODO: static uint toCaseFolded(uint ucs4);
+  // static QChar::Script script(uint ucs4);
+  /// TODO: static QChar::Script script(uint ucs4);
+  // static QChar::UnicodeVersion unicodeVersion(uint ucs4);
+  /// TODO: static QChar::UnicodeVersion unicodeVersion(uint ucs4);
   // static QChar::UnicodeVersion currentUnicodeVersion();
   gonk::bind::static_member_function<QChar, QChar::UnicodeVersion, &QChar::currentUnicodeVersion>(c, "currentUnicodeVersion").create();
-  // static bool isPrint(uint);
-  /// TODO: static bool isPrint(uint);
-  // static bool isSpace(uint);
-  /// TODO: static bool isSpace(uint);
-  // static bool isMark(uint);
-  /// TODO: static bool isMark(uint);
-  // static bool isPunct(uint);
-  /// TODO: static bool isPunct(uint);
-  // static bool isSymbol(uint);
-  /// TODO: static bool isSymbol(uint);
-  // static bool isLetter(uint);
-  /// TODO: static bool isLetter(uint);
-  // static bool isNumber(uint);
-  /// TODO: static bool isNumber(uint);
-  // static bool isLetterOrNumber(uint);
-  /// TODO: static bool isLetterOrNumber(uint);
-  // static bool isDigit(uint);
-  /// TODO: static bool isDigit(uint);
-  // static bool isLower(uint);
-  /// TODO: static bool isLower(uint);
-  // static bool isUpper(uint);
-  /// TODO: static bool isUpper(uint);
-  // static bool isTitleCase(uint);
-  /// TODO: static bool isTitleCase(uint);
+  // static bool isPrint(uint ucs4);
+  /// TODO: static bool isPrint(uint ucs4);
+  // static bool isSpace(uint ucs4);
+  /// TODO: static bool isSpace(uint ucs4);
+  // static bool isMark(uint ucs4);
+  /// TODO: static bool isMark(uint ucs4);
+  // static bool isPunct(uint ucs4);
+  /// TODO: static bool isPunct(uint ucs4);
+  // static bool isSymbol(uint ucs4);
+  /// TODO: static bool isSymbol(uint ucs4);
+  // static bool isLetter(uint ucs4);
+  /// TODO: static bool isLetter(uint ucs4);
+  // static bool isNumber(uint ucs4);
+  /// TODO: static bool isNumber(uint ucs4);
+  // static bool isLetterOrNumber(uint ucs4);
+  /// TODO: static bool isLetterOrNumber(uint ucs4);
+  // static bool isDigit(uint ucs4);
+  /// TODO: static bool isDigit(uint ucs4);
+  // static bool isLower(uint ucs4);
+  /// TODO: static bool isLower(uint ucs4);
+  // static bool isUpper(uint ucs4);
+  /// TODO: static bool isUpper(uint ucs4);
+  // static bool isTitleCase(uint ucs4);
+  /// TODO: static bool isTitleCase(uint ucs4);
+  // static bool isSpace_helper(uint ucs4);
+  /// TODO: static bool isSpace_helper(uint ucs4);
+  // static bool isLetter_helper(uint ucs4);
+  /// TODO: static bool isLetter_helper(uint ucs4);
+  // static bool isNumber_helper(uint ucs4);
+  /// TODO: static bool isNumber_helper(uint ucs4);
+  // static bool isLetterOrNumber_helper(uint ucs4);
+  /// TODO: static bool isLetterOrNumber_helper(uint ucs4);
 }
 
 #endif // METAGONK_SOURCE

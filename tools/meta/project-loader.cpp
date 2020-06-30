@@ -431,12 +431,51 @@ void MGProjectLoader::buildEntityTree()
     while (query.next())
     {
       int child_id = query.value(ID).toInt();
-      auto child = m_entity_map[child_id];
+      auto child = m_entity_map.at(child_id);
       n->appendChild(child);
       // @TODO: should have been done by appendChild()
       child->weak_parent = n;
 
       queue.push_back(child);
     }
+  }
+}
+
+void MGProjectLoader::loadFiles()
+{
+  setState("loading files");
+
+  QSqlQuery query = database.exec("SELECT id, path FROM files");
+
+  int ID = 0;
+  int PATH = 1;
+
+  while (query.next())
+  {
+    int id = query.value(ID).toInt();
+
+    auto f = std::make_shared<cxx::File>(query.value(PATH).toString().toStdString());
+
+    m_files_map[id] = f;
+  }
+}
+
+void MGProjectLoader::loadSourceLocations()
+{
+  setState("loading source locations");
+
+  QSqlQuery query = database.exec("SELECT entity_id, file_id, line, column FROM source_locations");
+
+  int ENTITY_ID = 0;
+  int FILE_ID = 1;
+  int LINE = 2;
+  int COLUMN = 3;
+
+  while (query.next())
+  {
+    auto e = m_entity_map.at(query.value(ENTITY_ID).toInt());
+    auto f = m_files_map.at(query.value(FILE_ID).toInt());
+
+    e->location = cxx::SourceLocation(f, query.value(LINE).toInt(), query.value(COLUMN).toInt());
   }
 }
