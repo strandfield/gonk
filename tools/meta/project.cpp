@@ -4,7 +4,10 @@
 
 #include "project.h"
 
+#include <cxx/class.h>
+#include <cxx/enum.h>
 #include <cxx/function.h>
+#include <cxx/namespace.h>
 
 #include <QDebug>
 
@@ -141,6 +144,138 @@ bool MGProject::getMetadata(MGModulePtr e, json::Object& out) const
 json::Object& MGProject::getMetadata(MGModulePtr e)
 {
   return this->metadata[e.get()];
+}
+
+bool MGProject::isOperator(const cxx::Function& f)
+{
+  return f.name.find("operator", 0) == 0;
+}
+
+static int comp(const cxx::Namespace& lhs, const cxx::Namespace& rhs)
+{
+  return std::strcmp(lhs.name.c_str(), rhs.name.c_str());
+}
+
+static int comp(const cxx::Enum& lhs, const cxx::Enum& rhs)
+{
+  return std::strcmp(lhs.name.c_str(), rhs.name.c_str());
+}
+
+static int comp(const cxx::EnumValue& lhs, const cxx::EnumValue& rhs)
+{
+  return std::strcmp(lhs.name.c_str(), rhs.name.c_str());
+}
+
+static int comp(const cxx::Class& lhs, const cxx::Class& rhs)
+{
+  return std::strcmp(lhs.name.c_str(), rhs.name.c_str());
+}
+
+static int bool_comp(bool lhs, bool rhs)
+{
+  return (lhs && !rhs) ? 1 : (!lhs && rhs ? -1 : 0);
+}
+
+static int str_comp(const std::string& lhs, const std::string& rhs)
+{
+  return std::strcmp(lhs.c_str(), rhs.c_str());
+}
+
+static int comp(const cxx::Function& lhs, const cxx::Function& rhs)
+{
+  int c = bool_comp(!lhs.isConstructor(), !rhs.isConstructor());
+
+  if (c != 0)
+    return c;
+
+  c = bool_comp(!lhs.isDestructor(), !rhs.isDestructor());
+
+  if (c != 0)
+    return c;
+
+  c = bool_comp(MGProject::isOperator(lhs), MGProject::isOperator(rhs));
+
+  if (c != 0)
+    return c;
+
+  c = std::strcmp(lhs.name.c_str(), rhs.name.c_str());
+
+  if (c != 0)
+    return c;
+
+  c = static_cast<int>(lhs.parameters.size()) - static_cast<int>(rhs.parameters.size());
+
+  if (c != 0)
+    return c;
+
+  for (size_t i(0); i < lhs.parameters.size(); ++i)
+  {
+    c = str_comp(lhs.parameters.at(i)->type.toString(), rhs.parameters.at(i)->type.toString());
+
+    if (c != 0)
+      return c;
+  }
+
+  return str_comp(lhs.return_type.toString(), lhs.return_type.toString());
+}
+
+int MGProject::comp(const cxx::Entity& lhs, const cxx::Entity& rhs)
+{
+  static const std::vector<cxx::NodeKind> node_kinds = {
+    cxx::NodeKind::Namespace, cxx::NodeKind::Enum, cxx::NodeKind::Class, cxx::NodeKind::Function,
+  };
+
+  auto compare_node_kind = [&](const cxx::Entity& lhs, const cxx::Entity& rhs) -> int {
+    auto lhs_it = std::find(node_kinds.begin(), node_kinds.end(), lhs.node_kind());
+    auto rhs_it = std::find(node_kinds.begin(), node_kinds.end(), rhs.node_kind());
+
+    size_t lhs_d = std::distance(node_kinds.begin(), lhs_it);
+    size_t rhs_d = std::distance(node_kinds.begin(), rhs_it);
+
+    if (lhs_d < rhs_d)
+      return -1;
+    else if (lhs_d > rhs_d)
+      return 1;
+    return 0;
+  };
+
+  int c = compare_node_kind(lhs, rhs);
+
+  if (c != 0)
+    return c;
+
+  assert(lhs.node_kind() == rhs.node_kind());
+
+  switch (lhs.node_kind())
+  {
+  case cxx::NodeKind::Namespace:
+    return ::comp(static_cast<const cxx::Namespace&>(lhs), static_cast<const cxx::Namespace&>(rhs));
+  case cxx::NodeKind::Class:
+    return ::comp(static_cast<const cxx::Class&>(lhs), static_cast<const cxx::Class&>(rhs));
+  case cxx::NodeKind::Enum:
+    return ::comp(static_cast<const cxx::Enum&>(lhs), static_cast<const cxx::Enum&>(rhs));
+  case cxx::NodeKind::EnumValue:
+    return ::comp(static_cast<const cxx::EnumValue&>(lhs), static_cast<const cxx::EnumValue&>(rhs));
+  case cxx::NodeKind::Function:
+    return ::comp(static_cast<const cxx::Function&>(lhs), static_cast<const cxx::Function&>(rhs));
+  default:
+    return 0;
+  }
+}
+
+void MGProject::sort(std::vector<std::shared_ptr<cxx::Entity>>& list)
+{
+  std::sort(list.begin(), list.end(), [](const std::shared_ptr<cxx::Entity>& lhs, const std::shared_ptr<cxx::Entity>& rhs) -> bool {
+    return comp(*lhs, *rhs) < 0;
+    });
+}
+
+void MGProject::sort()
+{
+  for (auto m : this->modules)
+  {
+    sort(m->entities);
+  }
 }
 
 bool eq(const std::shared_ptr<cxx::Entity>& a, const std::shared_ptr<cxx::Entity>& b)

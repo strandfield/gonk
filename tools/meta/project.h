@@ -102,6 +102,11 @@ public:
   json::Object& getMetadata(std::shared_ptr<cxx::Entity> e);
   bool getMetadata(MGModulePtr e, json::Object& out) const;
   json::Object& getMetadata(MGModulePtr e);
+
+  static bool isOperator(const cxx::Function& f);
+  static int comp(const cxx::Entity& lhs, const cxx::Entity& rhs);
+  static void sort(std::vector<std::shared_ptr<cxx::Entity>>& list);
+  void sort();
 };
 
 typedef std::shared_ptr<MGProject> MGProjectPtr;

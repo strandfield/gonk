@@ -41,6 +41,7 @@ public:
   {
     loadTypes();
     loadEntities();
+    project->sort();
   }
 
   QString state() const;
