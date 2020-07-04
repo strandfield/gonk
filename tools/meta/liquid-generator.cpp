@@ -583,6 +583,8 @@ std::string LiquidGenerator::renderSource(std::string src)
     std::string liquid_src{ src.begin() + src_begin, src.begin() + src_end };
 
     liquid::Template tmplt = liquid::parse(liquid_src);
+    tmplt.skipWhitespacesAfterTag();
+
     json::Object data;
     data["project"] = mSerializedProject;
     std::string liquid_rendered = liquid::Renderer::render(tmplt, data);

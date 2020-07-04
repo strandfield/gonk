@@ -39,6 +39,20 @@
 			{% endif %}
 	    {% endif %}
     {% else %}
+        {% if fn.operator %}
+            {% if fn | operator_need_return_type %}
+			    {{ '  ' }}gonk::bind::{{ fn | operator_name }}<{{ fn.return_type }}, {{ fn.parameters | join: ', ' }}>(ns);{% comment %}
+		    {% else %}
+			    {{ '  ' }}gonk::bind::{{ fn | operator_name }}<{{ fn.parameters | join: ', ' }}>(ns);{% comment %}
+			{% endif %}
+        {% else %}
+            {% include get_funaddr with function = fn %}
+            {% if fn.return_type == 'void' %}
+			    {{ '  ' }}gonk::bind::void_function<{{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ funaddr }}>(ns, "{{ fn.name }}").create();{% comment %}
+			{% else %}
+			    {{ '  ' }}gonk::bind::free_function<{{ fn.return_type }}, {{ fn.return_type }}, {{ fn.parameters | join: ', ' | append_if_not_empty: ', ' }}{{ funaddr }}>(ns, "{{ fn.name }}").create();{% comment %}
+			{% endif %}
+	    {% endif %}
     {% endif %}
 {% else %}
 {{'  '}}/// TODO: {{ fn | signature }}{% comment %}

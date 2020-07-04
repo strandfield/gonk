@@ -31,7 +31,6 @@ script::Value bytearray_string_ctor(script::FunctionCall* c)
 {% assign current_class = project | get_symbol: 'Qt.Core', 'QByteRef'%}
 {% include generate_class with class = current_class and recursive = true %}
 #else
-
 static void register_byte_array__base64_option(script::Class& parent)
 {
   using namespace script;
@@ -455,8 +454,6 @@ static void register_byte_array(script::Namespace& parent)
   gonk::bind::member_function<QByteArray, bool, &QByteArray::isNull>(c, "isNull").create();
 }
 
-
-
 static void register_byte_ref(script::Namespace& parent)
 {
   using namespace script;
@@ -484,7 +481,6 @@ static void register_byte_ref(script::Namespace& parent)
   // bool operator<=(char c) const;
   gonk::bind::memop_leq<QByteRef, char>(c);
 }
-
 #endif // METAGONK_SOURCE
 
 namespace {

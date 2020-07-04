@@ -18,4 +18,5 @@ INSERT INTO "classes" VALUES (8,'QString',25,'',NULL);
 INSERT INTO "classes" VALUES (11,'Null',31,'',NULL);
 INSERT INTO "classes" VALUES (12,'QCharRef',33,'',NULL);
 INSERT INTO "classes" VALUES (13,'QStringRef',34,'',NULL);
+INSERT INTO "classes" VALUES (14,'QDir',36,'',NULL);
 COMMIT;

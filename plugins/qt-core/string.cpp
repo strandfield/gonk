@@ -22,7 +22,6 @@
 {% include generate_all_classes with module = 'Qt.Core' and classes = classes %}
 #else
 
-
 static void register_latin1_string(script::Namespace& parent)
 {
   using namespace script;
@@ -1221,7 +1220,6 @@ static void register_string_ref(script::Namespace& parent)
   // double toDouble(bool* ok) const;
   /// TODO: double toDouble(bool* ok) const;
 }
-
 #endif // METAGONK_SOURCE
 
 void register_string_file(script::Namespace ns)

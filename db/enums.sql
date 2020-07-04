@@ -20,4 +20,6 @@ INSERT INTO "enums" VALUES (11,'UnicodeVersion',NULL,24);
 INSERT INTO "enums" VALUES (12,'SectionFlag',NULL,28);
 INSERT INTO "enums" VALUES (13,'SplitBehavior',NULL,32);
 INSERT INTO "enums" VALUES (14,'NormalizationForm',NULL,29);
+INSERT INTO "enums" VALUES (15,'Filter',0,37);
+INSERT INTO "enums" VALUES (16,'SortFlag',0,35);
 COMMIT;

@@ -40,4 +40,7 @@ INSERT INTO "types" VALUES (31,'QString::Null','QStringNull',0,1);
 INSERT INTO "types" VALUES (32,'QString::SplitBehavior','QStringSplitBehavior',1,0);
 INSERT INTO "types" VALUES (33,'QCharRef','QCharRef',0,1);
 INSERT INTO "types" VALUES (34,'QStringRef','QStringRef',0,1);
+INSERT INTO "types" VALUES (35,'QDir::SortFlag','QDirSortFlag',1,0);
+INSERT INTO "types" VALUES (36,'QDir','QDir',0,1);
+INSERT INTO "types" VALUES (37,'QDir::Filter','QDirFilter',1,0);
 COMMIT;

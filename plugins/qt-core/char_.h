@@ -21,10 +21,7 @@ namespace script
 {% assign current_class = project | get_symbol: 'Qt.Core', 'QChar'%}
 {% include generate_make_type_helpers with entity = current_class and module_namespace = 'qt_core' and recursive = true %}
 #else
-
 template<> struct make_type_helper<QLatin1Char> { inline static script::Type get(){ return (gonk::qt_core::class_type_id_offset() + static_cast<int>(gonk::qt_core::ClassTypeIds::QLatin1Char)) | script::Type::ObjectFlag; } };
-
-
 template<> struct make_type_helper<QChar::SpecialCharacter> { inline static script::Type get(){ return (gonk::qt_core::enum_type_id_offset() + static_cast<int>(gonk::qt_core::EnumTypeIds::QCharSpecialCharacter)) | script::Type::EnumFlag; } };
 template<> struct make_type_helper<QChar::Category> { inline static script::Type get(){ return (gonk::qt_core::enum_type_id_offset() + static_cast<int>(gonk::qt_core::EnumTypeIds::QCharCategory)) | script::Type::EnumFlag; } };
 template<> struct make_type_helper<QChar::Script> { inline static script::Type get(){ return (gonk::qt_core::enum_type_id_offset() + static_cast<int>(gonk::qt_core::EnumTypeIds::QCharScript)) | script::Type::EnumFlag; } };
@@ -35,7 +32,6 @@ template<> struct make_type_helper<QChar::Joining> { inline static script::Type 
 template<> struct make_type_helper<QChar::CombiningClass> { inline static script::Type get(){ return (gonk::qt_core::enum_type_id_offset() + static_cast<int>(gonk::qt_core::EnumTypeIds::QCharCombiningClass)) | script::Type::EnumFlag; } };
 template<> struct make_type_helper<QChar::UnicodeVersion> { inline static script::Type get(){ return (gonk::qt_core::enum_type_id_offset() + static_cast<int>(gonk::qt_core::EnumTypeIds::QCharUnicodeVersion)) | script::Type::EnumFlag; } };
 template<> struct make_type_helper<QChar> { inline static script::Type get(){ return (gonk::qt_core::class_type_id_offset() + static_cast<int>(gonk::qt_core::ClassTypeIds::QChar)) | script::Type::ObjectFlag; } };
-
 #endif // METAGONK_SOURCE
 } // namespace script
 

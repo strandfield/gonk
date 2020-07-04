@@ -23,7 +23,6 @@
 {% include generate_class with class = current_class and recursive = true %}
 #else
 
-
 static void register_latin1_char(script::Namespace& parent)
 {
   using namespace script;
@@ -41,8 +40,6 @@ static void register_latin1_char(script::Namespace& parent)
   // ushort unicode() const;
   /// TODO: ushort unicode() const;
 }
-
-
 static void register_char__special_character(script::Class& parent)
 {
   using namespace script;
@@ -614,7 +611,6 @@ static void register_char_(script::Namespace& parent)
   // static bool isLetterOrNumber_helper(uint ucs4);
   /// TODO: static bool isLetterOrNumber_helper(uint ucs4);
 }
-
 #endif // METAGONK_SOURCE
 
 void register_char__file(script::Namespace ns)

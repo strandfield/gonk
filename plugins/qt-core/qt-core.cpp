@@ -13,6 +13,7 @@
 extern void register_bytearray_file(script::Namespace ns); // defined in bytearray.cpp
 extern void register_string_file(script::Namespace ns); // defined in string.cpp
 extern void register_char__file(script::Namespace ns); // defined in char_.cpp
+extern void register_dir_file(script::Namespace ns); // defined in dir.cpp
 
 namespace gonk
 {
@@ -56,6 +57,7 @@ public:
     register_bytearray_file(ns);
     register_string_file(ns);
     register_char__file(ns);
+    register_dir_file(ns);
   }
 
   void unload(script::Module m) override

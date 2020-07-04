@@ -25,9 +25,8 @@ namespace qt_core
 
 #if METAGONK_SOURCE
 {% assign qt_core_module = project | get_module: 'Qt.Core' %}
-{% include generate_typeid_list with module = qt_core_module %}
+{% include generate_typeid_list with module = qt_core_module %}{% newline %}
 #else
-
 enum class EnumTypeIds
 {
   FirstTypeId,
@@ -42,6 +41,8 @@ enum class EnumTypeIds
   QCharJoining,
   QCharCombiningClass,
   QCharUnicodeVersion,
+  QDirFilter,
+  QDirSortFlag,
   QStringSectionFlag,
   QStringSplitBehavior,
   QStringNormalizationForm,
@@ -57,6 +58,7 @@ enum class ClassTypeIds
   QByteRef,
   QChar,
   QCharRef,
+  QDir,
   QLatin1Char,
   QLatin1String,
   QStringNull,
