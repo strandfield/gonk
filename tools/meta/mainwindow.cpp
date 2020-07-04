@@ -54,6 +54,7 @@ MainWindow::MainWindow()
 
   menuBar()->addAction("Open", this, SLOT(openProject()));
   menuBar()->addAction("Build DB", this, SLOT(buildDB()));
+  menuBar()->addAction("Export DB", this, SLOT(exportDB()));
   menuBar()->addAction("New type", this, SLOT(createNewType()));
   menuBar()->addAction("Import", this, SLOT(importCpp()));
   menuBar()->addAction("Generate", this, SLOT(generateBinding()));
@@ -137,6 +138,14 @@ void MainWindow::buildDB()
   {
     QMessageBox::information(this, "Open project", "Failed to open project", QMessageBox::Ok); return;
   }
+}
+
+void MainWindow::exportDB()
+{
+  if (m_controller->project() == nullptr)
+    return;
+
+  m_controller->exportDatabase();
 }
 
 void MainWindow::createNewType()

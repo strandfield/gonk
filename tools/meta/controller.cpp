@@ -5,6 +5,7 @@
 #include "controller.h"
 
 #include "database.h"
+#include "database-exporter.h"
 
 #include "project-controller.h"
 #include "project-loader.h"
@@ -72,7 +73,15 @@ bool Controller::loadDatabase(const QFileInfo& db_file)
   m_database.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE")));
   database().setDatabaseName(db_file.absoluteFilePath());
 
+  m_database_path = db_file.absoluteFilePath();
+
   return database().open();
+}
+
+void Controller::exportDatabase()
+{
+  DatabaseExporter exporter{ QFileInfo(m_database_path).dir() };
+  exporter.exportDatabase();
 }
 
 QSqlDatabase& Controller::database() const

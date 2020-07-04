@@ -26,6 +26,7 @@ public:
 
   bool createSqlDatabase(const QFileInfo& db_dir, const QString& savepath);
   bool loadDatabase(const QFileInfo& db_file);
+  void exportDatabase();
   QSqlDatabase& database() const;
 
   void loadProject();

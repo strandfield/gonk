@@ -94,7 +94,8 @@ int Database::getFileId(const cxx::File& file)
 
 QString Database::sqlEscape(QString str)
 {
-  return str.replace("'", "' || CHAR(39) || '");
+  //return str.replace("'", "' || CHAR(39) || '");
+  return str.replace("'", "''");
 }
 
 QString Database::sqlEscape(const std::string str)
