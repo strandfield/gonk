@@ -153,6 +153,13 @@ int Gonk::interactiveSession()
         break;
       }
     }
+    else if (command.find("import ") == 0)
+    {
+      std::string module_name{ command.begin() + 7, command.end() };
+      while (module_name.back() == ' ' || module_name.back() == ';')
+        module_name.pop_back();
+      importModule(module_name);
+    }
     else
     {
       eval(command);
@@ -301,6 +308,41 @@ int Gonk::invokeMain(const script::Script& s)
   return 0;
 }
 
+void Gonk::importModule(const std::string& name)
+{
+  script::Module m;
+
+  auto it = std::find(name.begin(), name.end(), '.');
+
+  if (it == name.end())
+  {
+    m = scriptEngine()->getModule(name);
+  }
+  else
+  {
+    m = scriptEngine()->getModule(std::string(name.begin(), it));
+
+    while (it != name.end() && !m.isNull())
+    {
+      ++it;
+      auto other_it = std::find(it, name.end(), '.');
+      m = m.getSubModule(std::string(it, other_it));
+      it = other_it;
+    }
+  }
+
+  if (m.isNull())
+  {
+    std::cerr << "No such module '" << name << "'" << std::endl;
+    return;
+  }
+
+  if (!m.isLoaded())
+    m.load();
+
+  scriptEngine()->currentContext().use(m);
+}
+
 void Gonk::display(const script::Value & val)
 {
   switch (val.type().baseType().data())
@@ -327,6 +369,13 @@ void Gonk::display(const script::Value & val)
     return;
   default:
     break;
+  }
+
+  if (val.type().isEnumType())
+  {
+    script::Enumerator enm = val.toEnumerator();
+    std::cout << enm.enumeration().name() << "::" << enm.name() << std::endl;
+    return;
   }
 
   /// TODO: better print

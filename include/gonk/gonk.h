@@ -44,6 +44,7 @@ protected:
   int invokeMain(const script::Script& s);
   
 protected:
+  void importModule(const std::string& name);
   void display(const script::Value & val);
 
 private:
