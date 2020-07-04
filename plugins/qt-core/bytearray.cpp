@@ -452,6 +452,8 @@ static void register_byte_array(script::Namespace& parent)
   gonk::bind::member_function<QByteArray, int, &QByteArray::length>(c, "length").create();
   // bool isNull() const;
   gonk::bind::member_function<QByteArray, bool, &QByteArray::isNull>(c, "isNull").create();
+  // QByteArray(const std::string&);
+  gonk::bind::custom_constructor<QByteArray, const std::string&>(c, &bytearray_string_ctor).create();
 }
 
 static void register_byte_ref(script::Namespace& parent)

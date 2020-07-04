@@ -368,10 +368,7 @@ void ModuleTreeWidget::processCtrlN()
 
   dialog->sync();
 
-  if(node->is<cxx::Class>())
-    std::static_pointer_cast<cxx::Class>(node)->members.push_back(dialog->function());
-  else if (node->is<cxx::Namespace>())
-    std::static_pointer_cast<cxx::Namespace>(node)->entities.push_back(dialog->function());
+  Controller::Instance().projectController().insert(dialog->function(), node);
 
   fetchNewNodes();
 }
@@ -397,6 +394,10 @@ void ModuleTreeWidget::fetchNewNodes(QTreeWidgetItem *item)
   {
     for (int i(item->childCount()); i < m->entities.size(); ++i)
       item->addChild(createItem(m->entities.at(i)));
+
+    for (int i(0); i < item->childCount(); ++i)
+      fetchNewNodes(item->child(i));
+
     return;
   }
 

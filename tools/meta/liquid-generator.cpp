@@ -833,10 +833,9 @@ bool LiquidGenerator::isExposable(const cxx::Function& fun)
 {
   try
   {
-    if (!isExposed(QString::fromStdString(fun.return_type.toString())))
+    if (!fun.isConstructor() && !fun.isDestructor() && !isExposed(QString::fromStdString(fun.return_type.toString())))
       return false;
       
-
     for (auto funparam : fun.parameters)
     {
       const QString p = QString::fromStdString(funparam->type.toString());

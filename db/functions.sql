@@ -1154,4 +1154,5 @@ INSERT INTO "functions" VALUES (1191,'operator|','QFlags<QDir::SortFlags::enum_t
 INSERT INTO "functions" VALUES (1192,'operator|','QIncompatibleFlag','QDir::SortFlags::enum_type@f1#class QDirQDir::SortFlagsQFlags<enum QDir::SortFlag>::enum_type;int@f2','noexcept');
 INSERT INTO "functions" VALUES (1193,'operator<<','QDebug','QDebug@debug#class QDebug;QDir::Filters@filters#class QDirQDir::Filters','');
 INSERT INTO "functions" VALUES (1194,'operator<<','QDebug','QDebug@debug#class QDebug;const QDir&@dir#class QDir','');
+INSERT INTO "functions" VALUES (1195,'QByteArray','','const std::string&#','ctor');
 COMMIT;

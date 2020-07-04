@@ -18,4 +18,5 @@ INSERT INTO "metadata" VALUES (11,918,'genwrapper','true');
 INSERT INTO "metadata" VALUES (12,919,'genwrapper','true');
 INSERT INTO "metadata" VALUES (13,920,'genwrapper','true');
 INSERT INTO "metadata" VALUES (14,921,'genwrapper','true');
+INSERT INTO "metadata" VALUES (15,1576,'implementation','"bytearray_string_ctor"');
 COMMIT;
