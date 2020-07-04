@@ -157,8 +157,10 @@ void ModuleTreeWidget::handle_checkboxes(QTreeWidgetItem *item, bool on)
 
 void ModuleTreeWidget::setShowCheckboxes(bool visible)
 {
+  mShowCheckboxes = visible;
+
   for (int i(0); i < topLevelItemCount(); ++i)
-    handle_checkboxes(topLevelItem(i), visible);
+    handle_checkboxes(topLevelItem(i), mShowCheckboxes);
 }
 
 void ModuleTreeWidget::setProject(const MGProjectPtr& pro)
@@ -514,7 +516,9 @@ void ModuleTreeWidget::updateCheckState(QTreeWidgetItem *item)
   if (item->parent() != root && item->parent() != nullptr)
   {
     if (item->parent()->childCount() == 1)
+    {
       item->parent()->setCheckState(0, item->checkState(0));
+    }
     else
     {
       bool one_checked = false;
@@ -522,9 +526,13 @@ void ModuleTreeWidget::updateCheckState(QTreeWidgetItem *item)
       for (int i(0); i < item->parent()->childCount(); ++i)
       {
         if (item->parent()->child(i)->checkState(0) == Qt::Checked)
+        {
           one_checked = true;
+        }
         else if (item->parent()->child(i)->checkState(0) == Qt::Unchecked)
+        {
           one_unchecked = true;
+        }
         else if (item->parent()->child(i)->checkState(0) == Qt::PartiallyChecked)
         {
           one_checked = true, one_unchecked = true;
@@ -538,7 +546,6 @@ void ModuleTreeWidget::updateCheckState(QTreeWidgetItem *item)
         item->parent()->setCheckState(0, Qt::Checked);
       else
         item->parent()->setCheckState(0, Qt::Unchecked);
-
     }
   }
 
