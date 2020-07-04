@@ -28,6 +28,7 @@ ImportPage::ImportPage()
   hl->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
   selectionTreeWidget = new ModuleTreeWidget(nullptr);
+  selectionTreeWidget->setShowCheckboxes(true);
   l->addWidget(selectionTreeWidget);
 }
 

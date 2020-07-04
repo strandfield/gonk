@@ -117,7 +117,7 @@ public:
 
 ModuleTreeWidget::ModuleTreeWidget(const MGProjectPtr& pro)
   : mProject(pro)
-  , mShowCheckboxes(true)
+  , mShowCheckboxes(false)
 {
   setColumnCount(1);
   setHeaderHidden(true);
@@ -134,7 +134,6 @@ ModuleTreeWidget::ModuleTreeWidget(const MGProjectPtr& pro)
   setShowCheckboxes(true);
 
   connect(this, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(updateItem(QTreeWidgetItem*, int)));
-  connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*, int)));
   connect(this, SIGNAL(collapsed(const QModelIndex&)), this, SLOT(resizeColumnsAuto()));
   connect(this, SIGNAL(expanded(const QModelIndex&)), this, SLOT(resizeColumnsAuto()));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(displayContextMenu(const QPoint &)));
@@ -505,7 +504,8 @@ void ModuleTreeWidget::fill(QTreeWidgetItem* parent, const MGModulePtr& node)
 
 void ModuleTreeWidget::updateItem(QTreeWidgetItem *item, int column)
 {
-  updateCheckState(item);
+  if(mShowCheckboxes)
+    updateCheckState(item);
 }
 
 void ModuleTreeWidget::updateCheckState(QTreeWidgetItem *item)
