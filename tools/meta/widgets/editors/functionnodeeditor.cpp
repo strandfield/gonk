@@ -4,22 +4,18 @@
 
 #include "functionnodeeditor.h"
 
+#include "database.h"
 #include "controller.h"
 #include "project-controller.h"
 
 #include <QBoxLayout>
-#include <QComboBox>
 #include <QFontMetrics>
 #include <QLineEdit>
 
-FunctionNodeEditor::FunctionNodeEditor(const FunctionRef & func, QWidget *p)
+FunctionNodeEditor::FunctionNodeEditor(const std::shared_ptr<cxx::Function>& func, QWidget *p)
   : AbstractNodeEditor(func, p)
 {
   QFontMetrics fm{ font() };
-
-  mBindingMethod = new QComboBox();
-  for (int i(Function::FirstBindingMethod); i <= Function::LastBindingMethod; ++i)
-    mBindingMethod->addItem(Function::serialize(static_cast<Function::BindingMethod>(i)));
 
   mReturnType = new QLineEdit();
   mReturnType->setPlaceholderText("return-type");
@@ -36,23 +32,12 @@ FunctionNodeEditor::FunctionNodeEditor(const FunctionRef & func, QWidget *p)
   mSpecifiers->setPlaceholderText("const,static,...");
   mSpecifiers->setFixedWidth(fm.width("const,static,...") + 8);
 
-  m_implementation = new QLineEdit;
-  m_implementation->setPlaceholderText("my_callback");
-  m_implementation->setFixedWidth(fm.width("my_callback") + 8);
-
-  m_condition = new QLineEdit;
-  m_condition->setPlaceholderText("QT_VERSION_MAJOR > 5");
-  m_condition->setFixedWidth(fm.width("QT_VERSION_MAJOR > 5") + 8);
-
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mBindingMethod);
   layout->addWidget(mReturnType);
   layout->addWidget(mName);
   layout->addWidget(mParameters);
   layout->addWidget(mSpecifiers);
-  layout->addWidget(m_implementation);
-  layout->addWidget(m_condition);
 
   setAutoFillBackground(true);
 
@@ -67,28 +52,23 @@ void FunctionNodeEditor::write()
     mName->text(),
     mReturnType->text(),
     mParameters->text().simplified().split(';', QString::SkipEmptyParts),
-    mSpecifiers->text().split(','),
-    static_cast<Function::BindingMethod>(mBindingMethod->currentIndex() + Function::FirstBindingMethod),
-    m_implementation->text(),
-    m_condition->text());
+    mSpecifiers->text().split(','));
 }
 
-void FunctionNodeEditor::read(FunctionRef fun)
+void FunctionNodeEditor::read(std::shared_ptr<cxx::Function> fun)
 {
   setNode(fun);
 
-  mBindingMethod->setCurrentIndex(fun->bindingMethod - Function::FirstBindingMethod);
-  mReturnType->setText(fun->returnType);
-  mName->setText(fun->name);
+  mReturnType->setText(QString::fromStdString(fun->return_type.toString()));
+  mName->setText(QString::fromStdString(fun->name));
 
-  QStringList params = fun->parameters;
-  for (int i(0); i < fun->defaultArguments.size(); ++i)
-    params[params.size() - i - 1] += "=" + fun->defaultArguments.at(i);
+  QStringList params;
+  for (auto p : fun->parameters)
+  {
+    params.append(QString::fromStdString(p->type.toString()));
+  }
   mParameters->setText(params.join(";"));
 
-  mSpecifiers->setText(fun->getSpecifiers().join(','));
-
-  m_implementation->setText(fun->implementation);
-  m_condition->setText(fun->condition);
+  mSpecifiers->setText(Database::specifiers(*fun));
 }
 

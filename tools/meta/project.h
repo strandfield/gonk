@@ -5,68 +5,135 @@
 #ifndef METAGONK_PROJECT_H
 #define METAGONK_PROJECT_H
 
-#include "project/module.h"
-#include "project/class.h"
-#include "project/enum.h"
-#include "project/file.h"
-#include "project/function.h"
-#include "project/namespace.h"
-#include "project/statement.h"
-#include "project/type.h"
+#include <cxx/entity.h>
+
+#include <json-toolkit/json.h>
 
 #include <map>
 #include <memory>
+#include <unordered_map>
 
-class Project
+namespace cxx
+{
+class Class;
+class Enum;
+class Function;
+class Namespace;
+} // namespace cxx
+
+class MGType
 {
 public:
-  struct Types
-  {
-    QList<std::shared_ptr<Type>> fundamentals;
-    QList<std::shared_ptr<Type>> enums;
-    QList<std::shared_ptr<Type>> classes;
+  enum Category {
+    FundamentalType,
+    ClassType,
+    EnumType,
   };
 
 public:
-  QList<ModuleRef> modules;
-  Types types;
-  std::map<int, ModuleRef> modules_map;
-  std::map<int, FileRef> files;
-  std::map<int, FunctionRef> functions;
-  std::map<int, NamespaceRef> namespaces;
-  std::map<int, ClassRef> classes;
-  std::map<int, EnumRef> enums;
-  std::map<int, EnumeratorRef> enumerators;
-  std::map<int, StatementRef> statements;
-  std::map<int, NodeRef> entities;
-  std::map<int, std::shared_ptr<Type>> type_map;
+  int database_id = -1;
+  std::string name;
+  std::string id;
+  Category category = FundamentalType;
 
-  void removeUncheckedSymbols();
+public:
+  MGType() = default;
+  MGType(std::string n, std::string id);
+  ~MGType() = default;
 
-  bool hasEnumType(const QString & name) const;
-  bool hasClassType(const QString & name) const;
-  Type & getType(const QString & name);
-  std::shared_ptr<Type> getType(int id) const;
-
-  template<typename T>
-  std::shared_ptr<T> get(const QString & name)
-  {
-    for (const auto & e : modules)
-    {
-      if (e->is<T>() && e->name == name)
-        return std::static_pointer_cast<T>(e);
-    }
-
-    auto ret = std::make_shared<T>(name);
-    modules.append(ret);
-    return ret;
-  }
-
-  static void sort(QList<Type> & types);
-
-  int fileCount() const;
+  bool isClass() const { return category == ClassType; }
+  bool isEnum() const { return category == EnumType; }
 };
 
-typedef std::shared_ptr<Project> ProjectRef;
+typedef std::shared_ptr<MGType> MGTypePtr;
+
+class MGModule : public std::enable_shared_from_this<MGModule>
+{
+public:
+  std::string name;
+  std::vector<std::shared_ptr<cxx::Entity>> entities;
+
+public:
+  MGModule() = default;
+  MGModule(std::string n): name(std::move(n)) { }
+
+  std::shared_ptr<cxx::Entity> getSymbol(const std::string& name) const;
+  std::vector<std::shared_ptr<cxx::Entity>> getSymbolsByLocation(const std::string& filename) const;
+};
+
+typedef std::shared_ptr<MGModule> MGModulePtr;
+
+struct MGDatabaseId
+{
+  int global_id = -1;
+  int id = -1;
+};
+
+class MGProject
+{
+public:
+  std::vector<MGTypePtr> types;
+  std::vector<MGModulePtr> modules;
+  std::unordered_map<void*, MGDatabaseId> database_ids;
+  std::map<std::shared_ptr<cxx::Entity>, MGTypePtr> entity_type_map;
+  std::unordered_map<void*, json::Object> metadata;
+  std::map<std::string, std::shared_ptr<cxx::File>> files;
+
+  MGDatabaseId& dbid(MGModulePtr m)
+  {
+    return database_ids[m.get()];
+  }
+
+  MGDatabaseId& dbid(std::shared_ptr<cxx::Entity> e)
+  {
+    return database_ids[e.get()];
+  }
+
+  MGModulePtr getModule(const std::string& name) const;
+  MGModulePtr getOrCreateModule(const std::string& name);
+
+  bool hasType(const std::string& name) const;
+
+  MGTypePtr getTypeById(const std::string& id) const;
+
+  bool inDB(std::shared_ptr<cxx::Entity> e) const;
+  bool inDB(MGModulePtr m) const;
+
+  bool getMetadata(std::shared_ptr<cxx::Entity> e, json::Object& out) const;
+  json::Object& getMetadata(std::shared_ptr<cxx::Entity> e);
+  bool getMetadata(MGModulePtr e, json::Object& out) const;
+  json::Object& getMetadata(MGModulePtr e);
+
+  static bool isOperator(const cxx::Function& f);
+  static int comp(const cxx::Entity& lhs, const cxx::Entity& rhs);
+  static void sort(std::vector<std::shared_ptr<cxx::Entity>>& list);
+  void sort();
+};
+
+typedef std::shared_ptr<MGProject> MGProjectPtr;
+
+class RAIICxxElemGuard
+{
+public:
+  std::shared_ptr<cxx::Entity>& target;
+  std::shared_ptr<cxx::Entity> backup_value;
+
+  RAIICxxElemGuard(std::shared_ptr<cxx::Entity>& e)
+    : target(e),
+    backup_value(e)
+  {
+
+  }
+
+  ~RAIICxxElemGuard()
+  {
+    target = backup_value;
+  }
+};
+
+bool eq(const std::shared_ptr<cxx::Entity>& a, const std::shared_ptr<cxx::Entity>& b);
+std::string qualifiedName(const cxx::Entity& e);
+std::vector<std::shared_ptr<cxx::Entity>> children(const cxx::Entity& e);
+std::string signature(const cxx::Function& f);
 
 #endif // METAGONK_PROJECT_H

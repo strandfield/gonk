@@ -7,7 +7,7 @@
 
 #include "abstractnodeeditor.h"
 
-#include "project/namespace.h"
+#include <cxx/namespace.h>
 
 class QCheckBox;
 class QLineEdit;
@@ -16,13 +16,13 @@ class NamespaceNodeEditor : public AbstractNodeEditor
 {
   Q_OBJECT
 public:
-  NamespaceNodeEditor(const NamespaceRef & ns, QWidget *p = nullptr);
+  NamespaceNodeEditor(const std::shared_ptr<cxx::Namespace> & ns, QWidget *p = nullptr);
   ~NamespaceNodeEditor() = default;
 
   void write() override;
-  void read(NamespaceRef ns);
+  void read(std::shared_ptr<cxx::Namespace> ns);
 
-  inline NamespaceRef getNamespace() const { return std::static_pointer_cast<Namespace>(getNode()); }
+  inline std::shared_ptr<cxx::Namespace> getNamespace() const { return std::static_pointer_cast<cxx::Namespace>(getNode()); }
 
 private:
   QLineEdit *mName;

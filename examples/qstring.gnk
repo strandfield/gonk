@@ -1,0 +1,7 @@
+
+import Qt.Core;
+
+QString str = QString::fromStdString("HELLO");
+str = str.toLower();
+
+print(str.toStdString());

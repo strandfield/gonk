@@ -6,6 +6,8 @@
 
 #include "database.h"
 
+#include <json-toolkit/parsing.h>
+
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -14,37 +16,73 @@
 
 #include <QDebug>
 
-QString ProjectLoader::state() const
+QString MGProjectLoader::state() const
 {
   return m_state;
 }
 
-void ProjectLoader::setState(const QString& st)
+void MGProjectLoader::setState(const QString& st)
 {
   m_state = st;
   Q_EMIT stateChanged();
 }
 
-void ProjectLoader::write(Qt::CheckState& cs, QString& cond, QString db_cond)
+void MGProjectLoader::write(std::vector<std::shared_ptr<cxx::FunctionParameter>>& o_params, QString param_list_str)
 {
-  if (db_cond == "0")
+  if (param_list_str.isEmpty())
+    return;
+
+  QStringList plist = param_list_str.split(";", QString::SkipEmptyParts);
+
+  for (QString pstr : plist)
   {
-    cs = Qt::Unchecked;
-    cond.clear();
-  }
-  else if (db_cond.startsWith("0 &&"))
-  {
-    cs = Qt::Unchecked;
-    cond = db_cond.remove("0 &&");
-  }
-  else
-  {
-    cs = Qt::Checked;
-    cond = db_cond;
+    int pname_index = pstr.indexOf("@");
+    int pvalue_index = pstr.indexOf("#");
+
+    if (pname_index == -1)
+      pname_index = pstr.length();
+    if (pvalue_index == -1)
+      pvalue_index = pstr.length();
+
+    QString ptype_str = pstr.mid(0, std::min(pname_index, pvalue_index));
+    QString pname = pstr.mid(pname_index + 1, pvalue_index - pname_index - 1);
+    QString pvalue = pstr.mid(pvalue_index + 1);
+
+    cxx::Type ptype{ ptype_str.toStdString() };
+    std::string name{ pname.toStdString() };
+    std::string default_value{ pvalue.toStdString() };
+    auto p = std::make_shared<cxx::FunctionParameter>(ptype, std::move(name));
+    p->default_value = cxx::Expression(std::move(default_value));
+    o_params.push_back(p);
   }
 }
 
-void ProjectLoader::loadTypes()
+void MGProjectLoader::writeSpecifiers(cxx::Function& f, QString specifiers)
+{
+  QStringList specs = specifiers.split(",", QString::SkipEmptyParts);
+
+  for (QString sp : specs)
+  {
+    if (sp == "const")
+      f.specifiers |= cxx::FunctionSpecifier::Const;
+    else if (sp == "delete")
+      f.specifiers |= cxx::FunctionSpecifier::Delete;
+    else if (sp == "explicit")
+      f.specifiers |= cxx::FunctionSpecifier::Explicit;
+    else if (sp == "static")
+      f.specifiers |= cxx::FunctionSpecifier::Static;
+    else if (sp == "noexcept")
+      f.specifiers |= cxx::FunctionSpecifier::Noexcept;
+    else if (sp == "virtual")
+      f.specifiers |= cxx::FunctionSpecifier::Virtual;
+    else if (sp == "ctor")
+      f.kind = cxx::FunctionKind::Constructor;
+    else if (sp == "dtor")
+      f.kind = cxx::FunctionKind::Destructor;  
+  }
+}
+
+void MGProjectLoader::loadTypes()
 {
   setState("loading types");
 
@@ -52,67 +90,62 @@ void ProjectLoader::loadTypes()
 
   while (query.next())
   {
-    auto result = std::make_shared<Type>();
+    auto result = std::make_shared<MGType>();
     result->database_id = query.value("id").toInt();
-    result->name = query.value("name").toString();
-    result->id = query.value("typeid").toString();
+    result->name = query.value("name").toString().toStdString();
+    result->id = query.value("typeid").toString().toStdString();
 
-    project->types.fundamentals.append(result);
-    project->type_map[result->database_id] = result;
+    project->types.push_back(result);
+    m_type_map[result->database_id] = result;
   }
 
   query = database.exec("SELECT * FROM types WHERE is_enum = 1 AND is_class = 0");
 
   while (query.next())
   {
-    auto result = std::make_shared<Type>();
+    auto result = std::make_shared<MGType>();
     result->database_id = query.value("id").toInt();
-    result->name = query.value("name").toString();
-    result->id = query.value("typeid").toString();
-    result->is_enum = true;
+    result->name = query.value("name").toString().toStdString();
+    result->id = query.value("typeid").toString().toStdString();
+    result->category = MGType::EnumType;
 
-    project->types.enums.append(result);
-    project->type_map[result->database_id] = result;
+    project->types.push_back(result);
+    m_type_map[result->database_id] = result;
   }
 
   query = database.exec("SELECT * FROM types WHERE is_enum = 0 AND is_class = 1");
 
   while (query.next())
   {
-    auto result = std::make_shared<Type>();
+    auto result = std::make_shared<MGType>();
     result->database_id = query.value("id").toInt();
-    result->name = query.value("name").toString();
-    result->id = query.value("typeid").toString();
-    result->is_class = true;
+    result->name = query.value("name").toString().toStdString();
+    result->id = query.value("typeid").toString().toStdString();
+    result->category = MGType::ClassType;
 
-    project->types.classes.append(result);
-    project->type_map[result->database_id] = result;
+    project->types.push_back(result);
+    m_type_map[result->database_id] = result;
   }
 }
 
-void ProjectLoader::loadEntities()
+void MGProjectLoader::loadEntities()
 {
   loadFunctions();
   loadClasses();
   loadEnums();
   loadEnumerators();
-  loadStatements();
-  loadFiles();
   loadModules();
 
   {
-    QSqlQuery query = database.exec("SELECT id, module_id, file_id, namespace_id, class_id, function_id, enum_id, enumerator_id, statement_id, rank FROM entities ORDER BY rank ASC");
+    QSqlQuery query = database.exec("SELECT id, module_id, namespace_id, class_id, function_id, enum_id, enumerator_id FROM entities");
 
     int ID = 0;
     int MODULE_ID = 1;
-    int FILE_ID = 2;
-    int NAMESPACE_ID = 3;
-    int CLASS_ID = 4;
-    int FUNCTION_ID = 5;
-    int ENUM_ID = 6;
-    int ENUMERATOR_ID = 7;
-    int STATEMENT_ID = 8;
-    int ORDER = 9;
+    int NAMESPACE_ID = 2;
+    int CLASS_ID = 3;
+    int FUNCTION_ID = 4;
+    int ENUM_ID = 5;
+    int ENUMERATOR_ID = 6;
 
     while (query.next())
     {
@@ -120,67 +153,58 @@ void ProjectLoader::loadEntities()
 
       if (!query.value(MODULE_ID).isNull())
       {
-        ModuleRef m = project->modules_map[query.value(MODULE_ID).toInt()];
-        m->entity_id = entity_id;
-        m->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = m;
-      }
-      else if (!query.value(FILE_ID).isNull())
-      {
-        FileRef f = project->files[query.value(FILE_ID).toInt()];
-        f->entity_id = entity_id;
-        f->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = f;
+        MGModulePtr m = m_modules_map[query.value(MODULE_ID).toInt()];
+        project->dbid(m).global_id = entity_id;
       }
       else if (!query.value(NAMESPACE_ID).isNull())
       {
-        NamespaceRef ns = project->namespaces[query.value(NAMESPACE_ID).toInt()];
-        ns->entity_id = entity_id;
-        ns->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = ns;
+        std::shared_ptr<cxx::Namespace> ns = m_namespaces_map[query.value(NAMESPACE_ID).toInt()];
+        project->dbid(ns).global_id = entity_id;
+
+        m_entity_map[entity_id] = ns;
       }
       else if (!query.value(CLASS_ID).isNull())
       {
-        ClassRef c = project->classes[query.value(CLASS_ID).toInt()];
-        c->entity_id = entity_id;
-        c->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = c;
+        std::shared_ptr<cxx::Class> c = m_classes_map[query.value(CLASS_ID).toInt()];
+        project->dbid(c).global_id = entity_id;
+
+        m_entity_map[entity_id] = c;
+
       }
       else if (!query.value(FUNCTION_ID).isNull())
       {
-        FunctionRef fun = project->functions[query.value(FUNCTION_ID).toInt()];
-        fun->entity_id = entity_id;
-        fun->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = fun;
+        std::shared_ptr<cxx::Function> fun = m_functions_map[query.value(FUNCTION_ID).toInt()];
+
+        project->dbid(fun).global_id = entity_id;
+
+        m_entity_map[entity_id] = fun;
+
       }
       else if (!query.value(ENUM_ID).isNull())
       {
-        EnumRef enm = project->enums[query.value(ENUM_ID).toInt()];
-        enm->entity_id = entity_id;
-        enm->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = enm;
+        std::shared_ptr<cxx::Enum> enm = m_enums_map[query.value(ENUM_ID).toInt()];
+        project->dbid(enm).global_id = entity_id;
+
+        m_entity_map[entity_id] = enm;
+
       }
       else if (!query.value(ENUMERATOR_ID).isNull())
       {
-        EnumeratorRef enm = project->enumerators[query.value(ENUMERATOR_ID).toInt()];
-        enm->entity_id = entity_id;
-        enm->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = enm;
-      }
-      else if (!query.value(STATEMENT_ID).isNull())
-      {
-        StatementRef s = project->statements[query.value(STATEMENT_ID).toInt()];
-        s->entity_id = entity_id;
-        s->order = query.value(ORDER).toInt();
-        project->entities[entity_id] = s;
+        std::shared_ptr<cxx::EnumValue> enm = m_enumerators_map[query.value(ENUMERATOR_ID).toInt()];
+
+        project->dbid(enm).global_id = entity_id;
+
+        m_entity_map[entity_id] = enm;
       }
     }
   }
 
+  loadMetadata();
+
   buildEntityTree();
 }
 
-void ProjectLoader::loadModules()
+void MGProjectLoader::loadModules()
 {
   setState("loading modules");
 
@@ -191,71 +215,42 @@ void ProjectLoader::loadModules()
 
   while (query.next())
   {
-    auto m = std::make_shared<Module>("");
-    m->module_id = query.value(ID).toInt();
-    m->name = query.value(NAME).toString();
-
-    project->modules_map[m->module_id] = m;
+    int id = query.value(ID).toInt();
+    auto m = std::make_shared<MGModule>("");
+    m->name = query.value(NAME).toString().toStdString();
+    m_modules_map[id] = m;
+    project->dbid(m).id = id;
   }
 }
 
-void ProjectLoader::loadFiles()
-{
-  setState("loading files");
-
-  QSqlQuery query = database.exec("SELECT id, name, hincludes, cppincludes FROM files");
-
-  int ID = 0;
-  int NAME = 1;
-  int HINCLUDES = 2;
-  int CPPINCLUDES = 3;
-
-  while (query.next())
-  {
-    auto f = std::make_shared<File>("");
-    f->file_id = query.value(ID).toInt();
-    f->name = query.value(NAME).toString();
-    f->hincludes = query.value(HINCLUDES).toString().split(',', QString::SkipEmptyParts);
-    f->cppincludes = query.value(CPPINCLUDES).toString().split(',', QString::SkipEmptyParts);
-
-    project->files[f->file_id] = f;
-  }
-}
-
-void ProjectLoader::loadFunctions()
+void MGProjectLoader::loadFunctions()
 {
   setState("loading functions");
 
-  QSqlQuery query = Database::exec("SELECT id, name, return_type, parameters, specifiers, binding, implementation, condition FROM functions");
+  QSqlQuery query = Database::exec("SELECT id, name, return_type, parameters, specifiers FROM functions");
 
   int ID = 0;
   int NAME = 1;
   int RETURN_TYPE = 2;
   int PARAMETERS = 3;
   int SPECIFIERS = 4;
-  int BINDING = 5;
-  int IMPL = 6;
-  int CONDITION = 7;
 
   while (query.next())
   {
-    auto fun = std::make_shared<Function>("");
-    fun->function_id = query.value(ID).toInt();
-    fun->name = query.value(NAME).toString();
-    fun->returnType = query.value(RETURN_TYPE).toString();
-    fun->parameters = query.value(PARAMETERS).toString().simplified().split(';', QString::SkipEmptyParts);
-    write(fun->checkState, fun->condition, query.value(CONDITION).toString());
-    fun->bindingMethod = Function::deserialize<Function::BindingMethod>(query.value(BINDING).toString());
-    fun->implementation = query.value(IMPL).toString();
+    int id = query.value(ID).toInt();
 
-    QStringList specifiers = query.value(SPECIFIERS).toString().split(',');
-    fun->setSpecifiers(specifiers);
+    auto fun = std::make_shared<cxx::Function>(query.value(NAME).toString().toStdString());
+    fun->return_type = cxx::Type(query.value(RETURN_TYPE).toString().toStdString());
+    write(fun->parameters, query.value(PARAMETERS).toString().simplified());
 
-    project->functions[fun->function_id] = fun;
+    writeSpecifiers(*fun, query.value(SPECIFIERS).toString());
+
+    m_functions_map[id] = fun;
+    project->dbid(fun).id = id;
   }
 }
 
-void ProjectLoader::loadClasses()
+void MGProjectLoader::loadClasses()
 {
   setState("loading classes");
 
@@ -269,124 +264,218 @@ void ProjectLoader::loadClasses()
 
   while (query.next())
   {
-    auto c = std::make_shared<Class>("");
-    c->class_id = query.value(ID).toInt();
-    c->name = query.value(NAME).toString();
-    c->type_id = query.value(TYPE).toInt();
-    c->base = query.value(BASE).toString();
-    c->isFinal = query.value(FINAL).toInt();
+    int id = query.value(ID).toInt();
 
-    project->classes[c->class_id] = c;
+    auto c = std::make_shared<cxx::Class>(query.value(NAME).toString().toStdString());
+    c->is_final = query.value(FINAL).toInt();
+
+    if (!query.value(BASE).toString().isEmpty())
+    {
+      // TODO: try to link to the actual class, if it exists
+      cxx::BaseClass base;
+      base.base = std::make_shared<cxx::Class>(query.value(BASE).toString().toStdString());
+      c->bases.push_back(std::move(base));
+    }
+
+    project->entity_type_map[c] = m_type_map.at(query.value(TYPE).toInt());
+
+    m_classes_map[id] = c;
+    project->dbid(c).id = id;
   }
 }
 
-void ProjectLoader::loadEnums()
+void MGProjectLoader::loadEnums()
 {
   setState("loading enums");
 
-  QSqlQuery query = database.exec("SELECT id, name, type FROM enums");
+  QSqlQuery query = database.exec("SELECT id, name, enum_class, type FROM enums");
 
   int ID = 0;
   int NAME = 1;
-  int TYPE = 2;
+  int ENUM_CLASS = 2;
+  int TYPE = 3;
 
   while (query.next())
   {
-    auto enm = std::make_shared<Enum>("");
-    enm->enum_id = query.value(ID).toInt();
-    enm->name = query.value(NAME).toString();
-    enm->type_id = query.value(TYPE).toInt();
+    int id = query.value(ID).toInt();
 
-    project->enums[enm->enum_id] = enm;
+    auto enm = std::make_shared<cxx::Enum>(query.value(NAME).toString().toStdString());
+    enm->enum_class = query.value(ENUM_CLASS).toInt() != 0;
+
+    int type_id = query.value(TYPE).toInt();
+    if (type_id != -1)
+    {
+      project->entity_type_map[enm] = m_type_map.at(type_id);
+    }
+    else
+    {
+      qDebug() << "Enum is not associated with a type: " << enm->name.c_str();
+    }
+
+    m_enums_map[id] = enm;
+    project->dbid(enm).id = id;
   }
 }
 
-void ProjectLoader::loadEnumerators()
+void MGProjectLoader::loadEnumerators()
 {
   setState("loading enumerators");
 
-  //for (const std::pair<int, EnumRef>& entries : project->enums)
-  //{
-  //  EnumRef enm = entries.second;
-
-  //  QSqlQuery query = database.exec("SELECT id, name FROM enumerators WHERE enum_id = " + QString::number(entries.first));
-
-  //  int ID = 0;
-  //  int NAME = 1;
-
-  //  while (query.next())
-  //  {
-  //    auto enumerator = EnumeratorRef::create(query.value(NAME).toString());
-  //    enumerator->enumerator_id = query.value(ID).toInt();
-  //    enm->enumerators.append(enumerator);
-  //    project->enumerators[enumerator->enumerator_id] = enumerator;
-  //  }
-  //}
-
-  QSqlQuery query = database.exec("SELECT id, name, condition FROM enumerators");
+  QSqlQuery query = database.exec("SELECT id, name FROM enumerators");
 
   int ID = 0;
   int NAME = 1;
-  int CONDITION = 2;
 
   while (query.next())
   {
-    auto enm = std::make_shared<Enumerator>("");
-    enm->enumerator_id = query.value(ID).toInt();
-    enm->name = query.value(NAME).toString();
-    write(enm->checkState, enm->condition, query.value(CONDITION).toString());
+    int id = query.value(ID).toInt();
 
-    project->enumerators[enm->enumerator_id] = enm;
+    auto enm = std::make_shared<cxx::EnumValue>(query.value(NAME).toString().toStdString());
+
+    m_enumerators_map[id] = enm;
+    project->dbid(enm).id = id;
   }
 }
 
-void ProjectLoader::loadStatements()
+void MGProjectLoader::loadMetadata()
 {
-  setState("loading statements");
+  setState("loading metadata");
 
-  QSqlQuery query = database.exec("SELECT id, content FROM statements");
+  QSqlQuery query = database.exec("SELECT entity_id, name, value FROM metadata");
 
-  int ID = 0;
-  int CONTENT = 1;
+  int ENTITY_ID = 0;
+  int NAME = 1;
+  int VALUE = 2;
 
   while (query.next())
   {
-    auto s = std::make_shared<Statement>("");
-    s->statement_id = query.value(ID).toInt();
-    s->name = query.value(CONTENT).toString();
+    int id = query.value(ENTITY_ID).toInt();
 
-    project->statements[s->statement_id] = s;
+    json::Object& json_obj = [&]() {
+      {
+        auto it = m_entity_map.find(id);
+
+        if (it != m_entity_map.end())
+        {
+          std::shared_ptr<cxx::Entity> e = it->second;
+          return project->getMetadata(e);
+        }
+      }
+
+      {
+        auto it = m_modules_map.find(id);
+
+        if (it != m_modules_map.end())
+        {
+          MGModulePtr e = it->second;
+          return project->getMetadata(e);
+        }
+      }
+
+      throw std::runtime_error{ "No such entity" };
+    }();
+
+    std::string key = query.value(NAME).toString().toStdString();
+    std::string value = query.value(VALUE).toString().toStdString();
+
+    json::Json json_value = [&]() -> json::Json {
+      if (value == "true")
+        return true;
+      else if (value == "false")
+        return false;
+      else if (value.at(0) == '\"')
+        return std::string(value.begin() + 1, value.end() - 1);
+      else if (value.at(0) == '[' || value.at(0) == '{')
+        return json::parse(value);
+      else
+        return std::stoi(value);
+    }();
+
+    json_obj[key] = json_value;
   }
 }
 
-void ProjectLoader::buildEntityTree()
+void MGProjectLoader::buildEntityTree()
 {
   setState("building tree");
 
-  std::list<NodeRef> queue;
+  std::list<std::shared_ptr<cxx::Entity>> queue;
 
-  for (const auto& e : project->modules_map)
+  for (const auto& e : m_modules_map)
   {
-    queue.push_back(e.second);
-    project->modules.append(e.second);
-  }
+    project->modules.push_back(e.second);
 
-  while (!queue.empty())
-  {
-    NodeRef n = queue.front();
-    queue.pop_front();
-
-    QSqlQuery query = database.exec(QString("SELECT id FROM entities WHERE parent = %1 ORDER BY rank ASC").arg(n->entity_id));
+    QSqlQuery query = database.exec(QString("SELECT id FROM entities WHERE parent = %1").arg(project->dbid(e.second).global_id));
 
     int ID = 0;
 
     while (query.next())
     {
       int child_id = query.value(ID).toInt();
-      auto child = project->entities[child_id];
-      n->appendChild(child);
+      auto child = m_entity_map[child_id];
+      e.second->entities.push_back(child);
 
       queue.push_back(child);
     }
- }
+  }
+
+  while (!queue.empty())
+  {
+    std::shared_ptr<cxx::Entity> n = queue.front();
+    queue.pop_front();
+
+    QSqlQuery query = database.exec(QString("SELECT id FROM entities WHERE parent = %1").arg(project->dbid(n).global_id));
+
+    int ID = 0;
+
+    while (query.next())
+    {
+      int child_id = query.value(ID).toInt();
+      auto child = m_entity_map.at(child_id);
+      n->appendChild(child);
+      // @TODO: should have been done by appendChild()
+      child->weak_parent = n;
+
+      queue.push_back(child);
+    }
+  }
+}
+
+void MGProjectLoader::loadFiles()
+{
+  setState("loading files");
+
+  QSqlQuery query = database.exec("SELECT id, path FROM files");
+
+  int ID = 0;
+  int PATH = 1;
+
+  while (query.next())
+  {
+    int id = query.value(ID).toInt();
+
+    auto f = std::make_shared<cxx::File>(query.value(PATH).toString().toStdString());
+
+    m_files_map[id] = f;
+  }
+}
+
+void MGProjectLoader::loadSourceLocations()
+{
+  setState("loading source locations");
+
+  QSqlQuery query = database.exec("SELECT entity_id, file_id, line, column FROM source_locations");
+
+  int ENTITY_ID = 0;
+  int FILE_ID = 1;
+  int LINE = 2;
+  int COLUMN = 3;
+
+  while (query.next())
+  {
+    auto e = m_entity_map.at(query.value(ENTITY_ID).toInt());
+    auto f = m_files_map.at(query.value(FILE_ID).toInt());
+
+    e->location = cxx::SourceLocation(f, query.value(LINE).toInt(), query.value(COLUMN).toInt());
+  }
 }

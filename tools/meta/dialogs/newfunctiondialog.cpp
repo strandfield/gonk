@@ -5,6 +5,7 @@
 #include "dialogs/newfunctiondialog.h"
 
 #include "controller.h"
+#include "database.h"
 #include "project-controller.h"
 
 #include <QComboBox>
@@ -17,26 +18,21 @@ NewFunctionDialog::NewFunctionDialog(QWidget *parent)
   : QDialog(parent)
 {
   setup();
-  mFunction = std::make_shared<Function>("");
+  mFunction = std::make_shared<cxx::Function>("");
 }
 
-NewFunctionDialog::NewFunctionDialog(FunctionRef fun, QWidget *parent)
+NewFunctionDialog::NewFunctionDialog(std::shared_ptr<cxx::Function> fun, QWidget *parent)
   : QDialog(parent)
 {
   setup();
   mFunction = fun;
 
-  mNameLineEdit->setText(fun->name);
-  mReturnTypeLineEdit->setText(fun->returnType);
-  mParametersLineEdit->setText(fun->parameters.join(";"));
+  mNameLineEdit->setText(QString::fromStdString(fun->name));
+  mReturnTypeLineEdit->setText(QString::fromStdString(fun->return_type.toString()));
+  mParametersLineEdit->setText(Database::parameters(*fun));
   
-  QStringList specifiers = fun->getSpecifiers();
-  mSpecifiersLineEdit->setText(specifiers.join(","));
-
-  mBindingMethodComboBox->setCurrentIndex(fun->bindingMethod - Function::FirstBindingMethod);
-
-  m_impl_lineedit->setText(fun->implementation);
-  m_condition_lineedit->setText(fun->condition);
+  QString specifiers = Database::specifiers(*fun);
+  mSpecifiersLineEdit->setText(specifiers);
 }
 
 void NewFunctionDialog::setup()
@@ -46,21 +42,11 @@ void NewFunctionDialog::setup()
   mParametersLineEdit = new QLineEdit();
   mSpecifiersLineEdit = new QLineEdit();
 
-  mBindingMethodComboBox = new QComboBox();
-  for (int i(Function::FirstBindingMethod); i <= Function::LastBindingMethod; ++i)
-    mBindingMethodComboBox->addItem(Function::serialize(static_cast<Function::BindingMethod>(i)));
-
-  m_impl_lineedit = new QLineEdit();
-  m_condition_lineedit = new QLineEdit();
-
   auto *form = new QFormLayout();
   form->addRow("Name:", mNameLineEdit);
   form->addRow("Return type:", mReturnTypeLineEdit);
   form->addRow("Parameters:", mParametersLineEdit);
   form->addRow("Specifiers:", mSpecifiersLineEdit);
-  form->addRow("Binding:", mBindingMethodComboBox);
-  form->addRow("Impl:", m_impl_lineedit);
-  form->addRow("Condition:", m_condition_lineedit);
 
   auto *okButton = new QPushButton("OK");
   connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
@@ -76,9 +62,6 @@ void NewFunctionDialog::sync()
     mNameLineEdit->text(),
     mReturnTypeLineEdit->text().simplified(),
     mParametersLineEdit->text().simplified().split(";", QString::SkipEmptyParts),
-    mSpecifiersLineEdit->text().simplified().split(','),
-    static_cast<Function::BindingMethod>(mBindingMethodComboBox->currentIndex() + Function::FirstBindingMethod),
-    m_impl_lineedit->text(),
-    m_condition_lineedit->text());
+    mSpecifiersLineEdit->text().simplified().split(','));
 }
 

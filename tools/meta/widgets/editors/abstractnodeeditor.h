@@ -7,24 +7,24 @@
 
 #include <QWidget>
 
-#include "project/node.h"
+#include "project.h"
 
 class AbstractNodeEditor : public QWidget
 {
   Q_OBJECT
 public:
-  AbstractNodeEditor(NodeRef n, QWidget *p = nullptr);
+  AbstractNodeEditor(std::shared_ptr<cxx::Entity> n, QWidget *p = nullptr);
   ~AbstractNodeEditor() = default;
 
   virtual void write() = 0;
 
-  inline NodeRef getNode() const { return mNode; }
+  inline std::shared_ptr<cxx::Entity> getNode() const { return mNode; }
 
 protected:
-  inline void setNode(const NodeRef & n) { mNode = n; }
+  inline void setNode(const std::shared_ptr<cxx::Entity>& n) { mNode = n; }
 
 private:
-  NodeRef mNode;
+  std::shared_ptr<cxx::Entity> mNode;
 };
 
 #endif // METAGONK_ABSTRACT_NODE_EDITOR_H

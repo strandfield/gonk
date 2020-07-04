@@ -5,6 +5,7 @@
 #include "controller.h"
 
 #include "database.h"
+#include "database-exporter.h"
 
 #include "project-controller.h"
 #include "project-loader.h"
@@ -55,15 +56,16 @@ bool Controller::createSqlDatabase(const QFileInfo& db_dir, const QString& savep
   m_database_path = savepath;
 
   return Database::run(db_dir.absoluteFilePath() + "/types.sql")
-    && Database::run(db_dir.absoluteFilePath() + "/statements.sql")
     && Database::run(db_dir.absoluteFilePath() + "/namespaces.sql")
     && Database::run(db_dir.absoluteFilePath() + "/modules.sql")
     && Database::run(db_dir.absoluteFilePath() + "/enums.sql")
     && Database::run(db_dir.absoluteFilePath() + "/enumerators.sql")
     && Database::run(db_dir.absoluteFilePath() + "/functions.sql")
-    && Database::run(db_dir.absoluteFilePath() + "/files.sql")
     && Database::run(db_dir.absoluteFilePath() + "/classes.sql")
-    && Database::run(db_dir.absoluteFilePath() + "/entities.sql");
+    && Database::run(db_dir.absoluteFilePath() + "/entities.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/metadata.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/files.sql")
+    && Database::run(db_dir.absoluteFilePath() + "/source_locations.sql");
 }
 
 bool Controller::loadDatabase(const QFileInfo& db_file)
@@ -71,7 +73,15 @@ bool Controller::loadDatabase(const QFileInfo& db_file)
   m_database.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE")));
   database().setDatabaseName(db_file.absoluteFilePath());
 
+  m_database_path = db_file.absoluteFilePath();
+
   return database().open();
+}
+
+void Controller::exportDatabase()
+{
+  DatabaseExporter exporter{ QFileInfo(m_database_path).dir() };
+  exporter.exportDatabase();
 }
 
 QSqlDatabase& Controller::database() const
@@ -81,20 +91,20 @@ QSqlDatabase& Controller::database() const
 
 void Controller::loadProject()
 {
-  ProjectLoader loader{ database() };
+  MGProjectLoader loader{ database() };
   loader.load();
   m_project = loader.project;
   m_project_controller.reset(new ProjectController(database(), m_project));
 }
 
-ProjectRef Controller::project() const
+MGProjectPtr Controller::project() const
 {
   return m_project;
 }
 
-void Controller::importSymbols(ProjectRef other)
+void Controller::importSymbols(MGProjectPtr other)
 {
-  ProjectMerger merger{ database(), m_project, other };
+  MGProjectMerger merger{ database(), m_project, other };
   merger.merge();
 }
 

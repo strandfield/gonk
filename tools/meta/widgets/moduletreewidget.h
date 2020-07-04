@@ -16,30 +16,40 @@ class ModuleTreeWidget : public QTreeWidget
 {
   Q_OBJECT
 public:
-  ModuleTreeWidget(const ProjectRef & pro);
+  ModuleTreeWidget(const MGProjectPtr& pro);
 
   void setShowCheckboxes(bool visible);
 
-  inline ProjectRef project() const { return mProject; }
-  void setProject(const ProjectRef & pro);
+  inline MGProjectPtr project() const { return mProject; }
+  void setProject(const MGProjectPtr& pro);
 
   void fetchNewNodes();
 
-  NodeRef getNode(QTreeWidgetItem* item) const;
+  std::shared_ptr<cxx::Entity> getEntity(QTreeWidgetItem* item) const;
+  MGModulePtr getModule(QTreeWidgetItem* item) const;
+
+  bool isModuleItem(QTreeWidgetItem* item) const;
+
+  void removeUncheckedSymbols();
+
+  static QString display(const cxx::Entity& e);
+  static QString display(const MGModule& m);
 
 protected:
   void keyPressEvent(QKeyEvent *e);
 
 protected:
   void removeSelectedRows();
-  void moveSelectedRow(int k);
   void processCtrlE();
+  void processCtrlM();
   void processCtrlN();
 
 protected:
-  void fillTreeWidget(const ProjectRef & pro);
-  void fill(QTreeWidgetItem *parent, const NodeRef & node);
-  QTreeWidgetItem* createItem(const NodeRef & node);
+  void fillTreeWidget(const MGProjectPtr & pro);
+  void fill(QTreeWidgetItem *parent, const std::shared_ptr<cxx::Entity>& node);
+  void fill(QTreeWidgetItem* parent, const MGModulePtr& node);
+  QTreeWidgetItem* createItem(const MGModulePtr& node);
+  QTreeWidgetItem* createItem(const std::shared_ptr<cxx::Entity>& node);
   void refreshItem(QTreeWidgetItem* item);
   void fetchNewNodes(QTreeWidgetItem *item);
 
@@ -48,26 +58,22 @@ protected Q_SLOTS:
   void updateCheckState(QTreeWidgetItem *item);
   void resizeColumnsAuto();
   void displayContextMenu(const QPoint & p);
-  void onItemDoubleClicked(QTreeWidgetItem* item, int column);
 
 protected:
   void handle_checkboxes(QTreeWidgetItem* item, bool on);
 
 private:
   void createContextMenus();
-  void execAction(QTreeWidgetItem *item, NodeRef node, QAction *act);
+  void execAction(QTreeWidgetItem *item, std::shared_ptr<cxx::Entity> node, QAction *act);
 
 private:
-  ProjectRef mProject;
+  MGProjectPtr mProject;
   bool mShowCheckboxes;
   QMenu *mMenu;
   QAction *mAddCopyCtorAction;
   QAction *mAddDestructorAction;
   QAction *mAddAssignmentAction;
-  QAction *mSortClassMembersAction;
-  QAction* mMoveToTopAction;
-  QAction *mAddStatementAction;
-  std::unordered_map<QTreeWidgetItem*, std::shared_ptr<Node>> m_nodes_map;
+  std::unordered_map<QTreeWidgetItem*, std::shared_ptr<cxx::Entity>> m_nodes_map;
 };
 
 #endif // METAGONK_MODULETREEWIDGET_H

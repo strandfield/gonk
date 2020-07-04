@@ -4,3 +4,6 @@
 [submodule "dependencies/cxxast"]
 	path = dependencies/cxxast
 	url = https://github.com/bandicode/cxxast.git
+[submodule "dependencies/liquid"]
+	path = dependencies/liquid
+	url = https://github.com/bandicode/liquid.git

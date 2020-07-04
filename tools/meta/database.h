@@ -7,12 +7,28 @@
 
 #include <QSqlQuery>
 
+namespace cxx
+{
+class Class;
+class Function;
+class File;
+} // namespace cxx
+
 class Database
 {
 public:
   static QSqlQuery exec(const QString& query);
 
   static bool run(const QString& filepath);
+
+  static int getFileId(const cxx::File& file);
+
+  static QString sqlEscape(QString str);
+  static QString sqlEscape(const std::string str);
+
+  static QString base(const cxx::Class& c);
+  static QString parameters(const cxx::Function& f);
+  static QString specifiers(const cxx::Function& f);
 };
 
 #endif // METAGONK_DATABASE_H

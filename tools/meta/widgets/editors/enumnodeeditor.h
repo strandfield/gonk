@@ -7,7 +7,7 @@
 
 #include "abstractnodeeditor.h"
 
-#include "project/enum.h"
+#include <cxx/enum.h>
 
 class QCheckBox;
 class QLineEdit;
@@ -16,19 +16,17 @@ class EnumNodeEditor : public AbstractNodeEditor
 {
   Q_OBJECT
 public:
-  EnumNodeEditor(const EnumRef & enm, QWidget *p = nullptr);
+  EnumNodeEditor(const std::shared_ptr<cxx::Enum> & enm, QWidget *p = nullptr);
   ~EnumNodeEditor() = default;
 
   void write() override;
-  void read(EnumRef enm);
+  void read(std::shared_ptr<cxx::Enum> enm);
 
-  inline EnumRef getEnum() const { return std::static_pointer_cast<Enum>(getNode()); }
+  inline std::shared_ptr<cxx::Enum> getEnum() const { return std::static_pointer_cast<cxx::Enum>(getNode()); }
 
 private:
-  QLineEdit *mCondition;
   QLineEdit *mName;
-  QCheckBox *mToEnumClass;
-  QCheckBox *mFromEnumClass;
+  QCheckBox *mEnumClass;
 };
 
 #endif // METAGONK_ENUM_NODE_EDITOR_H

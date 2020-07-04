@@ -39,3 +39,14 @@ endif()
 ##################################################################
 
 add_subdirectory(cxxast)
+
+##################################################################
+###### liquid
+##################################################################
+
+add_subdirectory(liquid)
+
+if (WIN32)
+  set_target_properties(liquid PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+  set_target_properties(liquid PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+endif()

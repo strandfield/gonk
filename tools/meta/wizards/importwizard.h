@@ -17,7 +17,7 @@ class ImportWizard : public QWizard
 {
   Q_OBJECT
 public:
-  ImportWizard(ProjectRef pro);
+  ImportWizard(MGProjectPtr pro);
   ~ImportWizard();
 
   enum PageIds {
@@ -31,13 +31,13 @@ public:
     QStringList includeDirectories;
     QString moduleName;
     QStringList fileList;
-    ProjectRef importedSymbols;
+    MGProjectPtr importedSymbols;
   };
 
   inline static ImportWizard * get(QWizard *w) { return static_cast<ImportWizard*>(w); }
 
   Fields & fields() { return mFields; }
-  ProjectRef & project() { return mProject; }
+  MGProjectPtr& project() { return mProject; }
 
 private:
   struct
@@ -48,7 +48,7 @@ private:
   } pages;
 
   Fields mFields;
-  ProjectRef mProject;
+  MGProjectPtr mProject;
 };
 
 #endif // METAGONK_IMPORTWIZARD_H

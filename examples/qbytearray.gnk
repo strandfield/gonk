@@ -1,0 +1,6 @@
+
+import Qt.Core;
+
+print(QByteArray::number(66, 10).toStdString());
+
+print(QByteArray("hello ").repeated(3).toStdString());

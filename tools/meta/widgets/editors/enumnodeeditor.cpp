@@ -4,33 +4,29 @@
 
 #include "enumnodeeditor.h"
 
+#include "controller.h"
+#include "project-controller.h"
+
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QFontMetrics>
 #include <QLineEdit>
 
-EnumNodeEditor::EnumNodeEditor(const EnumRef & enm, QWidget *p)
+EnumNodeEditor::EnumNodeEditor(const std::shared_ptr<cxx::Enum>& enm, QWidget *p)
   : AbstractNodeEditor(enm, p)
 {
   QFontMetrics fm{ font() };
-
-  mCondition = new QLineEdit;
-  mCondition->setPlaceholderText("condition");
-  mCondition->setFixedWidth(fm.width("condition") + 8);
 
   mName = new QLineEdit();
   mName->setPlaceholderText("name");
   mName->setFixedWidth(fm.width("name+name+name+name") + 8);
 
-  mToEnumClass = new QCheckBox("to-enum-class");
-  mFromEnumClass = new QCheckBox("from-enum-class");
+  mEnumClass = new QCheckBox("enum-class");
 
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setContentsMargins(0, 0, 0, 0);
-  layout->addWidget(mCondition);
   layout->addWidget(mName);
-  layout->addWidget(mToEnumClass);
-  layout->addWidget(mFromEnumClass);
+  layout->addWidget(mEnumClass);
 
   setAutoFillBackground(true);
 
@@ -41,18 +37,15 @@ void EnumNodeEditor::write()
 {
   auto enm = getEnum();
 
-  enm->condition = mCondition->text();
-  enm->name = mName->text();
-  enm->isEnumClass = mToEnumClass->isChecked();
-  enm->isCppEnumClass = mFromEnumClass->isChecked();
+  Controller::Instance().projectController().update(*enm,
+    mName->text(),
+    mEnumClass->isChecked());
 }
 
-void EnumNodeEditor::read(EnumRef enm)
+void EnumNodeEditor::read(std::shared_ptr<cxx::Enum> enm)
 {
   setNode(enm);
 
-  mCondition->setText(enm->condition);
-  mName->setText(enm->name);
-  mToEnumClass->setChecked(enm->isEnumClass);
-  mFromEnumClass->setChecked(enm->isCppEnumClass);
+  mName->setText(QString::fromStdString(enm->name));
+  mEnumClass->setChecked(enm->enum_class);
 }

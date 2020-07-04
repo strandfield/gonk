@@ -1,0 +1,24 @@
+{% assign enum = include.enum %}
+{% assign parent = enum | parent %}
+{% if parent and parent.type == 'class' %}
+static void register_{{ enum | qualified_name | replace: '::', '_' | snake_case }}(script::Class& parent)
+{% else %}
+static void register_{{ enum | qualified_name | replace: '::', '_' | snake_case }}(script::Namespace& parent)
+{% endif %}
+{
+  using namespace script;
+  
+  Enum {{ enum.name | snake_case }} = parent.newEnum("{{ enum.name }}").setId(script::Type::make<{{ enum | qualified_name }}>().data()).get();
+
+{% if enum.enum_class %}
+    {% for v in enum.values %}
+    {{ '  ' }}{{ enum.name | snake_case }}.addValue("{{ v.name }}", static_cast<int>({{ enum | qualified_name }}::{{ v.name }}));
+{% comment %}
+    {% endfor %}
+{% else %}
+    {% for v in enum.values %}
+    {{ '  ' }}{{ enum.name | snake_case }}.addValue("{{ v.name }}", {{ enum | qualified_name }}::{{ v.name }});
+{% comment %}
+    {% endfor %}
+{% endif %}
+}

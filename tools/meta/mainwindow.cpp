@@ -5,7 +5,7 @@
 #include "mainwindow.h"
 
 #include "controller.h"
-#include "generator.h"
+#include "liquid-generator.h"
 
 #include "dialogs/newtypedialog.h"
 
@@ -40,7 +40,7 @@ MainWindow::MainWindow()
   //}
   
   if (mProject == nullptr)
-    mProject = std::make_shared<Project>();
+    mProject = std::make_shared<MGProject>();
 
   mTabWidget = new QTabWidget();
 
@@ -54,6 +54,7 @@ MainWindow::MainWindow()
 
   menuBar()->addAction("Open", this, SLOT(openProject()));
   menuBar()->addAction("Build DB", this, SLOT(buildDB()));
+  menuBar()->addAction("Export DB", this, SLOT(exportDB()));
   menuBar()->addAction("New type", this, SLOT(createNewType()));
   menuBar()->addAction("Import", this, SLOT(importCpp()));
   menuBar()->addAction("Generate", this, SLOT(generateBinding()));
@@ -139,6 +140,14 @@ void MainWindow::buildDB()
   }
 }
 
+void MainWindow::exportDB()
+{
+  if (m_controller->project() == nullptr)
+    return;
+
+  m_controller->exportDatabase();
+}
+
 void MainWindow::createNewType()
 {
   auto *dialog = new NewTypeDialog(this);
@@ -148,14 +157,8 @@ void MainWindow::createNewType()
     return;
 
   auto t = dialog->getType();
-  Type::Category cat = dialog->getCategory();
 
-  if (cat == Type::FundamentalType)
-    mProject->types.fundamentals.append(t);
-  else if (cat == Type::EnumType)
-    mProject->types.enums.append(t);
-  else if (cat == Type::ClassType)
-    mProject->types.classes.append(t);
+  mProject->types.push_back(t);
 
   mTypeTreeWidget->fetchNewNodes();
 }
@@ -175,22 +178,23 @@ void MainWindow::generateBinding()
   QString path = mSettings->value("generatedir").toString();
   if (path.isEmpty())
     path = QFileDialog::getExistingDirectory(this, "Save directory");
-  
+
   if (path.isEmpty())
     return;
 
   mSettings->setValue("generatedir", path);
 
-  QProgressDialog progress("Generating files...", "Abort", 0, mProject->fileCount(), this);
+  LiquidGenerator gen{ path };
+
+  QProgressDialog progress("Generating files...", "Abort", 0, gen.numberOfFiles(), this);
   progress.setWindowTitle("Binding generation");
   progress.setWindowModality(Qt::WindowModal);
   progress.setMinimumDuration(2000);
 
-  Generator gen{ path };
-  gen.setProgressCallback([&progress](const QString & filename) -> bool {
+  gen.setProgressCallback([&progress](const QString& filename) -> bool {
     progress.setValue(progress.value() + 1);
     return !progress.wasCanceled();
-  });
+    });
   gen.generate(mProject);
 }
 

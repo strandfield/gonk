@@ -1,0 +1,24 @@
+{% assign fn = include.function %}
+{% assign parent = fn | parent %}
+{% assign args = [] %}
+{{ fn.return_type }} {% if fn.implementation %}{{ fn.implementation }}{% else %}{{ fn | mangled_name }}{% endif %}
+  ({% comment %}
+{% if parent and parent.type == 'class' and not fn.static %}
+  {% if fn.const %}const {% endif %}{{ parent | qualified_name }}& self{% if fn.parameters.length > 0 %}, {% endif %}
+{% endif %}
+{% for p in fn.parameters %}
+    {% capture arg_name %}a{{ forloop.index }}{% endcapture %}
+	{% assign args = args | push: arg_name %}
+	{{ p }} {{ arg_name }}{% if not forloop.last  %}, {% endif %}
+{% endfor %}
+  )
+{
+{{'  '}}{% comment %}
+{% if fn.return_type != 'void' %}return {%endif %}
+{% if parent and parent.type == 'class' and not fn.static %}
+self.{{ fn.name }}{% comment %}
+{% else %}
+{{ fn.name }}{% comment %}
+{% endif %}
+  ({{ args | join: ', '}});
+}

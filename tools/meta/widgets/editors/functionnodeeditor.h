@@ -7,7 +7,7 @@
 
 #include "abstractnodeeditor.h"
 
-#include "project/function.h"
+#include <cxx/function.h>
 
 class QComboBox;
 class QLineEdit;
@@ -16,22 +16,19 @@ class FunctionNodeEditor : public AbstractNodeEditor
 {
   Q_OBJECT
 public:
-  FunctionNodeEditor(const FunctionRef & func, QWidget *p = nullptr);
+  FunctionNodeEditor(const std::shared_ptr<cxx::Function>& func, QWidget *p = nullptr);
   ~FunctionNodeEditor() = default;
 
   void write() override;
-  void read(FunctionRef fun);
+  void read(std::shared_ptr<cxx::Function> fun);
 
-  inline FunctionRef getFunction() const { return std::static_pointer_cast<Function>(getNode()); }
+  inline std::shared_ptr<cxx::Function> getFunction() const { return std::static_pointer_cast<cxx::Function>(getNode()); }
 
 private:
-  QComboBox *mBindingMethod;
   QLineEdit *mReturnType;
   QLineEdit *mName;
   QLineEdit *mParameters;
   QLineEdit* mSpecifiers;
-  QLineEdit* m_implementation;
-  QLineEdit* m_condition;
 };
 
 #endif // METAGONK_FUNCTION_NODE_EDITOR_H

@@ -17,18 +17,18 @@ class QFileInfo;
 
 class QSqlDatabase;
 
-class ProjectMerger : QObject
+class MGProjectMerger : QObject
 {
   Q_OBJECT
 
-  Q_PROPERTY(int importedSymbolsCount READ importedSymbolsCount NOTIFY importedSymbolsCountChanged)
+    Q_PROPERTY(int importedSymbolsCount READ importedSymbolsCount NOTIFY importedSymbolsCountChanged)
 
 public:
   QSqlDatabase& database;
-  ProjectRef project;
-  ProjectRef other;
+  MGProjectPtr project;
+  MGProjectPtr other;
 
-  ProjectMerger(QSqlDatabase & db, ProjectRef pro, ProjectRef o)
+  MGProjectMerger(QSqlDatabase& db, MGProjectPtr pro, MGProjectPtr o)
     : database(db), project(pro), other(o)
   {
   }
@@ -45,7 +45,7 @@ protected:
 protected:
 
   template<typename T>
-  T find_or_set(QList<T>& list, const NodeRef& elem)
+  T find_or_set(std::vector<T>& list, const std::shared_ptr<cxx::Entity>& elem)
   {
     for (const auto& item : list)
     {
@@ -53,33 +53,32 @@ protected:
         return item;
     }
 
-    elem->order = list.size();
     getIds(elem);
-    list.append(elem);
+    list.push_back(elem);
     return elem;
   }
 
   QString parentId() const;
-  void getIds(NodeRef elem);
+  void getIds(std::shared_ptr<cxx::Entity> elem);
+  void getIds(MGModulePtr elem);
 
-  void merge_recursively(QList<NodeRef>& target, const QList<NodeRef>& src);
-  ModuleRef find_or_set(QList<ModuleRef>& list, const ModuleRef& elem);
-  void merge_recursively(QList<ModuleRef>& target, const QList<ModuleRef>& src);
+  void merge_recursively(std::vector<std::shared_ptr<cxx::Entity>>& target, const std::vector<std::shared_ptr<cxx::Entity>>& src);
+  MGModulePtr find_or_set(std::vector<MGModulePtr>& list, const MGModulePtr& elem);
+  void merge_recursively(std::vector<MGModulePtr>& target, const std::vector<MGModulePtr>& src);
 
   template<typename T>
-  void assignIds(QList<T>& list)
+  void assignIds(std::vector<std::shared_ptr<T>>& list)
   {
     for (int i(0); i < list.size(); ++i)
     {
       auto item = list.at(i);
-      item->order = i;
 
       getIds(item);
 
-      RAIINodeGuard guard{ m_parent };
+      RAIICxxElemGuard guard{ m_parent };
       m_parent = item;
 
-      QList<NodeRef> children = item->children();
+      std::vector<std::shared_ptr<cxx::Entity>> children = ::children(*item);
       assignIds(children);
     }
   }
@@ -87,20 +86,24 @@ protected:
 protected:
 
   template<typename T>
-  void fetch_types_recursively(Project& pro, std::vector<NodeRef>& stack, const QList<T>& nodes)
+  void fetch_types_recursively(MGProject& pro, const std::vector<T>& nodes)
   {
     for (const auto& n : nodes)
-      fetch_types_recursively(pro, stack, n);
+      fetch_types_recursively(pro, n);
   }
 
-  void fetch_types_recursively(Project& pro, std::vector<NodeRef>& stack, const NodeRef& node);
+  void fetch_types_recursively(MGProject& pro, const std::shared_ptr<cxx::Entity>& node);
+  void fetch_types_recursively(MGProject& pro, const MGModulePtr& node);
 
-  void fetchTypes(ProjectRef pro);
+  void fetchTypes(MGProjectPtr pro);
+
+  bool shouldSaveSourceLocation(const cxx::Entity& e);
 
 private:
-  NodeRef m_parent = nullptr;
+  MGModulePtr m_current_module = nullptr;
+  std::shared_ptr<cxx::Entity> m_parent = nullptr;
   int m_imported_symbols_count = 0;
-  std::unordered_map<NodeRef, TypePtr> m_types_map;
+  std::unordered_map<std::shared_ptr<cxx::Entity>, MGTypePtr> m_types_map;
 };
 
 #endif // METAGONK_PROJECTMERGER_H

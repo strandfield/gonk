@@ -6,6 +6,11 @@
 
 #include "database.h"
 
+#include <cxx/class.h>
+#include <cxx/enum.h>
+#include <cxx/function.h>
+#include <cxx/namespace.h>
+
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -16,7 +21,7 @@
 
 #include <stdexcept>
 
-void ProjectMerger::merge()
+void MGProjectMerger::merge()
 {
   fetchTypes(other);
 
@@ -24,36 +29,34 @@ void ProjectMerger::merge()
   {
     auto t = e.second;
 
-    if (e.first->is<Class>())
+    if (e.first->is<cxx::Class>())
     {
-      auto c = std::static_pointer_cast<Class>(e.first);
+      auto c = std::static_pointer_cast<cxx::Class>(e.first);
 
-      if (!project->hasClassType(t->name))
+      if (!project->hasType(t->name))
       {
-        QSqlQuery query = Database::exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 0, 1)")
-          .arg(t->name, t->id, t->header));
+        QSqlQuery query = Database::exec(QString("INSERT INTO types(name, typeid, is_enum, is_class) VALUES('%1', '%2', 0, 1)")
+          .arg(QString::fromStdString(t->name), QString::fromStdString(t->id)));
 
         t->database_id = query.lastInsertId().toInt();
-        c->type_id = t->database_id;
+        project->entity_type_map[c] = t;
 
-        project->types.classes.append(t);
-        project->type_map[t->database_id] = t;
+        project->types.push_back(t);
       }
     }
-    else if (e.first->is<Enum>())
+    else if (e.first->is<cxx::Enum>())
     {
-      auto enm = std::static_pointer_cast<Enum>(e.first);
+      auto enm = std::static_pointer_cast<cxx::Enum>(e.first);
 
-      if (!project->hasEnumType(t->name))
+      if (!project->hasType(t->name))
       {
-        QSqlQuery query = Database::exec(QString("INSERT INTO types(name, typeid, header, is_enum, is_class) VALUES('%1', '%2', '%3', 1, 0)")
-          .arg(t->name, t->id, t->header));
+        QSqlQuery query = Database::exec(QString("INSERT INTO types(name, typeid, is_enum, is_class) VALUES('%1', '%2', 1, 0)")
+          .arg(QString::fromStdString(t->name), QString::fromStdString(t->id)));
 
         t->database_id = query.lastInsertId().toInt();
-        enm->type_id = t->database_id;
+        project->entity_type_map[enm] = t;
 
-        project->types.enums.append(t);
-        project->type_map[t->database_id] = t;
+        project->types.push_back(t);
       }
     }
   }
@@ -61,188 +64,187 @@ void ProjectMerger::merge()
   merge_recursively(project->modules, other->modules);
 }
 
-int ProjectMerger::importedSymbolsCount() const
+int MGProjectMerger::importedSymbolsCount() const
 {
   return m_imported_symbols_count;
 }
 
-void ProjectMerger::incrImportedSymbolsCount() 
+void MGProjectMerger::incrImportedSymbolsCount()
 {
   m_imported_symbols_count++;
   Q_EMIT importedSymbolsCountChanged();
 }
 
-QString ProjectMerger::parentId() const
+QString MGProjectMerger::parentId() const
 {
-  return m_parent == nullptr ? QString("NULL") : QString::number(m_parent->entity_id);
-}
+  if (m_parent == nullptr && m_current_module == nullptr)
+    return "NULL";
 
-void ProjectMerger::getIds(NodeRef elem)
-{
-  if (elem->entity_id != -1)
-    return;
-
-  if (elem->is<Module>())
+  if (m_parent != nullptr)
   {
-    ModuleRef m = std::static_pointer_cast<Module>(elem);
+    auto& dbid = project->dbid(m_parent);
 
-    QSqlQuery query = Database::exec(QString("INSERT INTO modules(name) VALUES('%1')").arg(m->name));
-    m->module_id = query.lastInsertId().toInt();
+    if (dbid.global_id == -1)
+      throw std::runtime_error{ "missing parent id" };
 
-    query = Database::exec(QString("INSERT INTO entities(parent, module_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(m->module_id), QString::number(m->order)));
-    m->entity_id = query.lastInsertId().toInt();
-
-    project->modules_map[m->module_id] = m;
-  }
-  else if (elem->is<File>())
-  {
-    FileRef f = std::static_pointer_cast<File>(elem);
-
-    QSqlQuery query = Database::exec(QString("INSERT INTO files(name) VALUES('%1')").arg(f->name));
-    f->file_id = query.lastInsertId().toInt();
-
-    query = Database::exec(QString("INSERT INTO entities(parent, file_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(f->file_id), QString::number(f->order)));
-    f->entity_id = query.lastInsertId().toInt();
-
-    project->files[f->file_id] = f;
-  }
-  else if (elem->is<Namespace>())
-  {
-    NamespaceRef ns = std::static_pointer_cast<Namespace>(elem);
-
-    QSqlQuery query = Database::exec(QString("INSERT INTO namespaces(name) VALUES('%1')").arg(ns->name));
-    ns->namespace_id = query.lastInsertId().toInt();
-
-    query = Database::exec(QString("INSERT INTO entities(parent, namespace_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(ns->namespace_id), QString::number(ns->order)));
-    ns->entity_id = query.lastInsertId().toInt();
-
-    project->namespaces[ns->namespace_id] = ns;
-  }
-  else if (elem->is<Class>())
-  {
-    ClassRef c = std::static_pointer_cast<Class>(elem);
-
-    QSqlQuery query = Database::exec(QString("INSERT INTO classes(name, type, base) VALUES('%1', %2, '%3')")
-      .arg(c->name, QString::number(c->type_id), c->base));
-    c->class_id = query.lastInsertId().toInt();
-
-    query = Database::exec(QString("INSERT INTO entities(parent, class_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(c->class_id), QString::number(c->order)));
-    c->entity_id = query.lastInsertId().toInt();
-
-    project->classes[c->class_id] = c;
-  }
-  else if (elem->is<Enum>())
-  {
-    EnumRef e = std::static_pointer_cast<Enum>(elem);
-
-    QSqlQuery query = Database::exec(QString("INSERT INTO enums(name, type) VALUES('%1', %2)").arg(e->name, QString::number(e->type_id)));
-    e->enum_id = query.lastInsertId().toInt();
-
-    query = Database::exec(QString("INSERT INTO entities(parent, enum_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(e->enum_id), QString::number(e->order)));
-    e->entity_id = query.lastInsertId().toInt();
-
-    project->enums[e->enum_id] = e;
-  }
-  else if (elem->is<Enumerator>())
-  {
-    EnumeratorRef e = std::static_pointer_cast<Enumerator>(elem);
-    EnumRef parent = std::static_pointer_cast<Enum>(m_parent);
-
-    QSqlQuery query = Database::exec(QString("INSERT INTO enumerators(name, enum_id) VALUES('%1', %2)").arg(e->name, QString::number(parent->enum_id)));
-    e->enumerator_id = query.lastInsertId().toInt();
-
-    query = Database::exec(QString("INSERT INTO entities(parent, enumerator_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(e->enumerator_id), QString::number(e->order)));
-    e->entity_id = query.lastInsertId().toInt();
-
-    project->enumerators[e->enumerator_id] = e;
-  }
-  else if (elem->is<Function>())
-  {
-    FunctionRef f = std::static_pointer_cast<Function>(elem);
-
-    QSqlQuery query = Database::exec(QString("INSERT INTO functions(name, return_type, parameters, specifiers) VALUES('%1', '%2', '%3', '%4')")
-      .arg(f->name, f->returnType, f->parameters.join(';'), f->getSpecifiers().join(',')));
-    f->function_id = query.lastInsertId().toInt();
-
-    query = Database::exec(QString("INSERT INTO entities(parent, function_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(f->function_id), QString::number(f->order)));
-    f->entity_id = query.lastInsertId().toInt();
-
-    project->functions[f->function_id] = f;
-  }
-  else if (elem->is<Statement>())
-  {
-    StatementRef s = std::static_pointer_cast<Statement>(elem);
-
-    QSqlQuery query = Database::exec(QString("INSERT INTO statements(content) VALUES('%1')").arg(s->name));
-    s->statement_id = query.lastInsertId().toInt();
-
-    query = Database::exec(QString("INSERT INTO entities(parent, statement_id, rank) VALUES(%1, %2, %3)")
-      .arg(parentId(), QString::number(s->statement_id), QString::number(s->order)));
-    s->entity_id = query.lastInsertId().toInt();
-
-    project->statements[s->statement_id] = s;
+    return QString::number(dbid.global_id);
   }
   else
   {
-    throw std::runtime_error{ "Not implemented" };
+    auto& dbid = project->dbid(m_current_module);
+
+    if (dbid.global_id == -1)
+      throw std::runtime_error{ "missing parent id" };
+
+    return QString::number(dbid.global_id);
+  }
+}
+
+void MGProjectMerger::getIds(std::shared_ptr<cxx::Entity> elem)
+{
+  auto& ids = project->dbid(elem);
+
+  if (ids.global_id != -1)
+    return;
+
+  if (elem->is<cxx::Namespace>())
+  {
+    auto ns = std::static_pointer_cast<cxx::Namespace>(elem);
+
+    QSqlQuery query = Database::exec(QString("INSERT INTO namespaces(name) VALUES('%1')").arg(QString::fromStdString(ns->name)));
+    ids.id = query.lastInsertId().toInt();
+
+    query = Database::exec(QString("INSERT INTO entities(parent, namespace_id) VALUES(%1, %2)")
+      .arg(parentId(), QString::number(ids.id)));
+    ids.global_id = query.lastInsertId().toInt();
+  }
+  else if (elem->is<cxx::Class>())
+  {
+    auto c = std::static_pointer_cast<cxx::Class>(elem);
+
+    auto t = m_types_map.at(c);
+
+    QSqlQuery query = Database::exec(QString("INSERT INTO classes(name, base, type) VALUES('%1', '%2', %3)")
+      .arg(QString::fromStdString(c->name), Database::base(*c), QString::number(t->database_id)));
+    ids.id = query.lastInsertId().toInt();
+
+    query = Database::exec(QString("INSERT INTO entities(parent, class_id) VALUES(%1, %2)")
+      .arg(parentId(), QString::number(ids.id)));
+    ids.global_id = query.lastInsertId().toInt();
+  }
+  else if (elem->is<cxx::Enum>())
+  {
+    auto e = std::static_pointer_cast<cxx::Enum>(elem);
+
+    auto t = m_types_map.at(e);
+
+    QSqlQuery query = Database::exec(QString("INSERT INTO enums(name, type) VALUES('%1', %2)")
+      .arg(QString::fromStdString(e->name), QString::number(t->database_id)));
+    ids.id = query.lastInsertId().toInt();
+
+    query = Database::exec(QString("INSERT INTO entities(parent, enum_id) VALUES(%1, %2)")
+      .arg(parentId(), QString::number(ids.id)));
+    ids.global_id = query.lastInsertId().toInt();
+  }
+  else if (elem->is<cxx::EnumValue>())
+  {
+    auto e = std::static_pointer_cast<cxx::EnumValue>(elem);
+    auto parent = std::static_pointer_cast<cxx::Enum>(m_parent);
+
+    QSqlQuery query = Database::exec(QString("INSERT INTO enumerators(name, enum_id) VALUES('%1', %2)").arg(QString::fromStdString(e->name), QString::number(project->dbid(m_parent).id)));
+    ids.id = query.lastInsertId().toInt();
+
+    query = Database::exec(QString("INSERT INTO entities(parent, enumerator_id) VALUES(%1, %2)")
+      .arg(parentId(), QString::number(ids.id)));
+    ids.global_id = query.lastInsertId().toInt();
+  }
+  else if (elem->is<cxx::Function>())
+  {
+    auto f = std::static_pointer_cast<cxx::Function>(elem);
+
+    QSqlQuery query = Database::exec(QString("INSERT INTO functions(name, return_type, parameters, specifiers) VALUES('%1', '%2', '%3', '%4')")
+      .arg(QString::fromStdString(f->name), QString::fromStdString(f->return_type.toString()), Database::parameters(*f), Database::specifiers(*f)));
+    ids.id = query.lastInsertId().toInt();
+
+    query = Database::exec(QString("INSERT INTO entities(parent, function_id) VALUES(%1, %2)")
+      .arg(parentId(), QString::number(ids.id)));
+    ids.global_id = query.lastInsertId().toInt();
+  }
+  else
+  {
+    return;
+  }
+
+  if (elem->location.file() != nullptr && shouldSaveSourceLocation(*elem))
+  {
+    int file_id = Database::getFileId(*elem->location.file());
+
+    Database::exec(QString("DELETE FROM source_locations WHERE entity_id = %1")
+      .arg(QString::number(ids.global_id)));
+
+    Database::exec(QString("INSERT INTO source_locations(entity_id, file_id, line, column) VALUES(%1, %2, %3, %4)")
+      .arg(QString::number(ids.global_id), QString::number(file_id), QString::number(elem->location.line()), QString::number(elem->location.column())));
   }
 
   incrImportedSymbolsCount();
 }
 
-void ProjectMerger::merge_recursively(QList<NodeRef>& target, const QList<NodeRef>& src)
+void MGProjectMerger::getIds(MGModulePtr elem)
+{
+  auto& ids = project->dbid(elem);
+
+  QSqlQuery query = Database::exec(QString("INSERT INTO modules(name) VALUES('%1')").arg(QString::fromStdString(elem->name)));
+  ids.id = query.lastInsertId().toInt();
+
+  query = Database::exec(QString("INSERT INTO entities(parent, module_id) VALUES(%1, %2)")
+    .arg(parentId(), QString::number(ids.id)));
+  ids.global_id = query.lastInsertId().toInt();
+}
+
+void MGProjectMerger::merge_recursively(std::vector<std::shared_ptr<cxx::Entity>>& target, const std::vector<std::shared_ptr<cxx::Entity>>& src)
 {
   for (const auto& srcItem : src)
   {
-    if (srcItem->checkState == Qt::Unchecked)
-      continue;
+    std::shared_ptr<cxx::Entity> node = find_or_set(target, srcItem);
 
-    NodeRef node = find_or_set(target, srcItem);
-
-    RAIINodeGuard guard{ m_parent };
+    RAIICxxElemGuard guard{ m_parent };
     m_parent = node;
 
     if (node == srcItem)
     {
-      auto children = node->children();
-      assignIds(children);
+      auto childs = ::children(*node);
+      assignIds(childs);
       continue;
     }
 
-    if (node->is<Module>())
+    if (node->is<cxx::Namespace>())
     {
-      ModuleRef targetModule = std::static_pointer_cast<Module>(node);
-      ModuleRef srcModule = std::static_pointer_cast<Module>(srcItem);
+      auto& targetNamespace = static_cast<cxx::Namespace&>(*node);
+      auto& srcNamespace = static_cast<cxx::Namespace&>(*srcItem);
 
-      merge_recursively(targetModule->elements, srcModule->elements);
+      merge_recursively(targetNamespace.entities, srcNamespace.entities);
     }
-    else if (node->is<Namespace>())
+    else if (node->is<cxx::Class>())
     {
-      NamespaceRef targetNamespace = std::static_pointer_cast<Namespace>(node);
-      NamespaceRef srcNamespace = std::static_pointer_cast<Namespace>(srcItem);
+      auto& target_class = static_cast<cxx::Class&>(*node);
+      auto& src_class = static_cast<cxx::Class&>(*srcItem);
 
-      merge_recursively(targetNamespace->elements, srcNamespace->elements);
+      merge_recursively(target_class.members, src_class.members);
     }
-    else if (node->is<Class>())
+    else if (node->is<cxx::Enum>())
     {
-      ClassRef target_class = std::static_pointer_cast<Class>(node);
-      ClassRef src_class = std::static_pointer_cast<Class>(srcItem);
+      auto& target_enum = static_cast<cxx::Enum&>(*node);
+      auto& src_enum = static_cast<cxx::Enum&>(*srcItem);
 
-      merge_recursively(target_class->elements, src_class->elements);
-    }
-    else if (node->is<Enum>())
-    {
-      EnumRef target_enum = std::static_pointer_cast<Enum>(node);
-      EnumRef src_enum = std::static_pointer_cast<Enum>(srcItem);
+      for (auto v : src_enum.values)
+      {
+        auto it = std::find_if(target_enum.values.begin(), target_enum.values.end(), [&](const std::shared_ptr<cxx::Entity>& e) -> bool {
+          return e->name == v->name;
+          });
 
-      target_enum->merge(*src_enum);
+        if (it == target_enum.values.end())
+          target_enum.appendChild(v);
+      }
     }
     else
     {
@@ -251,7 +253,7 @@ void ProjectMerger::merge_recursively(QList<NodeRef>& target, const QList<NodeRe
   }
 }
 
-ModuleRef ProjectMerger::find_or_set(QList<ModuleRef>& list, const ModuleRef& elem)
+MGModulePtr MGProjectMerger::find_or_set(std::vector<MGModulePtr>& list, const MGModulePtr& elem)
 {
   for (const auto& item : list)
   {
@@ -259,79 +261,81 @@ ModuleRef ProjectMerger::find_or_set(QList<ModuleRef>& list, const ModuleRef& el
       return item;
   }
 
-  elem->order = list.size();
   getIds(elem);
-  list.append(elem);
+  list.push_back(elem);
   return elem;
 }
 
-void ProjectMerger::merge_recursively(QList<ModuleRef>& target, const QList<ModuleRef>& src)
+void MGProjectMerger::merge_recursively(std::vector<MGModulePtr>& target, const std::vector<MGModulePtr>& src)
 {
   for (const auto& srcItem : src)
   {
-    if (srcItem->checkState == Qt::Unchecked)
-      continue;
+    MGModulePtr m = find_or_set(target, srcItem);
 
-    ModuleRef m = find_or_set(target, srcItem);
-
-    RAIINodeGuard guard{ m_parent };
-    m_parent = m;
+    m_current_module = m;
 
     if (m == srcItem)
-      assignIds(m->elements);
+      assignIds(m->entities);
     else
-      merge_recursively(m->elements, srcItem->elements);
+      merge_recursively(m->entities, srcItem->entities);
+
+    m_current_module = nullptr;
   }
 }
 
-void ProjectMerger::fetch_types_recursively(Project& pro, std::vector<NodeRef>& stack, const NodeRef& node)
+void MGProjectMerger::fetch_types_recursively(MGProject& pro, const std::shared_ptr<cxx::Entity>& node)
 {
-  if (node->is<Namespace>())
+  if (node->is<cxx::Namespace>())
   {
-    Namespace& ns = node->as<Namespace>();
+    auto& ns = static_cast<cxx::Namespace&>(*node);
 
-    stack.push_back(node);
-    fetch_types_recursively(pro, stack, ns.elements);
-    stack.pop_back();
+    fetch_types_recursively(pro, ns.entities);
   }
-  else if (node->is<Module>())
+  else if (node->is<cxx::Class>())
   {
-    Module& m = node->as<Module>();
+    auto& c = static_cast<cxx::Class&>(*node);
 
-    stack.push_back(node);
-    fetch_types_recursively(pro, stack, m.elements);
-    stack.pop_back();
-  }
-  else if (node->is<Class>())
-  {
-    if (pro.hasClassType(node->name))
+    if (pro.hasType(node->name))
       return;
 
-    const QString name = Node::nameQualification(stack) + node->name;
-    auto type = std::make_shared<Type>(name, QString{ name }.remove("::"));
-    type->is_class = true;
+    std::string n = qualifiedName(c);
+
+    auto type = std::make_shared<MGType>(n, QString::fromStdString(n).remove("::").toStdString());
+    type->category = MGType::ClassType;
     m_types_map[node] = type;
 
-    stack.push_back(node);
-    fetch_types_recursively(pro, stack, node->as<Class>().elements);
-    stack.pop_back();
+    fetch_types_recursively(pro, c.members);
+
+    pro.types.push_back(type);
+
   }
-  else if (node->is<Enum>())
+  else if (node->is<cxx::Enum>())
   {
-    if (pro.hasEnumType(node->name))
+    if (pro.hasType(node->name))
       return;
 
-    const QString name = Node::nameQualification(stack) + node->name;
-    auto type = std::make_shared<Type>(name, QString{ name }.remove("::"));
-    type->is_enum = true;
+    std::string n = qualifiedName(*node);
+
+    auto type = std::make_shared<MGType>(n, QString::fromStdString(n).remove("::").toStdString());
+    type->category = MGType::EnumType;
     m_types_map[node] = type;
 
-    pro.types.enums.append(std::make_shared<Type>(name, QString{ name }.remove("::")));
+    pro.types.push_back(type);
   }
 }
 
-void ProjectMerger::fetchTypes(ProjectRef pro)
+void MGProjectMerger::fetch_types_recursively(MGProject& pro, const MGModulePtr& node)
 {
-  std::vector<NodeRef> stack;
-  fetch_types_recursively(*pro, stack, pro->modules);
+  for (auto n : node->entities)
+    fetch_types_recursively(pro, n);
+}
+
+void MGProjectMerger::fetchTypes(MGProjectPtr pro)
+{
+  fetch_types_recursively(*pro, pro->modules);
+}
+
+bool MGProjectMerger::shouldSaveSourceLocation(const cxx::Entity& e)
+{
+  return e.is<cxx::Function>() && (e.weak_parent.lock() == nullptr || !e.parent()->is<cxx::Class>());
 }

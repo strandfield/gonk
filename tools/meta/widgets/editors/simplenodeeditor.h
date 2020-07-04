@@ -7,7 +7,7 @@
 
 #include "abstractnodeeditor.h"
 
-#include "project/enum.h"
+#include "project.h"
 
 class QCheckBox;
 class QLineEdit;
@@ -16,14 +16,13 @@ class SimpleNodeEditor : public AbstractNodeEditor
 {
   Q_OBJECT
 public:
-  explicit SimpleNodeEditor(NodeRef node, QWidget *p = nullptr);
+  explicit SimpleNodeEditor(std::shared_ptr<cxx::Entity> node, QWidget *p = nullptr);
   ~SimpleNodeEditor() = default;
 
   void write() override;
-  void read(NodeRef node);
+  void read(std::shared_ptr<cxx::Entity> node);
 
 private:
-  QLineEdit *mCondition;
   QLineEdit *mName;
 };
 

@@ -28,6 +28,7 @@ public:
 protected Q_SLOTS:
   void openProject();
   void buildDB();
+  void exportDB();
   void createNewType();
   void importCpp();
   void generateBinding();
@@ -38,7 +39,7 @@ protected:
 
 private:
   Controller *m_controller;
-  ProjectRef mProject;
+  MGProjectPtr mProject;
   QSettings *mSettings;
 
   QTabWidget *mTabWidget;
