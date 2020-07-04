@@ -85,6 +85,9 @@ struct FileVisitor
       if (p && p->is<cxx::Class>())
         return;
 
+      if (decl.function->location.file() == nullptr)
+        decl.function->location = decl.location;
+
       curModule->entities.push_back(decl.function);
     }
   }

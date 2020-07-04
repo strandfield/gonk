@@ -306,16 +306,8 @@ public:
     if (f.isStatic())
       result["static"] = true;
 
-    //if (f.bindingMethod != Function::BindingMethod::AutoBinding)
-    //{
-    //  result["binding"] = Function::serialize(f.bindingMethod).toStdString();
-
-    //  if (f.bindingMethod == Function::GenWrapperBinding)
-    //    result["genwrapper"] = true;
-    //}
-
-    //if (!f.implementation.isEmpty())
-    //  result["implementation"] = f.implementation.toStdString();
+    if (f.location.file() != nullptr)
+      result["location"] = f.location.file()->path();
   }
 
   void visit(cxx::Namespace& n) override
@@ -663,6 +655,15 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
     MGModulePtr m = mProject->getModule(args.at(0).toString());
     std::shared_ptr<cxx::Entity> node = m->getSymbol(args.at(1).toString());
     return m_serialization_map.get(node);
+  }
+  else if (name == "get_symbols_by_location")
+  {
+    MGModulePtr m = mProject->getModule(args.at(0).toString());
+    std::vector<std::shared_ptr<cxx::Entity>> nodes = m->getSymbolsByLocation(args.at(1).toString());
+    json::Array list;
+    for (auto n : nodes)
+      list.push(m_serialization_map.get(n));
+    return list;
   }
   else if (name == "get_module")
   {

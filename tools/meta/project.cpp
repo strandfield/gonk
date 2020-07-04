@@ -68,6 +68,19 @@ std::shared_ptr<cxx::Entity> MGModule::getSymbol(const std::string& name) const
   return elem;
 }
 
+std::vector<std::shared_ptr<cxx::Entity>> MGModule::getSymbolsByLocation(const std::string& filename) const
+{
+    std::vector<std::shared_ptr<cxx::Entity>> result;
+
+    for (auto e : this->entities)
+    {
+      if (e->location.file() != nullptr && e->location.file()->path() == filename)
+        result.push_back(e);
+    }
+
+    return result;
+}
+
 MGModulePtr MGProject::getModule(const std::string& name) const
 {
   auto it = std::find_if(modules.begin(), modules.end(), [&name](const MGModulePtr& m) {

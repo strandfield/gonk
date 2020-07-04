@@ -58,7 +58,7 @@ public:
   MGModule(std::string n): name(std::move(n)) { }
 
   std::shared_ptr<cxx::Entity> getSymbol(const std::string& name) const;
-
+  std::vector<std::shared_ptr<cxx::Entity>> getSymbolsByLocation(const std::string& filename) const;
 };
 
 typedef std::shared_ptr<MGModule> MGModulePtr;
