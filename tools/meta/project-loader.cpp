@@ -401,13 +401,28 @@ void MGProjectLoader::buildEntityTree()
 
   std::list<std::shared_ptr<cxx::Entity>> queue;
 
+  QSqlQuery query{ database };
+  bool ok = query.prepare(
+    "SELECT entities.id FROM entities"
+    " LEFT JOIN source_locations ON entities.id = source_locations.entity_id"
+    " LEFT JOIN files ON source_locations.file_id = files.id"
+    " WHERE parent = :parent_id"
+    " ORDER BY files.path ASC, source_locations.line ASC");
+
+  if (!ok)
+  {
+    qDebug() << query.lastError().text();
+    return;
+  }
+
+  int ID = 0;
+
   for (const auto& e : m_modules_map)
   {
     project->modules.push_back(e.second);
 
-    QSqlQuery query = database.exec(QString("SELECT id FROM entities WHERE parent = %1").arg(project->dbid(e.second).global_id));
-
-    int ID = 0;
+    query.bindValue(":parent_id", project->dbid(e.second).global_id);
+    query.exec();
 
     while (query.next())
     {
@@ -424,9 +439,8 @@ void MGProjectLoader::buildEntityTree()
     std::shared_ptr<cxx::Entity> n = queue.front();
     queue.pop_front();
 
-    QSqlQuery query = database.exec(QString("SELECT id FROM entities WHERE parent = %1").arg(project->dbid(n).global_id));
-
-    int ID = 0;
+    query.bindValue(":parent_id", project->dbid(n).global_id);
+    query.exec();
 
     while (query.next())
     {

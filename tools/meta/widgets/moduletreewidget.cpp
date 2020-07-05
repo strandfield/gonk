@@ -24,6 +24,7 @@
 #include <QAction>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPainter>
 #include <QStyledItemDelegate>
 
 #include <QDebug>
@@ -111,6 +112,28 @@ public:
   void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &/* index */) const override
   {
     editor->setGeometry(option.rect);
+  }
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+  {
+    QTreeWidgetItem* item = static_cast<QTreeWidgetItem*>(index.internalPointer());
+
+    int location = item->data(0, ModuleTreeWidget::LocationRole).toInt();
+
+    if (location != 0)
+    {
+      QColor color{ static_cast<QRgb>(location) };
+      QRect rect = option.rect;
+      rect.setLeft(rect.right() - 5);
+
+      painter->save();
+      painter->setPen(Qt::NoPen);
+      painter->setBrush(QBrush(color));
+      painter->drawRect(rect);
+      painter->restore();
+    }
+
+    QStyledItemDelegate::paint(painter, option, index);
   }
 };
 
@@ -473,6 +496,11 @@ QTreeWidgetItem* ModuleTreeWidget::createItem(const std::shared_ptr<cxx::Entity>
   else if (node->is<cxx::Function>())
   {
     item->setIcon(0, QIcon(":/assets/func.png"));
+  }
+
+  if (node->location.file() != nullptr)
+  {
+    item->setData(0, LocationRole, static_cast<int>(std::hash<std::string>()(node->location.file()->path())));
   }
 
   handle_checkboxes(item, mShowCheckboxes);

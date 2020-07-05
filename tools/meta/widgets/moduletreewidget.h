@@ -18,6 +18,11 @@ class ModuleTreeWidget : public QTreeWidget
 public:
   ModuleTreeWidget(const MGProjectPtr& pro);
 
+  enum Role
+  {
+    LocationRole = Qt::UserRole,
+  };
+
   void setShowCheckboxes(bool visible);
 
   inline MGProjectPtr project() const { return mProject; }

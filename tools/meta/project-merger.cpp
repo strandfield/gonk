@@ -337,5 +337,6 @@ void MGProjectMerger::fetchTypes(MGProjectPtr pro)
 
 bool MGProjectMerger::shouldSaveSourceLocation(const cxx::Entity& e)
 {
-  return e.is<cxx::Function>() && (e.weak_parent.lock() == nullptr || !e.parent()->is<cxx::Class>());
+  // return e.is<cxx::Function>() && (e.weak_parent.lock() == nullptr || !e.parent()->is<cxx::Class>());
+  return !e.is<cxx::Namespace>();
 }

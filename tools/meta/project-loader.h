@@ -41,7 +41,7 @@ public:
   {
     loadTypes();
     loadEntities();
-    project->sort();
+    //project->sort();
     loadFiles();
     loadSourceLocations();
   }

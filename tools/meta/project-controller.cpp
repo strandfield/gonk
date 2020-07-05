@@ -204,6 +204,12 @@ void ProjectController::remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr p
       if (database.lastError().isValid())
         qDebug() << database.lastError().text();
 
+      query = database.exec(QString("DELETE FROM source_locations WHERE entity_id = %1")
+        .arg(QString::number(project->dbid(n).global_id)));
+
+      if (database.lastError().isValid())
+        qDebug() << database.lastError().text();
+
       query = database.exec(QString("DELETE FROM entities WHERE id = %1")
         .arg(QString::number(project->dbid(n).global_id)));
 
