@@ -8,7 +8,7 @@ static void register_{{ enum | qualified_name | replace: '::', '_' | snake_case 
 {
   using namespace script;
   
-  Enum {{ enum.name | snake_case }} = parent.newEnum("{{ enum.name }}").setId(script::Type::make<{{ enum | qualified_name }}>().data()).get();
+  Enum {{ enum.name | snake_case }} = gonk::bind::enumeration<{{ enum | qualified_name }}>(parent, "{{ enum.name }}").get();
 
 {% if enum.enum_class %}
     {% for v in enum.values %}

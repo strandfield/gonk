@@ -41,29 +41,29 @@ enum class EnumTypeIds
   QCharJoining,
   QCharCombiningClass,
   QCharUnicodeVersion,
-  QDirFilter,
-  QDirSortFlag,
   QStringSectionFlag,
   QStringSplitBehavior,
   QStringNormalizationForm,
+  QDirFilter,
+  QDirSortFlag,
   LastTypeId,
 };
 
 enum class ClassTypeIds
 {
   FirstTypeId,
-  FromBase64Result,
   QByteArrayFromBase64Result,
   QByteArray,
   QByteRef,
-  QChar,
-  QCharRef,
-  QDir,
+  FromBase64Result,
   QLatin1Char,
+  QChar,
   QLatin1String,
   QStringNull,
   QString,
+  QCharRef,
   QStringRef,
+  QDir,
   LastTypeId,
 };
 #endif // METAGONK_SOURCE

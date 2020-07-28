@@ -5,6 +5,7 @@
 #include "dir.h"
 
 #include "gonk/common/binding/class.h"
+#include "gonk/common/binding/enum.h"
 #include "gonk/common/binding/namespace.h"
 #include "gonk/common/enums.h"
 
@@ -22,7 +23,7 @@ static void register_dir__filter(script::Class& parent)
 {
   using namespace script;
   
-  Enum filter = parent.newEnum("Filter").setId(script::Type::make<QDir::Filter>().data()).get();
+  Enum filter = gonk::bind::enumeration<QDir::Filter>(parent, "Filter").get();
 
   filter.addValue("Dirs", QDir::Filter::Dirs);
   filter.addValue("Files", QDir::Filter::Files);
@@ -49,7 +50,7 @@ static void register_dir__sort_flag(script::Class& parent)
 {
   using namespace script;
   
-  Enum sort_flag = parent.newEnum("SortFlag").setId(script::Type::make<QDir::SortFlag>().data()).get();
+  Enum sort_flag = gonk::bind::enumeration<QDir::SortFlag>(parent, "SortFlag").get();
 
   sort_flag.addValue("Name", QDir::SortFlag::Name);
   sort_flag.addValue("Time", QDir::SortFlag::Time);
@@ -239,10 +240,6 @@ void register_dir_file(script::Namespace ns)
 #else
     // void swap(QDir& value1, QDir& value2);
   gonk::bind::void_function<QDir&, QDir&, &swap>(ns, "swap").create();
-  // QDebug operator<<(QDebug debug, QDir::Filters filters);
-  /// TODO: QDebug operator<<(QDebug debug, QDir::Filters filters);
-  // QDebug operator<<(QDebug debug, const QDir& dir);
-  /// TODO: QDebug operator<<(QDebug debug, const QDir& dir);
   // QFlags<QDir::Filters::enum_type> operator|(QDir::Filters::enum_type f1, QDir::Filters::enum_type f2);
   /// TODO: QFlags<QDir::Filters::enum_type> operator|(QDir::Filters::enum_type f1, QDir::Filters::enum_type f2);
   // QFlags<QDir::Filters::enum_type> operator|(QDir::Filters::enum_type f1, QFlags<QDir::Filters::enum_type> f2);
@@ -255,5 +252,9 @@ void register_dir_file(script::Namespace ns)
   /// TODO: QFlags<QDir::SortFlags::enum_type> operator|(QDir::SortFlags::enum_type f1, QFlags<QDir::SortFlags::enum_type> f2);
   // QIncompatibleFlag operator|(QDir::SortFlags::enum_type f1, int f2);
   /// TODO: QIncompatibleFlag operator|(QDir::SortFlags::enum_type f1, int f2);
+  // QDebug operator<<(QDebug debug, QDir::Filters filters);
+  /// TODO: QDebug operator<<(QDebug debug, QDir::Filters filters);
+  // QDebug operator<<(QDebug debug, const QDir& dir);
+  /// TODO: QDebug operator<<(QDebug debug, const QDir& dir);
 #endif // METAGONK_SOURCE
 }

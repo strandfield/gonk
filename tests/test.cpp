@@ -5,6 +5,7 @@
 #include "gonk/common/binding/chainable-memfn.h"
 #include "gonk/common/binding/constructor.h"
 #include "gonk/common/binding/destructor.h"
+#include "gonk/common/binding/enum.h"
 #include "gonk/common/binding/fn-memfn.h"
 #include "gonk/common/binding/function.h"
 #include "gonk/common/binding/memberfunction.h"
@@ -315,7 +316,7 @@ void test_enum_binding(script::Engine& e)
 
   Namespace ns = e.rootNamespace();
 
-  Enum cs = ns.newEnum("CoordinateSystem").setId(script::make_type<CoordinateSystem>().data()).get();
+  Enum cs = gonk::bind::enumeration<CoordinateSystem>(ns, "CoordinateSystem").get();
   cs.addValue("Cartesian", Cartesian);
   cs.addValue("Polar", Polar);
 
@@ -323,6 +324,9 @@ void test_enum_binding(script::Engine& e)
 
   ASSERT(val.type() == script::make_type<CoordinateSystem>());
   ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
+
+  gonk::value_cast<CoordinateSystem&>(val) = Cartesian;
+  ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
 
   script::Function favcoord = gonk::bind::free_function<CoordinateSystem, &favoriteCoordinateSystem>(ns, "favoriteCoordinateSystem").get();
 
