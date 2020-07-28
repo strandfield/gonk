@@ -21,7 +21,7 @@ namespace callbacks
 // std::vector();
 static script::Value default_ctor(script::FunctionCall* c)
 {
-  c->thisObject().init<std::vector<SemValue>>();
+  c->thisObject() = script::Value(new script::CppValue<std::vector<SemValue>>(c->engine(), c->callee().returnType().baseType(), std::vector<SemValue>()));
   return c->thisObject();
 }
 
@@ -29,7 +29,7 @@ static script::Value default_ctor(script::FunctionCall* c)
 static script::Value copy_ctor(script::FunctionCall* c)
 {
   const std::vector<SemValue>& other = script::get<std::vector<SemValue>>(c->arg(1));
-  c->thisObject().init<std::vector<SemValue>>(other);
+  c->thisObject() = script::Value(new script::CppValue<std::vector<SemValue>>(c->engine(), c->callee().returnType().baseType(), other));
   return c->thisObject();
 }
 
@@ -45,7 +45,7 @@ static script::Value ctor_int(script::FunctionCall* c)
 {
   const int count = script::get<int>(c->arg(1));
   SemValue value{ VectorTemplate::info(c).element_type->defaultConstruct() };
-  c->thisObject().init<std::vector<SemValue>>(static_cast<size_t>(count), value);
+  c->thisObject() = script::Value(new script::CppValue<std::vector<SemValue>>(c->engine(), c->callee().returnType().baseType(), std::vector<SemValue>(static_cast<size_t>(count), value)));
   return c->thisObject();
 }
 
@@ -53,8 +53,8 @@ static script::Value ctor_int(script::FunctionCall* c)
 static script::Value ctor_int_T(script::FunctionCall* c)
 {
   const int size = script::get<int>(c->arg(1));
-  ObserverValue value{ VectorTemplate::info(c).element_type,  c->arg(2) };
-  c->thisObject().init<std::vector<SemValue>>(static_cast<size_t>(size), value);
+  ObserverValue value{ VectorTemplate::info(c).element_type, c->arg(2) };
+  c->thisObject() = script::Value(new script::CppValue<std::vector<SemValue>>(c->engine(), c->callee().returnType().baseType(), std::vector<SemValue>(static_cast<size_t>(size), value)));
   return c->thisObject();
 }
 

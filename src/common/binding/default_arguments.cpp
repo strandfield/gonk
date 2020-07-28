@@ -14,7 +14,6 @@ namespace bind
 
 std::shared_ptr<script::program::Expression> make_default_argument(script::Value val)
 {
-  val.engine()->manage(val);
   return script::program::VariableAccess::New(val);
 }
 

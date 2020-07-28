@@ -59,16 +59,16 @@ static void get_hash(TypeInfo & info)
 
   script::Scope scp{ script::Scope::enclosingNamespace(info.type, e) };
   std::vector<script::Function> funcs = script::NameLookup::resolve("hash", scp).functions();
-  auto resol = script::OverloadResolution::New(e);
-  if (!resol.process(funcs, { script::Type::cref(info.type) }))
+  auto resol = script::resolve_overloads(funcs, std::vector<script::Type>{script::Type::cref(info.type)});
+  if (!resol)
     return;
 
-  if (resol.selectedOverload().returnType() != script::Type::Int)
+  if (resol.function.returnType() != script::Type::Int)
     return;
-  else if (resol.selectedOverload().parameter(0) != script::Type::cref(info.type))
+  else if (resol.function.parameter(0) != script::Type::cref(info.type))
     return;
 
-  info.hash = resol.selectedOverload();
+  info.hash = resol.function;
 }
 
 std::shared_ptr<TypeInfo> TypeInfo::get(script::Engine *e, const script::Type & t)
@@ -90,33 +90,33 @@ std::shared_ptr<TypeInfo> TypeInfo::get(script::Engine *e, const script::Type & 
 
     {
       std::vector<script::Function> ops = script::NameLookup::resolve(script::EqualOperator, creftype, creftype, script::Scope{ e->rootNamespace() });
-      auto resol = script::OverloadResolution::New(e);
-      if (!resol.process(ops, { creftype, creftype }))
+      auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ creftype, creftype });
+      if (!resol)
         throw std::runtime_error{ "TypeInfo::get(): type must be equality-comparable" };
 
-      ret->eq = resol.selectedOverload();
+      ret->eq = resol.function;
       if (!check_op_eq(t.baseType(), ret->eq))
         throw std::runtime_error{ "TypeInfo::get(): invalid operator==" };
     }
 
     {
       std::vector<script::Function> ops = script::NameLookup::resolve(script::AssignmentOperator, reftype, creftype, script::Scope{ e->rootNamespace() });
-      auto resol = script::OverloadResolution::New(e);
-      if (!resol.process(ops, { reftype, creftype }))
+      auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ reftype, creftype });
+      if (!resol)
         throw std::runtime_error{ "TypeInfo::get(): type must be assignable" };
 
-      ret->assign = resol.selectedOverload();
+      ret->assign = resol.function;
       if (!check_op_assign(t.baseType(), ret->assign))
         throw std::runtime_error{ "TypeInfo::get(): invalid operator=" };
     }
 
     {
       std::vector<script::Function> ops = script::NameLookup::resolve(script::LessOperator, creftype, creftype, script::Scope{ e->rootNamespace() });
-      auto resol = script::OverloadResolution::New(e);
-      if (!resol.process(ops, { creftype, creftype }))
+      auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ creftype, creftype });
+      if (!resol)
         throw std::runtime_error{ "TypeInfo::get(): type must have operator<" };
 
-      ret->less = resol.selectedOverload();
+      ret->less = resol.function;
       if (!check_op_less(t.baseType(), ret->less))
         throw std::runtime_error{ "TypeInfo::get(): invalid operator<" };
     }

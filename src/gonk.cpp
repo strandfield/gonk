@@ -9,6 +9,8 @@
 
 #include <script/class.h>
 #include <script/context.h>
+#include <script/enumerator.h>
+#include <script/function.h>
 #include <script/module.h>
 #include <script/namespace.h>
 #include <script/script.h>
@@ -193,7 +195,6 @@ void Gonk::eval(std::string cmd)
   {
     script::Value v = scriptEngine()->eval(cmd);
     display(v);
-    scriptEngine()->manage(v);
   }
   catch (const std::runtime_error & ex)
   {
