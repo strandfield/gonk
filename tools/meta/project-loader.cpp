@@ -351,7 +351,7 @@ void MGProjectLoader::loadMetadata()
   {
     int id = query.value(ENTITY_ID).toInt();
 
-    json::Object& json_obj = [&]() {
+    auto& json_obj = [&]() -> json::Object& {
       {
         auto it = m_entity_map.find(id);
 

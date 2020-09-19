@@ -12,6 +12,7 @@
 #include <QDebug>
 
 #include <algorithm>
+#include <cstring>
 #include <stdexcept>
 
 MGType::MGType(std::string n, std::string id)
