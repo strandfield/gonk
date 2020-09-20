@@ -308,9 +308,9 @@ void DatabaseExporter::exportTable(const TableDescription& table, const QString&
 		{
 			const auto& f = table.fields.at(i);
 
-			QVariant field_val = query.value(i);
+			QVariant field_val = query.value(static_cast<int>(i));
 
-			if (!f.not_null && query.value(i).isNull())
+			if (!f.not_null && query.value(static_cast<int>(i)).isNull())
 			{
 				field_values.push_back("NULL");
 			}

@@ -61,7 +61,7 @@ void NewFunctionDialog::sync()
   Controller::Instance().projectController().update(*mFunction,
     mNameLineEdit->text(),
     mReturnTypeLineEdit->text().simplified(),
-    mParametersLineEdit->text().simplified().split(";", QString::SkipEmptyParts),
+    mParametersLineEdit->text().simplified().split(';', QString::SkipEmptyParts),
     mSpecifiersLineEdit->text().simplified().split(','));
 }
 
