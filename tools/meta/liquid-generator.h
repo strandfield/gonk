@@ -25,9 +25,6 @@ struct SerializationMaps
   std::unordered_map<std::shared_ptr<json::details::Node>, std::shared_ptr<cxx::Entity>> backward;
   std::unordered_map<std::shared_ptr<cxx::Entity>, json::Json> forward;
 
-  std::unordered_map<std::shared_ptr<json::details::Node>, MGModulePtr> module_backward;
-  std::unordered_map<MGModulePtr, json::Json> module_forward;
-
   json::Json get(const std::shared_ptr<cxx::Entity>& n) const
   {
     return forward.at(n);
@@ -42,23 +39,6 @@ struct SerializationMaps
   {
     backward[o.impl()] = n;
     forward[n] = o;
-  }
-
-  json::Json get(const MGModulePtr& n) const
-  {
-    return module_forward.at(n);
-  }
-
-  MGModulePtr getModule(const json::Json& obj) const
-  {
-    return module_backward.at(obj.impl());
-  }
-
-
-  void bind(const MGModulePtr& n, const json::Json& o)
-  {
-    module_backward[o.impl()] = n;
-    module_forward[n] = o;
   }
 };
 

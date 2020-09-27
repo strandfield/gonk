@@ -60,11 +60,8 @@ protected:
 
   QString parentId() const;
   void getIds(std::shared_ptr<cxx::Entity> elem);
-  void getIds(MGModulePtr elem);
 
   void merge_recursively(std::vector<std::shared_ptr<cxx::Entity>>& target, const std::vector<std::shared_ptr<cxx::Entity>>& src);
-  MGModulePtr find_or_set(std::vector<MGModulePtr>& list, const MGModulePtr& elem);
-  void merge_recursively(std::vector<MGModulePtr>& target, const std::vector<MGModulePtr>& src);
 
   template<typename T>
   void assignIds(std::vector<std::shared_ptr<T>>& list)
@@ -93,14 +90,12 @@ protected:
   }
 
   void fetch_types_recursively(MGProject& pro, const std::shared_ptr<cxx::Entity>& node);
-  void fetch_types_recursively(MGProject& pro, const MGModulePtr& node);
 
   void fetchTypes(MGProjectPtr pro);
 
   bool shouldSaveSourceLocation(const cxx::Entity& e);
 
 private:
-  MGModulePtr m_current_module = nullptr;
   std::shared_ptr<cxx::Entity> m_parent = nullptr;
   int m_imported_symbols_count = 0;
   std::unordered_map<std::shared_ptr<cxx::Entity>, MGTypePtr> m_types_map;

@@ -14,9 +14,9 @@
 namespace script
 {
 #if METAGONK_SOURCE
-{% assign current_class = project | get_symbol: 'Qt.Core', 'QLatin1Char'%}
+{% assign current_class = project | get_symbol: 'QLatin1Char'%}
 {% include generate_make_type_helpers with entity = current_class and module_namespace = 'qt_core' and recursive = true %}
-{% assign current_class = project | get_symbol: 'Qt.Core', 'QChar'%}
+{% assign current_class = project | get_symbol: 'QChar'%}
 {% include generate_make_type_helpers with entity = current_class and module_namespace = 'qt_core' and recursive = true %}
 #else
 template<> struct make_type_helper<QLatin1Char> { inline static script::Type get(){ return (gonk::qt_core::class_type_id_offset() + static_cast<int>(gonk::qt_core::ClassTypeIds::QLatin1Char)) | script::Type::ObjectFlag; } };

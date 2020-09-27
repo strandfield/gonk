@@ -37,7 +37,6 @@ void ImportPage::cleanupPage()
 {
   auto & fields = ImportWizard::get(wizard())->fields();
   fields.importedSymbols->types.clear();
-  fields.importedSymbols->modules.clear();
 
   selectionTreeWidget->clear();
 
@@ -48,13 +47,11 @@ void ImportPage::initializePage()
 {
   auto & fields = ImportWizard::get(wizard())->fields(); 
 
-  MGModulePtr m = fields.importedSymbols->getOrCreateModule(fields.moduleName.toStdString());
-
   CppParser parser{ fields.importedSymbols };
   parser.setIncludeDirectories(fields.includeDirectories);
 
   for (const auto & f : fields.fileList)
-    parser.parse(f, m);
+    parser.parse(f);
 
   selectionTreeWidget->setProject(fields.importedSymbols);
   selectionTreeWidget->setShowCheckboxes(true);

@@ -144,7 +144,6 @@ void MGProjectLoader::loadEntities()
   loadClasses();
   loadEnums();
   loadEnumerators();
-  loadModules();
 
   {
     QSqlQuery query = database.exec("SELECT id, module_id, namespace_id, class_id, function_id, enum_id, enumerator_id FROM entities");
@@ -161,12 +160,7 @@ void MGProjectLoader::loadEntities()
     {
       int entity_id = query.value(ID).toInt();
 
-      if (!query.value(MODULE_ID).isNull())
-      {
-        MGModulePtr m = m_modules_map[query.value(MODULE_ID).toInt()];
-        project->dbid(m).global_id = entity_id;
-      }
-      else if (!query.value(NAMESPACE_ID).isNull())
+      if (!query.value(NAMESPACE_ID).isNull())
       {
         std::shared_ptr<cxx::Namespace> ns = m_namespaces_map[query.value(NAMESPACE_ID).toInt()];
         project->dbid(ns).global_id = entity_id;
@@ -212,25 +206,6 @@ void MGProjectLoader::loadEntities()
   loadMetadata();
 
   buildEntityTree();
-}
-
-void MGProjectLoader::loadModules()
-{
-  setState("loading modules");
-
-  QSqlQuery query = database.exec("SELECT id, name FROM modules");
-
-  int ID = 0;
-  int NAME = 1;
-
-  while (query.next())
-  {
-    int id = query.value(ID).toInt();
-    auto m = std::make_shared<MGModule>("");
-    m->name = query.value(NAME).toString().toStdString();
-    m_modules_map[id] = m;
-    project->dbid(m).id = id;
-  }
 }
 
 void MGProjectLoader::loadFunctions()
@@ -362,24 +337,13 @@ void MGProjectLoader::loadMetadata()
     int id = query.value(ENTITY_ID).toInt();
 
     auto& json_obj = [&]() -> json::Object& {
+
+      auto it = m_entity_map.find(id);
+
+      if (it != m_entity_map.end())
       {
-        auto it = m_entity_map.find(id);
-
-        if (it != m_entity_map.end())
-        {
-          std::shared_ptr<cxx::Entity> e = it->second;
-          return project->getMetadata(e);
-        }
-      }
-
-      {
-        auto it = m_modules_map.find(id);
-
-        if (it != m_modules_map.end())
-        {
-          MGModulePtr e = it->second;
-          return project->getMetadata(e);
-        }
+        std::shared_ptr<cxx::Entity> e = it->second;
+        return project->getMetadata(e);
       }
 
       throw std::runtime_error{ "No such entity" };
@@ -412,6 +376,26 @@ void MGProjectLoader::buildEntityTree()
   std::list<std::shared_ptr<cxx::Entity>> queue;
 
   QSqlQuery query{ database };
+
+  int ID = 0;
+
+  {
+    query.exec("SELECT entities.id FROM entities"
+      " LEFT JOIN source_locations ON entities.id = source_locations.entity_id"
+      " LEFT JOIN files ON source_locations.file_id = files.id"
+      " WHERE parent is NULL"
+      " ORDER BY files.path ASC, source_locations.line ASC");
+
+    while (query.next())
+    {
+      int child_id = query.value(ID).toInt();
+      auto child = m_entity_map[child_id];
+      project->program->globalNamespace()->entities.push_back(child);
+
+      queue.push_back(child);
+    }
+  }
+
   bool ok = query.prepare(
     "SELECT entities.id FROM entities"
     " LEFT JOIN source_locations ON entities.id = source_locations.entity_id"
@@ -423,25 +407,6 @@ void MGProjectLoader::buildEntityTree()
   {
     qDebug() << query.lastError().text();
     return;
-  }
-
-  int ID = 0;
-
-  for (const auto& e : m_modules_map)
-  {
-    project->modules.push_back(e.second);
-
-    query.bindValue(":parent_id", project->dbid(e.second).global_id);
-    query.exec();
-
-    while (query.next())
-    {
-      int child_id = query.value(ID).toInt();
-      auto child = m_entity_map[child_id];
-      e.second->entities.push_back(child);
-
-      queue.push_back(child);
-    }
   }
 
   while (!queue.empty())

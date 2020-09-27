@@ -31,14 +31,12 @@ public:
   void fetchNewNodes();
 
   std::shared_ptr<cxx::Entity> getEntity(QTreeWidgetItem* item) const;
-  MGModulePtr getModule(QTreeWidgetItem* item) const;
 
   bool isModuleItem(QTreeWidgetItem* item) const;
 
   void removeUncheckedSymbols();
 
   static QString display(const cxx::Entity& e);
-  static QString display(const MGModule& m);
 
 protected:
   void keyPressEvent(QKeyEvent *e);
@@ -52,8 +50,6 @@ protected:
 protected:
   void fillTreeWidget(const MGProjectPtr & pro);
   void fill(QTreeWidgetItem *parent, const std::shared_ptr<cxx::Entity>& node);
-  void fill(QTreeWidgetItem* parent, const MGModulePtr& node);
-  QTreeWidgetItem* createItem(const MGModulePtr& node);
   QTreeWidgetItem* createItem(const std::shared_ptr<cxx::Entity>& node);
   void refreshItem(QTreeWidgetItem* item);
   void fetchNewNodes(QTreeWidgetItem *item);

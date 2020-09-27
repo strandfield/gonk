@@ -14,9 +14,9 @@
 namespace script
 {
 #if METAGONK_SOURCE
-{% assign bytearray_class = project | get_symbol: 'Qt.Core', 'QByteArray'%}
+{% assign bytearray_class = project | get_symbol: 'QByteArray'%}
 {% include generate_make_type_helpers with entity = bytearray_class and recursive = true %}
-{% assign byteref_class = project | get_symbol: 'Qt.Core', 'QByteRef' %}
+{% assign byteref_class = project | get_symbol: 'QByteRef' %}
 {% include generate_make_type_helpers with entity = byteref_class and recursive = true %}
 #else
 template<> struct make_type_helper<QByteArray::Base64Option> { inline static script::Type get(){ return (gonk::qt_core::enum_type_id_offset() + static_cast<int>(gonk::qt_core::EnumTypeIds::QByteArrayBase64Option)) | script::Type::EnumFlag; } };

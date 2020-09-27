@@ -18,7 +18,6 @@ class CppParser
 private:
   QStringList mIncludeDirectories;
   MGProjectPtr mProject;
-  MGModulePtr mActiveModule;
   cxx::parsers::LibClangParser m_parser;
 
 public:
@@ -29,9 +28,8 @@ public:
   inline const QStringList & includeDirectories() const { return mIncludeDirectories; }
 
   inline const MGProjectPtr& project() const { return mProject; }
-  inline const MGModulePtr& activeModule() const { return mActiveModule; }
 
-  void parse(const QString & file, const MGModulePtr& mo);
+  void parse(const QString & file);
 };
 
 #endif // METAGONK_CPPPARSER_H
