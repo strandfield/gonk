@@ -27,7 +27,7 @@ ImportPage::ImportPage()
   hl->addWidget(new QLabel("Select the elements you want to process:"));
   hl->addItem(new QSpacerItem(20, 20, QSizePolicy::Expanding, QSizePolicy::Minimum));
 
-  selectionTreeWidget = new ModuleTreeWidget(nullptr);
+  selectionTreeWidget = new SymbolsTreeWidget(nullptr);
   selectionTreeWidget->setShowCheckboxes(true);
   l->addWidget(selectionTreeWidget);
 }

@@ -12,11 +12,11 @@
 class QAction;
 class QMenu;
 
-class ModuleTreeWidget : public QTreeWidget
+class SymbolsTreeWidget : public QTreeWidget
 {
   Q_OBJECT
 public:
-  ModuleTreeWidget(const MGProjectPtr& pro);
+  SymbolsTreeWidget(const MGProjectPtr& pro);
 
   enum Role
   {
