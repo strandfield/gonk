@@ -43,4 +43,6 @@ INSERT INTO "types" VALUES (34,'QStringRef','QStringRef',0,1);
 INSERT INTO "types" VALUES (35,'QDir::SortFlag','QDirSortFlag',1,0);
 INSERT INTO "types" VALUES (36,'QDir','QDir',0,1);
 INSERT INTO "types" VALUES (37,'QDir::Filter','QDirFilter',1,0);
+INSERT INTO "types" VALUES (38,'QObject','QObject',0,1);
+INSERT INTO "types" VALUES (39,'QSignalBlocker','QSignalBlocker',0,1);
 COMMIT;

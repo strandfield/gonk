@@ -4,4 +4,5 @@ CREATE TABLE IF NOT EXISTS "files" (
 	"path"	TEXT NOT NULL
 );
 INSERT INTO "files" VALUES (1,'QDir');
+INSERT INTO "files" VALUES (2,'QObject');
 COMMIT;
