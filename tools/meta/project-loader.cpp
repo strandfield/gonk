@@ -146,15 +146,14 @@ void MGProjectLoader::loadEntities()
   loadEnumerators();
 
   {
-    QSqlQuery query = database.exec("SELECT id, module_id, namespace_id, class_id, function_id, enum_id, enumerator_id FROM entities");
+    QSqlQuery query = database.exec("SELECT id, namespace_id, class_id, function_id, enum_id, enumerator_id FROM entities");
 
     int ID = 0;
-    int MODULE_ID = 1;
-    int NAMESPACE_ID = 2;
-    int CLASS_ID = 3;
-    int FUNCTION_ID = 4;
-    int ENUM_ID = 5;
-    int ENUMERATOR_ID = 6;
+    int NAMESPACE_ID = 1;
+    int CLASS_ID = 2;
+    int FUNCTION_ID = 3;
+    int ENUM_ID = 4;
+    int ENUMERATOR_ID = 5;
 
     while (query.next())
     {

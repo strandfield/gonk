@@ -57,7 +57,6 @@ bool Controller::createSqlDatabase(const QFileInfo& db_dir, const QString& savep
 
   return Database::run(db_dir.absoluteFilePath() + "/types.sql")
     && Database::run(db_dir.absoluteFilePath() + "/namespaces.sql")
-    && Database::run(db_dir.absoluteFilePath() + "/modules.sql")
     && Database::run(db_dir.absoluteFilePath() + "/enums.sql")
     && Database::run(db_dir.absoluteFilePath() + "/enumerators.sql")
     && Database::run(db_dir.absoluteFilePath() + "/functions.sql")
