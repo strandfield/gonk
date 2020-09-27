@@ -330,18 +330,17 @@ LiquidGenerator::TypeInfo::TypeInfo(const MGType & t)
 }
 
 
-LiquidGenerator::LiquidGenerator(const QString & dir)
-  : mRootDirectory(dir)
+LiquidGenerator::LiquidGenerator(const QString & dir, const MGProjectPtr& pro)
+  : mRootDirectory(dir),
+    mProject(pro)
 {
 
 }
 
-void LiquidGenerator::generate(const MGProjectPtr & p)
+void LiquidGenerator::generate()
 {
   QElapsedTimer timer;
   timer.start();
-
-  mProject = p;
 
   ProjectSerializer serializer{ mProject, m_serialization_map };
   mSerializedProject = serializer.serialize();
@@ -362,7 +361,7 @@ void LiquidGenerator::generate(const MGProjectPtr & p)
 
   parseTemplates();
 
-  QDirIterator diriterator{ mRootDirectory + "/plugins", QDir::Files, QDirIterator::Subdirectories };
+  QDirIterator diriterator{ mRootDirectory + "/plugins/" + QString::fromStdString(mProject->module_folder), QDir::Files, QDirIterator::Subdirectories };
 
   while (diriterator.hasNext())
   {
@@ -396,7 +395,7 @@ int LiquidGenerator::numberOfFiles() const
 {
   int result = 0;
 
-  QDirIterator diriterator{ mRootDirectory + "/plugins", QDir::Files, QDirIterator::Subdirectories };
+  QDirIterator diriterator{ mRootDirectory + "/plugins/" + QString::fromStdString(mProject->module_folder), QDir::Files, QDirIterator::Subdirectories };
 
   while (diriterator.hasNext())
   {
@@ -586,6 +585,7 @@ std::string LiquidGenerator::renderSource(std::string src)
     tmplt.skipWhitespacesAfterTag();
 
     json::Object data;
+    data["module_namespace"] = mProject->module_namespace;
     data["project"] = mSerializedProject;
     std::string liquid_rendered = liquid::Renderer::render(tmplt, data);
 

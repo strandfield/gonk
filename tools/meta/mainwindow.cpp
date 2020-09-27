@@ -184,7 +184,7 @@ void MainWindow::generateBinding()
 
   mSettings->setValue("generatedir", path);
 
-  LiquidGenerator gen{ path };
+  LiquidGenerator gen{ path, mProject };
 
   QProgressDialog progress("Generating files...", "Abort", 0, gen.numberOfFiles(), this);
   progress.setWindowTitle("Binding generation");
@@ -195,7 +195,7 @@ void MainWindow::generateBinding()
     progress.setValue(progress.value() + 1);
     return !progress.wasCanceled();
     });
-  gen.generate(mProject);
+  gen.generate();
 }
 
 void MainWindow::showEvent(QShowEvent *e)

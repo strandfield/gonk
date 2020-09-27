@@ -17,8 +17,6 @@
 #include <map>
 #include <set>
 
-class CppFile;
-
 class QFileInfo;
 class QTextStream;
 
@@ -67,9 +65,9 @@ struct SerializationMaps
 class LiquidGenerator : protected liquid::Renderer
 {
 public:
-  LiquidGenerator(const QString & dir);
+  LiquidGenerator(const QString & dir, const MGProjectPtr& pro);
 
-  void generate(const MGProjectPtr & pro);
+  void generate();
 
   const std::function<bool(const QString &)> & progressCallback() const { return mProgressCallback; }
   void setProgressCallback(std::function<bool(const QString &)> f) { mProgressCallback = f; }

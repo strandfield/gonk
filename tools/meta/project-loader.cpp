@@ -13,6 +13,7 @@
 #include <QSqlQuery>
 
 #include <QFileInfo>
+#include <QSettings>
 
 #include <QDebug>
 
@@ -80,6 +81,15 @@ void MGProjectLoader::writeSpecifiers(cxx::Function& f, QString specifiers)
     else if (sp == "dtor")
       f.kind = cxx::FunctionKind::Destructor;  
   }
+}
+
+void MGProjectLoader::loadIni()
+{
+  QFileInfo fileinfo{ database.databaseName() };
+  QSettings config{ fileinfo.absolutePath() + "/" + "module_info.ini", QSettings::IniFormat };
+  project->module_name = config.value("module_name", "").toString().toStdString();
+  project->module_folder = config.value("module_folder", "").toString().toStdString();
+  project->module_namespace = config.value("module_namespace", "").toString().toStdString();
 }
 
 void MGProjectLoader::loadTypes()

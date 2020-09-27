@@ -39,6 +39,7 @@ public:
 
   void load()
   {
+    loadIni();
     loadTypes();
     loadEntities();
     //project->sort();
@@ -58,6 +59,7 @@ Q_SIGNALS:
 protected:
   void setState(const QString& st);
 
+  void loadIni();
   void loadTypes();
   void loadEntities();
   void loadModules();
