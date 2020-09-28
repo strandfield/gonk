@@ -39,6 +39,7 @@ public:
 
   void load()
   {
+    loadIni();
     loadTypes();
     loadEntities();
     //project->sort();
@@ -58,9 +59,9 @@ Q_SIGNALS:
 protected:
   void setState(const QString& st);
 
+  void loadIni();
   void loadTypes();
   void loadEntities();
-  void loadModules();
   void loadFunctions();
   void loadClasses();
   void loadEnums();
@@ -73,7 +74,6 @@ protected:
 private:
   QString m_state;
   std::map<int, MGTypePtr> m_type_map;
-  std::map<int, MGModulePtr> m_modules_map;
   std::map<int, std::shared_ptr<cxx::Entity>> m_entity_map;
   std::map<int, std::shared_ptr<cxx::Function>> m_functions_map;
   std::map<int, std::shared_ptr<cxx::Namespace>> m_namespaces_map;

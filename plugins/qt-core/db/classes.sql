@@ -19,4 +19,6 @@ INSERT INTO "classes" VALUES (11,'Null',31,'',NULL);
 INSERT INTO "classes" VALUES (12,'QCharRef',33,'',NULL);
 INSERT INTO "classes" VALUES (13,'QStringRef',34,'',NULL);
 INSERT INTO "classes" VALUES (14,'QDir',36,'',NULL);
+INSERT INTO "classes" VALUES (15,'QObject',38,'',NULL);
+INSERT INTO "classes" VALUES (16,'QSignalBlocker',39,'',NULL);
 COMMIT;

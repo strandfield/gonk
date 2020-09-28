@@ -1,9 +1,8 @@
 {% assign entity = include.entity %}
-{% assign module_namespace = include.module_namespace %}
 {% if include.recursive and entity.type == 'class' %}
     {% for m in entity.members %}
 	    {% if m.type == 'class' or m.type == 'enum' %}
-	        {% include generate_make_type_helpers with entity = m and module_namespace = module_namespace and recursive = true %}
+	        {% include generate_make_type_helpers with entity = m and recursive = true %}
 		{% endif %}
 	{% endfor %}
 {% endif %}

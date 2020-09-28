@@ -25,9 +25,9 @@ script::Value bytearray_string_ctor(script::FunctionCall* c)
 }
 
 #if METAGONK_SOURCE
-{% assign bytearray_class = project | get_symbol: 'Qt.Core', 'QByteArray'%}
+{% assign bytearray_class = project | get_symbol: 'QByteArray'%}
 {% include generate_class with class = bytearray_class and recursive = true %}
-{% assign current_class = project | get_symbol: 'Qt.Core', 'QByteRef'%}
+{% assign current_class = project | get_symbol: 'QByteRef'%}
 {% include generate_class with class = current_class and recursive = true %}
 #else
 static void register_byte_array__base64_option(script::Class& parent)

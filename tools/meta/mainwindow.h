@@ -11,7 +11,7 @@
 
 class Controller;
 
-class ModuleTreeWidget;
+class SymbolsTreeWidget;
 class TypeTreeWidget;
 
 class QFileInfo;
@@ -44,7 +44,7 @@ private:
 
   QTabWidget *mTabWidget;
   TypeTreeWidget *mTypeTreeWidget;
-  ModuleTreeWidget *mModuleTreeWidget;
+  SymbolsTreeWidget *mSymbolsTreeWidget;
 };
 
 #endif // METAGONK_MAINWINDOW_H

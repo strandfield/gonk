@@ -45,10 +45,10 @@ MainWindow::MainWindow()
   mTabWidget = new QTabWidget();
 
   mTypeTreeWidget = new TypeTreeWidget(mProject);
-  mModuleTreeWidget = new ModuleTreeWidget(mProject);
+  mSymbolsTreeWidget = new SymbolsTreeWidget(mProject);
 
   mTabWidget->addTab(mTypeTreeWidget, "Types");
-  mTabWidget->addTab(mModuleTreeWidget, "Modules");
+  mTabWidget->addTab(mSymbolsTreeWidget, "Symbols");
 
   setCentralWidget(mTabWidget);
 
@@ -92,7 +92,7 @@ void MainWindow::openProject()
     mSettings->setValue("lastproject", path);
 
     mTypeTreeWidget->setProject(mProject);
-    mModuleTreeWidget->setProject(mProject);
+    mSymbolsTreeWidget->setProject(mProject);
   }
   else
   {
@@ -132,7 +132,7 @@ void MainWindow::buildDB()
     mSettings->setValue("lastproject", path);
 
     mTypeTreeWidget->setProject(mProject);
-    mModuleTreeWidget->setProject(mProject);
+    mSymbolsTreeWidget->setProject(mProject);
   }
   else
   {
@@ -170,7 +170,7 @@ void MainWindow::importCpp()
   wizard->deleteLater();
 
   mTypeTreeWidget->fetchNewNodes();
-  mModuleTreeWidget->fetchNewNodes();
+  mSymbolsTreeWidget->fetchNewNodes();
 }
 
 void MainWindow::generateBinding()
@@ -184,7 +184,7 @@ void MainWindow::generateBinding()
 
   mSettings->setValue("generatedir", path);
 
-  LiquidGenerator gen{ path };
+  LiquidGenerator gen{ path, mProject };
 
   QProgressDialog progress("Generating files...", "Abort", 0, gen.numberOfFiles(), this);
   progress.setWindowTitle("Binding generation");
@@ -195,7 +195,7 @@ void MainWindow::generateBinding()
     progress.setValue(progress.value() + 1);
     return !progress.wasCanceled();
     });
-  gen.generate(mProject);
+  gen.generate();
 }
 
 void MainWindow::showEvent(QShowEvent *e)

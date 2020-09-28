@@ -17,8 +17,6 @@
 #include <map>
 #include <set>
 
-class CppFile;
-
 class QFileInfo;
 class QTextStream;
 
@@ -26,9 +24,6 @@ struct SerializationMaps
 {
   std::unordered_map<std::shared_ptr<json::details::Node>, std::shared_ptr<cxx::Entity>> backward;
   std::unordered_map<std::shared_ptr<cxx::Entity>, json::Json> forward;
-
-  std::unordered_map<std::shared_ptr<json::details::Node>, MGModulePtr> module_backward;
-  std::unordered_map<MGModulePtr, json::Json> module_forward;
 
   json::Json get(const std::shared_ptr<cxx::Entity>& n) const
   {
@@ -45,31 +40,14 @@ struct SerializationMaps
     backward[o.impl()] = n;
     forward[n] = o;
   }
-
-  json::Json get(const MGModulePtr& n) const
-  {
-    return module_forward.at(n);
-  }
-
-  MGModulePtr getModule(const json::Json& obj) const
-  {
-    return module_backward.at(obj.impl());
-  }
-
-
-  void bind(const MGModulePtr& n, const json::Json& o)
-  {
-    module_backward[o.impl()] = n;
-    module_forward[n] = o;
-  }
 };
 
 class LiquidGenerator : protected liquid::Renderer
 {
 public:
-  LiquidGenerator(const QString & dir);
+  LiquidGenerator(const QString & dir, const MGProjectPtr& pro);
 
-  void generate(const MGProjectPtr & pro);
+  void generate();
 
   const std::function<bool(const QString &)> & progressCallback() const { return mProgressCallback; }
   void setProgressCallback(std::function<bool(const QString &)> f) { mProgressCallback = f; }

@@ -61,7 +61,7 @@ void MGProjectMerger::merge()
     }
   }
 
-  merge_recursively(project->modules, other->modules);
+  merge_recursively(project->program->globalNamespace()->entities, other->program->globalNamespace()->entities);
 }
 
 int MGProjectMerger::importedSymbolsCount() const
@@ -77,21 +77,12 @@ void MGProjectMerger::incrImportedSymbolsCount()
 
 QString MGProjectMerger::parentId() const
 {
-  if (m_parent == nullptr && m_current_module == nullptr)
+  if (m_parent == nullptr)
     return "NULL";
 
   if (m_parent != nullptr)
   {
     auto& dbid = project->dbid(m_parent);
-
-    if (dbid.global_id == -1)
-      throw std::runtime_error{ "missing parent id" };
-
-    return QString::number(dbid.global_id);
-  }
-  else
-  {
-    auto& dbid = project->dbid(m_current_module);
 
     if (dbid.global_id == -1)
       throw std::runtime_error{ "missing parent id" };
@@ -189,18 +180,6 @@ void MGProjectMerger::getIds(std::shared_ptr<cxx::Entity> elem)
   incrImportedSymbolsCount();
 }
 
-void MGProjectMerger::getIds(MGModulePtr elem)
-{
-  auto& ids = project->dbid(elem);
-
-  QSqlQuery query = Database::exec(QString("INSERT INTO modules(name) VALUES('%1')").arg(QString::fromStdString(elem->name)));
-  ids.id = query.lastInsertId().toInt();
-
-  query = Database::exec(QString("INSERT INTO entities(parent, module_id) VALUES(%1, %2)")
-    .arg(parentId(), QString::number(ids.id)));
-  ids.global_id = query.lastInsertId().toInt();
-}
-
 void MGProjectMerger::merge_recursively(std::vector<std::shared_ptr<cxx::Entity>>& target, const std::vector<std::shared_ptr<cxx::Entity>>& src)
 {
   for (const auto& srcItem : src)
@@ -253,36 +232,6 @@ void MGProjectMerger::merge_recursively(std::vector<std::shared_ptr<cxx::Entity>
   }
 }
 
-MGModulePtr MGProjectMerger::find_or_set(std::vector<MGModulePtr>& list, const MGModulePtr& elem)
-{
-  for (const auto& item : list)
-  {
-    if (item->name == elem->name)
-      return item;
-  }
-
-  getIds(elem);
-  list.push_back(elem);
-  return elem;
-}
-
-void MGProjectMerger::merge_recursively(std::vector<MGModulePtr>& target, const std::vector<MGModulePtr>& src)
-{
-  for (const auto& srcItem : src)
-  {
-    MGModulePtr m = find_or_set(target, srcItem);
-
-    m_current_module = m;
-
-    if (m == srcItem)
-      assignIds(m->entities);
-    else
-      merge_recursively(m->entities, srcItem->entities);
-
-    m_current_module = nullptr;
-  }
-}
-
 void MGProjectMerger::fetch_types_recursively(MGProject& pro, const std::shared_ptr<cxx::Entity>& node)
 {
   if (node->is<cxx::Namespace>())
@@ -324,15 +273,10 @@ void MGProjectMerger::fetch_types_recursively(MGProject& pro, const std::shared_
   }
 }
 
-void MGProjectMerger::fetch_types_recursively(MGProject& pro, const MGModulePtr& node)
-{
-  for (auto n : node->entities)
-    fetch_types_recursively(pro, n);
-}
-
 void MGProjectMerger::fetchTypes(MGProjectPtr pro)
 {
-  fetch_types_recursively(*pro, pro->modules);
+  for (auto n : pro->program->globalNamespace()->entities)
+    fetch_types_recursively(*pro, n);
 }
 
 bool MGProjectMerger::shouldSaveSourceLocation(const cxx::Entity& e)

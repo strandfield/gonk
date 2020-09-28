@@ -24,8 +24,7 @@ namespace qt_core
 {
 
 #if METAGONK_SOURCE
-{% assign qt_core_module = project | get_module: 'Qt.Core' %}
-{% include generate_typeid_list with module = qt_core_module %}{% newline %}
+{% include generate_typeid_list with types = project.types %}{% newline %}
 #else
 enum class EnumTypeIds
 {

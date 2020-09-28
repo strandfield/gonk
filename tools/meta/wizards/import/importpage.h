@@ -9,7 +9,7 @@
 
 #include "project.h"
 
-class ModuleTreeWidget;
+class SymbolsTreeWidget;
 
 class ImportPage : public QWizardPage
 {
@@ -23,7 +23,7 @@ protected:
   bool validatePage() override;
 
 private:
-  ModuleTreeWidget *selectionTreeWidget;
+  SymbolsTreeWidget *selectionTreeWidget;
 };
 
 #endif // METAGONK_IMPORTPAGE_H

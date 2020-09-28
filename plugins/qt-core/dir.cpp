@@ -16,7 +16,7 @@
 #include "qt-core/string.h"
 
 #if METAGONK_SOURCE
-{% assign current_class = project | get_symbol: 'Qt.Core', 'QDir' %}
+{% assign current_class = project | get_symbol: 'QDir' %}
 {% include generate_class with class = current_class and recursive = true %}
 #else
 static void register_dir__filter(script::Class& parent)
@@ -152,8 +152,8 @@ static void register_dir(script::Namespace& parent)
   /// TODO: QStringList entryList(const QStringList& nameFilters, QDir::Filters filters, QDir::SortFlags sort) const;
   // QFileInfoList entryInfoList(QDir::Filters filters, QDir::SortFlags sort) const;
   /// TODO: QFileInfoList entryInfoList(QDir::Filters filters, QDir::SortFlags sort) const;
-  // QFileInfoList entryInfoList(const QStringList& nameFilters, QDir::Filters filters, QDir::SortFlags sort) const;
-  /// TODO: QFileInfoList entryInfoList(const QStringList& nameFilters, QDir::Filters filters, QDir::SortFlags sort) const;
+  // QFileInfoList entryInfoList(const QStringList&, QDir::Filters, QDir::SortFlags) const;
+  /// TODO: QFileInfoList entryInfoList(const QStringList&, QDir::Filters, QDir::SortFlags) const;
   // bool mkdir(const QString& dirName) const;
   gonk::bind::member_function<QDir, bool, const QString&, &QDir::mkdir>(c, "mkdir").create();
   // bool rmdir(const QString& dirName) const;
@@ -233,7 +233,7 @@ void register_dir_file(script::Namespace ns)
   register_dir(ns);
 
 #if METAGONK_SOURCE
-  {% assign functions = project | get_symbols_by_location: 'Qt.Core', 'QDir'%}
+  {% assign functions = project | get_symbols_by_location: 'QDir'%}
   {% for f in functions %}
   {% include generate_function with function = f %}
   {% endfor %}

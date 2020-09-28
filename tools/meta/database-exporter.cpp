@@ -43,7 +43,6 @@ void DatabaseExporter::exportDatabase()
 			"CREATE TABLE IF NOT EXISTS \"entities\" (\n"
 			"	\"id\"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,\n"
 			"	\"parent\"	INTEGER,\n"
-			"	\"module_id\"	INTEGER,\n"
 			"	\"namespace_id\"	INTEGER,\n"
 			"	\"class_id\"	INTEGER,\n"
 			"	\"function_id\"	INTEGER,\n"
@@ -53,7 +52,6 @@ void DatabaseExporter::exportDatabase()
 			"	FOREIGN KEY(\"class_id\") REFERENCES \"classes\"(\"id\"),\n"
 			"	FOREIGN KEY(\"function_id\") REFERENCES \"functions\"(\"id\"),\n"
 			"	FOREIGN KEY(\"enum_id\") REFERENCES \"enums\"(\"id\"),\n"
-			"	FOREIGN KEY(\"module_id\") REFERENCES \"modules\"(\"id\"),\n"
 			"	FOREIGN KEY(\"enumerator_id\") REFERENCES \"enumerators\"(\"id\"),\n"
 			"	FOREIGN KEY(\"namespace_id\") REFERENCES \"namespaces\"(\"id\")\n"
 			");";
@@ -61,7 +59,6 @@ void DatabaseExporter::exportDatabase()
 		TableDescription table{ "entities", {
 			INTEGER_NOT_NULL("id"),
 			INTEGER("parent"),
-			INTEGER("module_id"),
 			INTEGER("namespace_id"),
 			INTEGER("class_id"),
 			INTEGER("function_id"),
@@ -161,21 +158,6 @@ void DatabaseExporter::exportDatabase()
 			INTEGER_NOT_NULL("entity_id"),
 			TEXT_NOT_NULL("name"),
 			TEXT("value")
-		 } };
-
-		exportTable(table, table_creation);
-	}
-
-	{
-		const QString table_creation =
-			"CREATE TABLE IF NOT EXISTS \"modules\" (\n"
-			"	\"id\"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,\n"
-			"	\"name\"	TEXT NOT NULL\n"
-			");";
-
-		TableDescription table{ "modules", {
-			INTEGER_NOT_NULL("id"),
-			TEXT_NOT_NULL("name")
 		 } };
 
 		exportTable(table, table_creation);

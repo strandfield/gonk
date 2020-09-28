@@ -16,9 +16,9 @@
 #include "qt-core/string.h"
 
 #if METAGONK_SOURCE
-{% assign current_class = project | get_symbol: 'Qt.Core', 'QLatin1Char' %}
+{% assign current_class = project | get_symbol: 'QLatin1Char' %}
 {% include generate_class with class = current_class and recursive = true %}
-{% assign current_class = project | get_symbol: 'Qt.Core', 'QChar' %}
+{% assign current_class = project | get_symbol: 'QChar' %}
 {% include generate_class with class = current_class and recursive = true %}
 #else
 

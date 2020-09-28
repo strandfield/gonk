@@ -37,7 +37,6 @@ public:
   void update(cxx::Entity& e, const json::Object& metadata);
 
   void remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr pro);
-  void remove(MGModulePtr node, MGProjectPtr pro);
 
   void remove(MGTypePtr t, MGProjectPtr pro);
 

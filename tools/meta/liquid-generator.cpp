@@ -86,9 +86,9 @@ public:
     return obj;
   }
 
-  json::Array operator()(MGModule& m)
+  json::Array operator()()
   {
-    for (auto e : m.entities)
+    for (auto e : project->program->globalNamespace()->entities)
       dispatch(*e);
     return result;
   }
@@ -163,21 +163,6 @@ public:
     return s.result;
   }
 
-  json::Json serialize(MGModule& n)
-  {
-    ProjectSerializer s{ project, map };
-    s.visit(n);
-
-    if (project->getMetadata(n.shared_from_this(), metadata))
-    {
-      for (const auto& key_value : metadata.data())
-        s.result[key_value.first] = key_value.second;
-    }
-
-    return s.result;
-  }
-
-
   json::Array serialize(const std::vector<std::shared_ptr<cxx::Entity>>& nodes)
   {
     json::Array ret;
@@ -198,12 +183,18 @@ public:
   {
     json::Json result;
 
-    json::Array modules;
+    {
+      json::Array entities;
 
-    for (auto m : project->modules)
-      modules.push(serialize(*m));
+      for (auto e : project->program->globalNamespace()->entities)
+        entities.push(serialize(*e));
 
-    result["modules"] = modules;
+      result["entities"] = entities;
+    }
+
+
+    RecursiveTypeCollector collector{ project };
+    result["types"] = collector();
 
     return result;
   }
@@ -222,29 +213,6 @@ public:
       result["final"] = true;
 
     result["members"] = serialize(c.members);
-  }
-
-  void visit(MGModule& m)
-  {
-    map.bind(m.shared_from_this(), result);
-
-    result["type"] = "module";
-    result["name"] = m.name;
-
-    if (!m.entities.empty())
-    {
-      json::Array elements;
-
-      for (auto e : m.entities)
-      {
-        elements.push(serialize(*e));
-      }
-
-      result["elements"] = elements;
-    }
-
-    RecursiveTypeCollector collector{ project };
-    result["types"] = collector(m);
   }
 
   void visit(cxx::Enum& e) override
@@ -330,18 +298,17 @@ LiquidGenerator::TypeInfo::TypeInfo(const MGType & t)
 }
 
 
-LiquidGenerator::LiquidGenerator(const QString & dir)
-  : mRootDirectory(dir)
+LiquidGenerator::LiquidGenerator(const QString & dir, const MGProjectPtr& pro)
+  : mRootDirectory(dir),
+    mProject(pro)
 {
 
 }
 
-void LiquidGenerator::generate(const MGProjectPtr & p)
+void LiquidGenerator::generate()
 {
   QElapsedTimer timer;
   timer.start();
-
-  mProject = p;
 
   ProjectSerializer serializer{ mProject, m_serialization_map };
   mSerializedProject = serializer.serialize();
@@ -362,7 +329,7 @@ void LiquidGenerator::generate(const MGProjectPtr & p)
 
   parseTemplates();
 
-  QDirIterator diriterator{ mRootDirectory + "/plugins", QDir::Files, QDirIterator::Subdirectories };
+  QDirIterator diriterator{ mRootDirectory + "/plugins/" + QString::fromStdString(mProject->module_folder), QDir::Files, QDirIterator::Subdirectories };
 
   while (diriterator.hasNext())
   {
@@ -396,7 +363,7 @@ int LiquidGenerator::numberOfFiles() const
 {
   int result = 0;
 
-  QDirIterator diriterator{ mRootDirectory + "/plugins", QDir::Files, QDirIterator::Subdirectories };
+  QDirIterator diriterator{ mRootDirectory + "/plugins/" + QString::fromStdString(mProject->module_folder), QDir::Files, QDirIterator::Subdirectories };
 
   while (diriterator.hasNext())
   {
@@ -586,6 +553,7 @@ std::string LiquidGenerator::renderSource(std::string src)
     tmplt.skipWhitespacesAfterTag();
 
     json::Object data;
+    data["module_namespace"] = mProject->module_namespace;
     data["project"] = mSerializedProject;
     std::string liquid_rendered = liquid::Renderer::render(tmplt, data);
 
@@ -654,23 +622,16 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   }
   else if (name == "get_symbol")
   {
-    MGModulePtr m = mProject->getModule(args.at(0).toString());
-    std::shared_ptr<cxx::Entity> node = m->getSymbol(args.at(1).toString());
+    std::shared_ptr<cxx::Entity> node = project()->getSymbol(args.at(0).toString());
     return m_serialization_map.get(node);
   }
   else if (name == "get_symbols_by_location")
   {
-    MGModulePtr m = mProject->getModule(args.at(0).toString());
-    std::vector<std::shared_ptr<cxx::Entity>> nodes = m->getSymbolsByLocation(args.at(1).toString());
+    std::vector<std::shared_ptr<cxx::Entity>> nodes = project()->getSymbolsByLocation(args.at(0).toString());
     json::Array list;
     for (auto n : nodes)
       list.push(m_serialization_map.get(n));
     return list;
-  }
-  else if (name == "get_module")
-  {
-    MGModulePtr m = mProject->getModule(args.at(0).toString());
-    return m_serialization_map.get(m);
   }
   else if (name == "parent")
   {

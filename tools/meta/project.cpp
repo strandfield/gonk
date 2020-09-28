@@ -33,77 +33,6 @@ static std::vector<std::string> split_str(std::string s)
   return result;
 }
 
-
-
-std::shared_ptr<cxx::Entity> MGModule::getSymbol(const std::string& name) const
-{
-  std::vector<std::string> names = split_str(name);
-
-  auto elem = [&]() -> std::shared_ptr<cxx::Entity> {
-    for (auto e : this->entities)
-    {
-      if (e->name == names.front())
-        return e;
-    }
-
-    return nullptr;
-  }();
-
-  names.erase(names.begin());
-
-  while (!names.empty())
-  {
-    elem = [&]() -> std::shared_ptr<cxx::Entity> {
-      for (size_t i(0); i < elem->childCount(); ++i)
-      {
-        if (std::static_pointer_cast<cxx::Entity>(elem->childAt(i))->name == names.front())
-          return std::static_pointer_cast<cxx::Entity>(elem->childAt(i));
-      }
-
-      return nullptr;
-    }();
-
-    names.erase(names.begin());
-  }
-
-  return elem;
-}
-
-std::vector<std::shared_ptr<cxx::Entity>> MGModule::getSymbolsByLocation(const std::string& filename) const
-{
-    std::vector<std::shared_ptr<cxx::Entity>> result;
-
-    for (auto e : this->entities)
-    {
-      if (e->location.file() != nullptr && e->location.file()->path() == filename)
-        result.push_back(e);
-    }
-
-    return result;
-}
-
-MGModulePtr MGProject::getModule(const std::string& name) const
-{
-  auto it = std::find_if(modules.begin(), modules.end(), [&name](const MGModulePtr& m) {
-    return m->name == name;
-    });
-
-  return it != modules.end() ? *it : nullptr;
-}
-
-MGModulePtr MGProject::getOrCreateModule(const std::string& name)
-{
-  MGModulePtr m = getModule(name);
-
-  if (!m)
-  {
-    m = std::make_shared<MGModule>(name);
-    this->modules.push_back(m);
-  }
-
-  return m;
-}
-
 bool MGProject::hasType(const std::string& name) const
 {
   return std::any_of(types.begin(), types.end(), [&name](const MGTypePtr& t) -> bool {
@@ -126,12 +55,6 @@ bool MGProject::inDB(std::shared_ptr<cxx::Entity> e) const
   return it != this->database_ids.end() && it->second.global_id != -1;
 }
 
-bool MGProject::inDB(MGModulePtr m) const
-{
-  auto it = this->database_ids.find(m.get());
-  return it != this->database_ids.end() && it->second.global_id != -1;
-}
-
 bool MGProject::getMetadata(std::shared_ptr<cxx::Entity> e, json::Object& out) const
 {
   auto it = this->metadata.find(e.get());
@@ -142,20 +65,6 @@ bool MGProject::getMetadata(std::shared_ptr<cxx::Entity> e, json::Object& out) c
 }
 
 json::Object& MGProject::getMetadata(std::shared_ptr<cxx::Entity> e)
-{
-  return this->metadata[e.get()];
-}
-
-bool MGProject::getMetadata(MGModulePtr e, json::Object& out) const
-{
-  auto it = this->metadata.find(e.get());
-  if (it != this->metadata.end())
-    return out = it->second, true;
-  else
-    return false;
-}
-
-json::Object& MGProject::getMetadata(MGModulePtr e)
 {
   return this->metadata[e.get()];
 }
@@ -286,10 +195,54 @@ void MGProject::sort(std::vector<std::shared_ptr<cxx::Entity>>& list)
 
 void MGProject::sort()
 {
-  for (auto m : this->modules)
+  sort(this->program->globalNamespace()->entities);
+}
+
+std::shared_ptr<cxx::Entity> MGProject::getSymbol(const std::string& name) const
+{
+  std::vector<std::string> names = split_str(name);
+
+  auto elem = [&]() -> std::shared_ptr<cxx::Entity> {
+    for (auto e : this->program->globalNamespace()->entities)
+    {
+      if (e->name == names.front())
+        return e;
+    }
+
+    return nullptr;
+  }();
+
+  names.erase(names.begin());
+
+  while (!names.empty())
   {
-    sort(m->entities);
+    elem = [&]() -> std::shared_ptr<cxx::Entity> {
+      for (size_t i(0); i < elem->childCount(); ++i)
+      {
+        if (std::static_pointer_cast<cxx::Entity>(elem->childAt(i))->name == names.front())
+          return std::static_pointer_cast<cxx::Entity>(elem->childAt(i));
+      }
+
+      return nullptr;
+    }();
+
+    names.erase(names.begin());
   }
+
+  return elem;
+}
+
+std::vector<std::shared_ptr<cxx::Entity>> MGProject::getSymbolsByLocation(const std::string& filename) const
+{
+  std::vector<std::shared_ptr<cxx::Entity>> result;
+
+  for (auto e : this->program->globalNamespace()->entities)
+  {
+    if (e->location.file() != nullptr && e->location.file()->path() == filename)
+      result.push_back(e);
+  }
+
+  return result;
 }
 
 bool eq(const std::shared_ptr<cxx::Entity>& a, const std::shared_ptr<cxx::Entity>& b)

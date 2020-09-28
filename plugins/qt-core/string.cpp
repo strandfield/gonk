@@ -18,7 +18,7 @@
 
 #if METAGONK_SOURCE
 {% assign classes = ['QLatin1String', 'QString', 'QCharRef', 'QStringRef'] %}
-{% include generate_all_classes with module = 'Qt.Core' and classes = classes %}
+{% include generate_all_classes with classes = classes %}
 #else
 
 static void register_latin1_string(script::Namespace& parent)

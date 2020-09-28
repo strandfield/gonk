@@ -31,14 +31,13 @@ void CppParser::addIncludeDirectory(const QString & str)
 struct FileVisitor
 {
   MGProjectPtr project;
-  MGModulePtr curModule;
   std::shared_ptr<cxx::Entity> curNode;
 
   void visit(const cxx::NamespaceDeclaration& decl)
   {
     if (!curNode)
     {
-      curModule->entities.push_back(decl.namespace_);
+      project->program->globalNamespace()->entities.push_back(decl.namespace_);
     }
 
     {
@@ -56,7 +55,7 @@ struct FileVisitor
 
     if (!curNode)
     {
-      curModule->entities.push_back(decl.class_);
+      project->program->globalNamespace()->entities.push_back(decl.class_);
 
       for (auto it = decl.class_->members.begin(); it != decl.class_->members.end(); )
       {
@@ -72,7 +71,7 @@ struct FileVisitor
   {
     if (!curNode)
     {
-      curModule->entities.push_back(decl.enum_);
+      project->program->globalNamespace()->entities.push_back(decl.enum_);
     }
   }
 
@@ -88,7 +87,7 @@ struct FileVisitor
       if (decl.function->location.file() == nullptr)
         decl.function->location = decl.location;
 
-      curModule->entities.push_back(decl.function);
+      project->program->globalNamespace()->entities.push_back(decl.function);
     }
   }
 
@@ -132,10 +131,8 @@ struct FileVisitor
   }
 };
 
-void CppParser::parse(const QString & file, const MGModulePtr & mo)
+void CppParser::parse(const QString & file)
 {
-  mActiveModule = mo;
-
   m_parser.includedirs.clear();
 
   for (const QString inc : mIncludeDirectories)
@@ -148,9 +145,6 @@ void CppParser::parse(const QString & file, const MGModulePtr & mo)
 
   FileVisitor visitor;
   visitor.project = project();
-  visitor.curModule = mActiveModule;
   visitor.visit(*cxxfile);
-
-  mActiveModule = nullptr;
 }
 

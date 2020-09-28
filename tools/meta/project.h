@@ -6,6 +6,7 @@
 #define METAGONK_PROJECT_H
 
 #include <cxx/entity.h>
+#include <cxx/program.h>
 
 #include <json-toolkit/json.h>
 
@@ -47,22 +48,6 @@ public:
 
 typedef std::shared_ptr<MGType> MGTypePtr;
 
-class MGModule : public std::enable_shared_from_this<MGModule>
-{
-public:
-  std::string name;
-  std::vector<std::shared_ptr<cxx::Entity>> entities;
-
-public:
-  MGModule() = default;
-  MGModule(std::string n): name(std::move(n)) { }
-
-  std::shared_ptr<cxx::Entity> getSymbol(const std::string& name) const;
-  std::vector<std::shared_ptr<cxx::Entity>> getSymbolsByLocation(const std::string& filename) const;
-};
-
-typedef std::shared_ptr<MGModule> MGModulePtr;
-
 struct MGDatabaseId
 {
   int global_id = -1;
@@ -73,15 +58,18 @@ class MGProject
 {
 public:
   std::vector<MGTypePtr> types;
-  std::vector<MGModulePtr> modules;
   std::unordered_map<void*, MGDatabaseId> database_ids;
   std::map<std::shared_ptr<cxx::Entity>, MGTypePtr> entity_type_map;
   std::unordered_map<void*, json::Object> metadata;
   std::map<std::string, std::shared_ptr<cxx::File>> files;
+  std::string module_name;
+  std::string module_folder;
+  std::string module_namespace;
+  std::shared_ptr<cxx::Program> program;
 
-  MGDatabaseId& dbid(MGModulePtr m)
+  MGProject()
   {
-    return database_ids[m.get()];
+    program = std::make_shared<cxx::Program>();
   }
 
   MGDatabaseId& dbid(std::shared_ptr<cxx::Entity> e)
@@ -89,25 +77,22 @@ public:
     return database_ids[e.get()];
   }
 
-  MGModulePtr getModule(const std::string& name) const;
-  MGModulePtr getOrCreateModule(const std::string& name);
-
   bool hasType(const std::string& name) const;
 
   MGTypePtr getTypeById(const std::string& id) const;
 
   bool inDB(std::shared_ptr<cxx::Entity> e) const;
-  bool inDB(MGModulePtr m) const;
 
   bool getMetadata(std::shared_ptr<cxx::Entity> e, json::Object& out) const;
   json::Object& getMetadata(std::shared_ptr<cxx::Entity> e);
-  bool getMetadata(MGModulePtr e, json::Object& out) const;
-  json::Object& getMetadata(MGModulePtr e);
 
   static bool isOperator(const cxx::Function& f);
   static int comp(const cxx::Entity& lhs, const cxx::Entity& rhs);
   static void sort(std::vector<std::shared_ptr<cxx::Entity>>& list);
   void sort();
+
+  std::shared_ptr<cxx::Entity> getSymbol(const std::string& name) const;
+  std::vector<std::shared_ptr<cxx::Entity>> getSymbolsByLocation(const std::string& filename) const;
 };
 
 typedef std::shared_ptr<MGProject> MGProjectPtr;
