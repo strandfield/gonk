@@ -214,7 +214,16 @@ void SymbolsTreeWidget::removeUncheckedSymbols()
 
   for (int i(0); i < topLevelItemCount(); ++i)
   {
-    entries.push_back({ topLevelItem(i), mProject->program->globalNamespace()->entities.at(i) });
+    if (topLevelItem(i)->checkState(0) == Qt::Unchecked)
+    {
+      invisibleRootItem()->removeChild(topLevelItem(i));
+      Controller::Instance().projectController().remove(mProject->program->globalNamespace()->entities.at(i), mProject);
+      --i;
+    }
+    else
+    {
+      entries.push_back({ topLevelItem(i), mProject->program->globalNamespace()->entities.at(i) });
+    }
   }
 
   while (!entries.empty())
