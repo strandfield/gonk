@@ -276,7 +276,6 @@ void ModuleManager::loadModule(const std::string& name)
 {
   auto names = split_module_name(name);
   load_module(*m_script_engine, names.cbegin(), names.cend(), script::Module());
-
 }
 
 void ModuleManager::attachPlugin(script::Module m, std::shared_ptr<Plugin> plugin)

@@ -16,10 +16,6 @@
 #include <script/script.h>
 #include <script/typesystem.h>
 
-#include <QCoreApplication>
-#include <QDebug>
-#include <QtGlobal>
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
