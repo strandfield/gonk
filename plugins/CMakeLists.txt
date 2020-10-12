@@ -1,4 +1,5 @@
 
+add_subdirectory(std-inttypes)
 add_subdirectory(std-regex)
 add_subdirectory(std-math)
 add_subdirectory(std-vector)

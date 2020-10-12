@@ -1,0 +1,3 @@
+[general]
+name=std.inttypes
+entry_point=gonk_std_inttypes_module
