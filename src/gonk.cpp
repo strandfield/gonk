@@ -6,6 +6,7 @@
 
 #include "gonk/builtins.h"
 #include "gonk/modules.h"
+#include "gonk/pretty-print.h"
 
 #include <script/class.h>
 #include <script/context.h>
@@ -65,7 +66,8 @@ Gonk::Gonk(int & argc, char **argv)
 
   setupEngine();
 
-  m_module_manager.reset(new gonk::ModuleManager(&m_engine));
+  m_module_manager = std::make_unique<gonk::ModuleManager>(&m_engine);
+  m_printer = std::make_unique<gonk::PrettyPrinter>(m_engine);
 }
 
 Gonk::~Gonk()
@@ -342,39 +344,5 @@ void Gonk::importModule(const std::string& name)
 
 void Gonk::display(const script::Value & val)
 {
-  switch (val.type().baseType().data())
-  {
-  case script::Type::Void:
-    return;
-  case script::Type::Boolean:
-    std::cout << (val.toBool() ? "true" : "false") << std::endl;
-    return;
-  case script::Type::Char:
-    std::cout << val.toChar() << std::endl;
-    return;
-  case script::Type::Int:
-    std::cout << val.toInt() << std::endl;
-    return;
-  case script::Type::Float:
-    std::cout << val.toFloat() << std::endl;
-    return;
-  case script::Type::Double:
-    std::cout << val.toDouble() << std::endl;
-    return;
-  case script::Type::String:
-    std::cout << val.toString() << std::endl;
-    return;
-  default:
-    break;
-  }
-
-  if (val.type().isEnumType())
-  {
-    script::Enumerator enm = val.toEnumerator();
-    std::cout << enm.enumeration().name() << "::" << enm.name() << std::endl;
-    return;
-  }
-
-  /// TODO: better print
-  std::cout << m_engine.typeSystem()->typeName(val.type()) << "@" << (void*)(val.impl()) << std::endl;
+  m_printer->print(val);
 }

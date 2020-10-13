@@ -13,6 +13,7 @@
 namespace gonk
 {
 class ModuleManager;
+class PrettyPrinter;
 } // namesapce gonk
 
 class GONK_API Gonk
@@ -53,6 +54,7 @@ private:
   char** m_argv;
   script::Engine m_engine;
   std::unique_ptr<gonk::ModuleManager> m_module_manager;
+  std::unique_ptr<gonk::PrettyPrinter> m_printer;
 };
 
 #endif // GONK_GONK_H

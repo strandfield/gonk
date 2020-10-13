@@ -282,6 +282,12 @@ script::Value operator_int(script::FunctionCall* c)
   return c->engine()->newInt(static_cast<int>(script::get<T>(c->arg(0))));
 }
 
+template<typename T>
+script::Value to_string(script::FunctionCall* c)
+{
+  return c->engine()->newString(std::to_string(script::get<T>(c->arg(0))));
+}
+
 } // namespace callbacks
 
 template<typename T>
@@ -484,6 +490,11 @@ static void register_int_type(script::Namespace& ns, std::string name)
 
   c.newConversion(script::Type::Int, callbacks::operator_int<T>)
     .setConst()
+    .create();
+
+  c.newMethod("__gonk_repr__", callbacks::to_string<T>)
+    .setConst()
+    .returns(script::Type::String)
     .create();
 }
 
