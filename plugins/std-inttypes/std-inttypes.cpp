@@ -232,13 +232,13 @@ script::Value unaryminus(script::FunctionCall* c)
 }
 
 template<typename T>
-script::Value bitand(script::FunctionCall* c)
+script::Value bitwise_and(script::FunctionCall* c)
 {
   return c->engine()->construct<T>(script::get<T>(c->arg(0)) & script::get<T>(c->arg(1)));
 }
 
 template<typename T>
-script::Value bitor(script::FunctionCall* c)
+script::Value bitwise_or(script::FunctionCall* c)
 {
   return c->engine()->construct<T>(script::get<T>(c->arg(0)) | script::get<T>(c->arg(1)));
 }
@@ -432,13 +432,13 @@ static void register_int_type(script::Namespace& ns, std::string name)
     .returns(gonk::make_type<T>())
     .create();
 
-  c.newOperator(script::BitwiseOrOperator, callbacks::bitor<T>)
+  c.newOperator(script::BitwiseOrOperator, callbacks::bitwise_or<T>)
     .setConst()
     .returns(gonk::make_type<T>())
     .params(gonk::make_type<const T&>())
     .create();
 
-  c.newOperator(script::BitwiseAndOperator, callbacks::bitand<T>)
+  c.newOperator(script::BitwiseAndOperator, callbacks::bitwise_and<T>)
     .setConst()
     .returns(gonk::make_type<T>())
     .params(gonk::make_type<const T&>())
