@@ -293,7 +293,7 @@ script::Value to_string(script::FunctionCall* c)
 template<typename T>
 static void register_int_type(script::Namespace& ns, std::string name)
 {
-  script::Class& c = ns.newClass(name).get();
+  script::Class c = ns.newClass(name).get();
 
   c.newConstructor(callbacks::ctor_default<T>).create();
 
