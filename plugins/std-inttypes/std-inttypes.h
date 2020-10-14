@@ -11,7 +11,7 @@
 
 #include <cstdint>
 
-#if UINT32_MAX == 0xffffffffui32
+#if UINT32_MAX == 4294967295
 #define GONK_INT32_IS_INT
 #endif
 
