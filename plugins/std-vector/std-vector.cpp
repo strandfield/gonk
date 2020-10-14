@@ -41,7 +41,7 @@ public:
   {
     script::Engine* e = m.engine();
 
-    gonk::std_vector::class_type_id_offset_value = static_cast<int>(e->typeSystem()->reserve(script::Type::ObjectFlag, 1));
+    gonk::std_vector::class_type_id_offset_value = static_cast<int>(e->typeSystem()->reserve(script::Type::ObjectFlag, 2));
 
     script::Namespace ns = m.root().getNamespace("std");
 

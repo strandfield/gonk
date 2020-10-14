@@ -24,6 +24,7 @@ namespace std_vector
 enum ClassTypeIds
 {
   VectorInt,
+  VectorString,
 };
 
 GONK_STD_VECTOR_API int class_type_id_offset();

@@ -22,6 +22,7 @@
 
 namespace script {
 template<> struct make_type_helper<std::vector<int>> { inline static script::Type get() { return (gonk::std_vector::class_type_id_offset() + gonk::std_vector::ClassTypeIds::VectorInt) | script::Type::ObjectFlag; } };
+template<> struct make_type_helper<std::vector<std::string>> { inline static script::Type get() { return (gonk::std_vector::class_type_id_offset() + gonk::std_vector::ClassTypeIds::VectorString) | script::Type::ObjectFlag; } };
 } // namespace script
 
 namespace gonk

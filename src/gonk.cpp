@@ -7,15 +7,12 @@
 #include "gonk/builtins.h"
 #include "gonk/modules.h"
 #include "gonk/pretty-print.h"
+#include "gonk/script-runner.h"
 
-#include <script/class.h>
 #include <script/context.h>
-#include <script/enumerator.h>
 #include <script/function.h>
 #include <script/module.h>
 #include <script/namespace.h>
-#include <script/script.h>
-#include <script/typesystem.h>
 
 #include <filesystem>
 #include <fstream>
@@ -206,129 +203,13 @@ void Gonk::eval(std::string cmd)
 
 int Gonk::runScript()
 {
-  std::string path = argv(1);
-
-  {
-    std::ifstream file{ path };
-    if (!file.is_open())
-      path += ".gnk";
-  }
-
-  script::SourceFile src{ path };
-
-  try
-  {
-    src.load();
-  }
-  catch (std::runtime_error & err)
-  {
-    std::cerr << err.what() << std::endl;
-    return 1;
-  }
-
-  script::Script s = scriptEngine()->newScript(src);
-
-  if (!s.compile())
-  {
-    for (const auto& e : s.messages())
-    {
-      std::cerr << e.to_string() << std::endl;
-    }
-
-    return -1;
-  }
-
-  try
-  {
-    s.run();
-  }
-  catch (script::RuntimeError& err)
-  {
-    std::cerr << err.message << std::endl;
-    return 1;
-  }
-  catch (std::exception& ex)
-  {
-    std::cerr << ex.what() << std::endl;
-    return 1;
-  }
-
-  return invokeMain(s);
-}
-
-int Gonk::invokeMain(const script::Script& s)
-{
-  script::Function func = [&]() {
-
-    for (const auto& f : s.functions())
-    {
-      if (f.name() != "main")
-        continue;
-
-      if (f.returnType() != script::Type::Int && f.returnType() != script::Type::Void)
-      {
-        std::cerr << "main() function does not match any known signature" << std::endl;
-        return script::Function();
-      }
-
-      if (f.prototype().size() != 0)
-      {
-        std::cerr << "main() function does not match any known signature" << std::endl;
-        return script::Function();
-      }
-
-      return f;
-    }
-
-    return script::Function();
-  }();
-
-  if (func.isNull())
-    return 0;
-
-  try
-  {
-    script::Value ret = func.invoke({});
-
-    if (ret.isInt())
-      return ret.toInt();
-  }
-  catch (script::RuntimeError& err)
-  {
-    std::cerr << err.message << std::endl;
-    return 1;
-  }
-  catch (std::exception& ex)
-  {
-    std::cerr << ex.what() << std::endl;
-    return 1;
-  }
-
-  return 0;
+  gonk::ScriptRunner runner{ *this };
+  return runner.run();
 }
 
 void Gonk::importModule(const std::string& name)
 {
-  script::Module m;
-
-  auto it = std::find(name.begin(), name.end(), '.');
-
-  if (it == name.end())
-  {
-    m = scriptEngine()->getModule(name);
-  }
-  else
-  {
-    m = scriptEngine()->getModule(std::string(name.begin(), it));
-
-    while (it != name.end() && !m.isNull())
-    {
-      ++it;
-      auto other_it = std::find(it, name.end(), '.');
-      m = m.getSubModule(std::string(it, other_it));
-      it = other_it;
-    }
-  }
+  script::Module m = moduleManager().getModule(name);
 
   if (m.isNull())
   {

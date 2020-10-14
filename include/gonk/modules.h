@@ -36,6 +36,8 @@ public:
 
   ModuleInfo getModuleInfo(const script::Module& m) const;
 
+  script::Module getModule(const std::string& name) const;
+
   void fetchModules();
 
   void loadModule(const std::string& name);

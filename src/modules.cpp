@@ -250,6 +250,32 @@ ModuleInfo ModuleManager::getModuleInfo(const script::Module& m) const
   return it->second;
 }
 
+script::Module ModuleManager::getModule(const std::string& name) const
+{
+  script::Module m;
+
+  auto it = std::find(name.begin(), name.end(), '.');
+
+  if (it == name.end())
+  {
+    m = m_script_engine->getModule(name);
+  }
+  else
+  {
+    m = m_script_engine->getModule(std::string(name.begin(), it));
+
+    while (it != name.end() && !m.isNull())
+    {
+      ++it;
+      auto other_it = std::find(it, name.end(), '.');
+      m = m.getSubModule(std::string(it, other_it));
+      it = other_it;
+    }
+  }
+
+  return m;
+}
+
 void ModuleManager::fetchModules()
 {
   ModuleImporter importer{ m_script_engine, m_import_paths, m_module_infos };

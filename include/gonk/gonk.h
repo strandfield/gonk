@@ -42,7 +42,6 @@ protected:
   void listModules();
   void eval(std::string cmd);
   int runScript();
-  int invokeMain(const script::Script& s);
   
 protected:
   void importModule(const std::string& name);

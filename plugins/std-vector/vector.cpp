@@ -402,4 +402,5 @@ void register_vector_file(script::Namespace ns)
     .get();
     
   gonk::std_vector::register_specialization<int>(vector_template, script::make_type<std::vector<int>>());
+  gonk::std_vector::register_specialization<std::string>(vector_template, script::make_type<std::vector<std::string>>());
 }
