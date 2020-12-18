@@ -118,7 +118,9 @@ public:
 
 bool eq(const std::shared_ptr<cxx::Entity>& a, const std::shared_ptr<cxx::Entity>& b);
 std::string qualifiedName(const cxx::Entity& e);
-std::vector<std::shared_ptr<cxx::Entity>> children(const cxx::Entity& e);
-std::string signature(const cxx::Function& f);
+size_t childCount(cxx::Entity& e);
+std::shared_ptr<cxx::Entity> childAt(cxx::Entity& e, size_t i);
+std::vector<std::shared_ptr<cxx::Entity>> children(cxx::Entity& e);
+void appendChild(std::shared_ptr<cxx::Node> parent, std::shared_ptr<cxx::Entity> child);
 
 #endif // METAGONK_PROJECT_H

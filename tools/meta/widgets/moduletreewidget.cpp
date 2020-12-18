@@ -238,7 +238,7 @@ void SymbolsTreeWidget::removeUncheckedSymbols()
     {
       for (int i(0); i < e.first->childCount(); ++i)
       {
-        entries.push_back({ e.first->child(i), std::static_pointer_cast<cxx::Entity>(e.second->childAt(i)) });
+        entries.push_back({ e.first->child(i), std::static_pointer_cast<cxx::Entity>(::childAt(*e.second, i)) });
       }
     }
     else
@@ -253,7 +253,7 @@ QString SymbolsTreeWidget::display(const cxx::Entity& e)
 {
   if (e.is<cxx::Function>())
   {
-    return QString::fromStdString(::signature(static_cast<const cxx::Function&>(e)));
+    return QString::fromStdString(static_cast<const cxx::Function&>(e).signature());
   }
   else
   {

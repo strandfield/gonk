@@ -37,7 +37,7 @@ void ProjectController::insert(std::shared_ptr<cxx::Function> func, std::shared_
     ids.global_id = query.lastInsertId().toInt();
   }
 
-  parent->appendChild(func);
+  ::appendChild(parent, func);
 }
 
 void ProjectController::update(cxx::Class& c, const QString& name, bool is_final, const QString& base)
@@ -189,8 +189,8 @@ void ProjectController::remove(std::shared_ptr<cxx::Entity> node, MGProjectPtr p
 
         nodes_to_delete.push_back(n);
 
-        for (size_t i(0); i < n->childCount(); ++i)
-          nodes_to_process.push_back(std::static_pointer_cast<cxx::Entity>(n->childAt(i))); // TODO: check all childs are actually entities
+        for (size_t i(0); i < ::childCount(*n); ++i)
+          nodes_to_process.push_back(::childAt(*n, i));
       }
 
       std::reverse(nodes_to_delete.begin(), nodes_to_delete.end());

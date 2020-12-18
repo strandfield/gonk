@@ -217,10 +217,10 @@ std::shared_ptr<cxx::Entity> MGProject::getSymbol(const std::string& name) const
   while (!names.empty())
   {
     elem = [&]() -> std::shared_ptr<cxx::Entity> {
-      for (size_t i(0); i < elem->childCount(); ++i)
+      for (size_t i(0); i < childCount(*elem); ++i)
       {
-        if (std::static_pointer_cast<cxx::Entity>(elem->childAt(i))->name == names.front())
-          return std::static_pointer_cast<cxx::Entity>(elem->childAt(i));
+        if (std::static_pointer_cast<cxx::Entity>(childAt(*elem,i))->name == names.front())
+          return std::static_pointer_cast<cxx::Entity>(childAt(*elem, i));
       }
 
       return nullptr;
@@ -297,13 +297,45 @@ std::string qualifiedName(const cxx::Entity& e)
   return result;
 }
 
-std::vector<std::shared_ptr<cxx::Entity>> children(const cxx::Entity& e)
+size_t childCount(cxx::Entity& e)
+{
+  switch (e.kind())
+  {
+  case cxx::NodeKind::Namespace:
+    return e.get<cxx::Namespace::Entities>().size();
+  case cxx::NodeKind::Class:
+  case cxx::NodeKind::ClassTemplate:
+    return e.get<cxx::Class::Members>().size();
+  case cxx::NodeKind::Enum:
+    return e.get<cxx::Enum::Values>().size();
+  default:
+    return 0;
+  }
+}
+
+std::shared_ptr<cxx::Entity> childAt(cxx::Entity& e, size_t i)
+{
+  switch (e.kind())
+  {
+  case cxx::NodeKind::Namespace:
+    return e.get<cxx::Namespace::Entities>().at(i);
+  case cxx::NodeKind::Class:
+  case cxx::NodeKind::ClassTemplate:
+    return e.get<cxx::Class::Members>().at(i);
+  case cxx::NodeKind::Enum:
+    return e.get<cxx::Enum::Values>().at(i);
+  default:
+    throw std::runtime_error{ "childAt(cxx::Entity&, size_t) error" };
+  }
+}
+
+std::vector<std::shared_ptr<cxx::Entity>> children(cxx::Entity& e)
 {
   std::vector<std::shared_ptr<cxx::Entity>> ret;
 
-  for (size_t i(0); i < e.childCount(); ++i)
+  for (size_t i(0); i < childCount(e); ++i)
   {
-    auto child = e.childAt(i);
+    auto child = childAt(e, i);
 
     if (child->isEntity())
       ret.push_back(std::static_pointer_cast<cxx::Entity>(child));
@@ -312,86 +344,23 @@ std::vector<std::shared_ptr<cxx::Entity>> children(const cxx::Entity& e)
   return ret;
 }
 
-std::string signature(const cxx::Function& f)
+void appendChild(std::shared_ptr<cxx::Node> parent, std::shared_ptr<cxx::Entity> child)
 {
-  if (f.isConstructor())
+  switch (parent->kind())
   {
-    std::string result;
-    if (f.isExplicit())
-      result += "explicit ";
-    result += f.name;
-    result += "(";
-    {
-      QStringList params;
-
-      for (auto p : f.parameters)
-      {
-        QString p_str = QString::fromStdString(p->type.toString());
-
-        if (!p->name.empty())
-          p_str += " " + QString::fromStdString(p->name);
-
-        params.append(p_str);
-      }
-
-      result += params.join(", ").toStdString();
-    }
-    result += ")";
-
-    if (f.specifiers & cxx::FunctionSpecifier::Delete)
-      result += " = delete";
-
-    result += ";";
-
-    return result;
-  }
-  else if (f.isDestructor())
-  {
-    std::string result;
-
-    result += f.name;
-    result += "()";
-
-    if (f.specifiers & cxx::FunctionSpecifier::Delete)
-      result += " = delete";
-
-    result += ";";
-    return result;
+  case cxx::NodeKind::Namespace:
+    parent->get<cxx::Namespace::Entities>().push_back(child);
+    break;
+  case cxx::NodeKind::Class:
+  case cxx::NodeKind::ClassTemplate:
+    parent->get<cxx::Class::Members>().push_back(child);
+    break;
+  case cxx::NodeKind::Enum:
+    parent->get<cxx::Enum::Values>().push_back(std::static_pointer_cast<cxx::EnumValue>(child));
+    break;
+  default:
+    throw std::runtime_error("ProgramParser::appendChild() failed");
   }
 
-  std::string result;
-  if (f.isExplicit())
-    result += "explicit ";
-  if (f.isStatic())
-    result += "static ";
-
-  result += f.return_type.toString();
-  result += " " + f.name;
-  result += "(";
-  {
-    QStringList params;
-
-    for (auto p : f.parameters)
-    {
-      QString p_str = QString::fromStdString(p->type.toString());
-
-      if (!p->name.empty())
-        p_str += " " + QString::fromStdString(p->name);
-
-      params.append(p_str);
-    }
-
-    result += params.join(", ").toStdString();
-  }
-  result += ")";
-
-  if (f.isConst())
-    result += " const";
-
-  if (f.specifiers & cxx::FunctionSpecifier::Delete)
-    result += " = delete";
-
-  result += ";";
-
-  return result;
+  child->weak_parent = std::static_pointer_cast<cxx::Entity>(parent);
 }

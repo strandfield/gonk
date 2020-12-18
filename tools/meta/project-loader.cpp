@@ -144,6 +144,7 @@ void MGProjectLoader::loadEntities()
   loadClasses();
   loadEnums();
   loadEnumerators();
+  loadNamespaces();
 
   {
     QSqlQuery query = database.exec("SELECT id, namespace_id, class_id, function_id, enum_id, enumerator_id FROM entities");
@@ -321,6 +322,26 @@ void MGProjectLoader::loadEnumerators()
   }
 }
 
+void MGProjectLoader::loadNamespaces()
+{
+  setState("loading namespaces");
+
+  QSqlQuery query = database.exec("SELECT id, name FROM namespaces");
+
+  int ID = 0;
+  int NAME = 1;
+
+  while (query.next())
+  {
+    int id = query.value(ID).toInt();
+
+    auto ns = std::make_shared<cxx::Namespace>(query.value(NAME).toString().toStdString());
+
+    m_namespaces_map[id] = ns;
+    project->dbid(ns).id = id;
+  }
+}
+
 void MGProjectLoader::loadMetadata()
 {
   setState("loading metadata");
@@ -391,6 +412,9 @@ void MGProjectLoader::buildEntityTree()
       auto child = m_entity_map[child_id];
       project->program->globalNamespace()->entities.push_back(child);
 
+      if (child == nullptr)
+        qDebug() << "nulll child";
+
       queue.push_back(child);
     }
   }
@@ -420,9 +444,10 @@ void MGProjectLoader::buildEntityTree()
     {
       int child_id = query.value(ID).toInt();
       auto child = m_entity_map.at(child_id);
-      n->appendChild(child);
-      // @TODO: should have been done by appendChild()
-      child->weak_parent = n;
+      ::appendChild(n, child);
+
+      if (child == nullptr)
+        qDebug() << "nulll child";
 
       queue.push_back(child);
     }

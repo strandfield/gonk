@@ -222,7 +222,7 @@ void MGProjectMerger::merge_recursively(std::vector<std::shared_ptr<cxx::Entity>
           });
 
         if (it == target_enum.values.end())
-          target_enum.appendChild(v);
+          ::appendChild(target_enum.shared_from_this(), v);
       }
     }
     else

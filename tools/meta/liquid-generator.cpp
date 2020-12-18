@@ -643,7 +643,7 @@ json::Json LiquidGenerator::applyFilter(const std::string& name, const json::Jso
   {
     std::shared_ptr<cxx::Entity> node = m_serialization_map.get(object);
     auto fn = std::static_pointer_cast<cxx::Function>(node);
-    return ::signature(*fn);
+    return fn->signature() + ";";
   }
   else if (name == "operator_name")
   {
