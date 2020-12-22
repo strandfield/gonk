@@ -35,7 +35,13 @@ int ScriptRunner::run()
 
 int ScriptRunner::runScript()
 {
-  std::string path = m_gonk.argv(1);
+  if (m_gonk.argv(m_argv_offset) == "--debug")
+  {
+    m_mode = script::CompileMode::Debug;
+    ++m_argv_offset;
+  }
+
+  std::string path = m_gonk.argv(m_argv_offset++);
 
   {
     std::ifstream file{ path };
@@ -57,7 +63,7 @@ int ScriptRunner::runScript()
 
   script::Script s = m_gonk.scriptEngine()->newScript(src);
 
-  if (!s.compile())
+  if (!s.compile(m_mode))
   {
     for (const auto& e : s.messages())
     {
@@ -65,6 +71,14 @@ int ScriptRunner::runScript()
     }
 
     return -1;
+  }
+
+  if (m_mode == script::CompileMode::Debug)
+  {
+    script::Module debugger_module = m_gonk.moduleManager().getModule("gonk.debugger");
+
+    if (!debugger_module.isLoaded())
+      debugger_module.load();
   }
 
   try
@@ -169,7 +183,7 @@ script::Value ScriptRunner::invokeMain(const script::Function& f)
 
   script::Value args = f.engine()->construct(vec_str, std::vector<script::Value>());
 
-  for (int i(2); i < m_gonk.argc(); ++i)
+  for (int i(m_argv_offset); i < m_gonk.argc(); ++i)
   {
     push_back.invoke({ args, e->newString(m_gonk.argv()[i]) });
   }

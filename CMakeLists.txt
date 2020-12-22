@@ -11,7 +11,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 set(CMAKE_AUTOMOC ON)
-find_package(Qt5 COMPONENTS Core Gui Widgets Sql)
+find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network)
 
 ##################################################################
 ###### dependencies

@@ -1,0 +1,30 @@
+
+##################################################################
+###### gonkdbg
+##################################################################
+
+file(GLOB_RECURSE GONKDBG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+file(GLOB_RECURSE GONKDBG_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+
+set(CMAKE_AUTORCC TRUE)
+add_executable(gonkdbg ${GONKDBG_HDR_FILES} ${GONKDBG_SRC_FILES} res.qrc)
+
+target_include_directories(gonkdbg PRIVATE ".")
+
+target_link_libraries(gonkdbg typewriter-widget)
+target_link_libraries(gonkdbg Qt5::Core Qt5::Widgets Qt5::Network)
+
+set_target_properties(gonkdbg PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+set_target_properties(gonkdbg PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+foreach(_source IN ITEMS ${GONKDBG_SRC_FILES} ${GONKDBG_HDR_FILES})
+    get_filename_component(_source_path "${_source}" PATH)
+    file(RELATIVE_PATH _source_path_rel "${CMAKE_CURRENT_SOURCE_DIR}" "${_source_path}")
+    string(REPLACE "/" "\\" _group_path "${_source_path_rel}")
+    source_group("${_group_path}" FILES "${_source}")
+endforeach()
+
+if (WIN32)
+  set_target_properties(gonkdbg PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${Qt5_DIR}/../../../bin;%PATH%")
+endif()
+

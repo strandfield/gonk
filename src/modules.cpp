@@ -61,10 +61,11 @@ void module_load_callback(script::Module m)
 
 void module_cleanup_callback(script::Module m)
 {
-  // @TODO: ensure this function is called before ModuleManager is destroyed
-  //ModuleManager& manager = Gonk::Instance().moduleManager();
-  //ModuleInfo info = manager.getModuleInfo(m);
-  //info.plugin->unload(m);
+  ModuleManager& manager = Gonk::Instance().moduleManager();
+  ModuleInfo info = manager.getModuleInfo(m);
+
+  if(info.plugin)
+    info.plugin->unload(m);
 }
 
 std::vector<std::string> split_module_name(std::string s)

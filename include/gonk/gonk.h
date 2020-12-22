@@ -10,6 +10,8 @@
 #include <script/classtemplate.h>
 #include <script/engine.h>
 
+class QCoreApplication;
+
 namespace gonk
 {
 class ModuleManager;
@@ -29,6 +31,8 @@ public:
   int exec();
 
   static Gonk& Instance();
+
+  QCoreApplication& qCoreApplication();
 
   gonk::ModuleManager& moduleManager() const;
 
@@ -54,6 +58,7 @@ private:
   script::Engine m_engine;
   std::unique_ptr<gonk::ModuleManager> m_module_manager;
   std::unique_ptr<gonk::PrettyPrinter> m_printer;
+  std::unique_ptr<QCoreApplication> m_qapp;
 };
 
 #endif // GONK_GONK_H

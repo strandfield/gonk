@@ -14,6 +14,8 @@
 #include <script/module.h>
 #include <script/namespace.h>
 
+#include <QCoreApplication>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -69,7 +71,7 @@ Gonk::Gonk(int & argc, char **argv)
 
 Gonk::~Gonk()
 {
-
+  m_engine.tearDown();
 }
 
 int Gonk::argc() const
@@ -116,6 +118,14 @@ int Gonk::exec()
 Gonk& Gonk::Instance()
 {
   return *m_instance;
+}
+
+QCoreApplication& Gonk::qCoreApplication()
+{
+  if (!m_qapp)
+    m_qapp.reset(new QCoreApplication(m_argc, m_argv));
+
+  return *m_qapp;
 }
 
 gonk::ModuleManager& Gonk::moduleManager() const

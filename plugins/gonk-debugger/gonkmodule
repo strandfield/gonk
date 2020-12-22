@@ -1,0 +1,3 @@
+[general]
+name=gonk.debugger
+entry_point=gonk_debugger_module
