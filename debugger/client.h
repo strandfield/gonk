@@ -7,6 +7,9 @@
 
 #include <QObject>
 
+#include "message.h"
+#include "message-reader.h"
+
 class QTcpSocket;
 
 namespace gonk
@@ -14,44 +17,6 @@ namespace gonk
 
 namespace debugger
 {
-
-namespace priv
-{
-
-struct MessageReader
-{
-  QByteArray message;
-  size_t current_read_size = 0;
-
-  QByteArray read();
-
-  bool operator()(QTcpSocket* socket);
-};
-
-} // namespace priv
-
-class DebuggerMessage
-{
-public:
-  virtual ~DebuggerMessage();
-};
-
-struct Callstack : DebuggerMessage
-{
-  std::vector<std::string> functions;
-};
-
-struct BreakpointData
-{
-  int id;
-  std::string function;
-  int line;
-};
-
-struct BreakpointList : DebuggerMessage
-{
-  std::vector<BreakpointData> list;
-};
 
 class Client : public QObject
 {

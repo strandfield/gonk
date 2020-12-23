@@ -2,7 +2,7 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include "communication-handler.h"
+#include "server.h"
 
 #include <QEventLoop>
 

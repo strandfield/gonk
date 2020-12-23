@@ -2,9 +2,9 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include "gonk-debugger-defs.h"
-
 #include <QObject>
+
+#include "message.h"
 
 #include <QJsonObject>
 
@@ -93,23 +93,6 @@ struct Request
 struct SourceCode
 {
   std::string src;
-};
-
-struct BreakpointData
-{
-  int id;
-  std::string function;
-  int line;
-};
-
-struct BreakpointList
-{
-  std::vector<BreakpointData> list;
-};
-
-struct Callstack
-{
-  std::vector<std::string> functions;
 };
 
 /* CommunicationHandler */

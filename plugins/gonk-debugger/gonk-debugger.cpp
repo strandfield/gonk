@@ -5,9 +5,9 @@
 #include "gonk-debugger.h"
 
 #include "breakpoint-handler.h"
-#include "communication-handler.h"
 
 #include <gonk/gonk.h>
+#include <debugger/server.h>
 
 #include <script/interpreter/interpreter.h>
 

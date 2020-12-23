@@ -7,11 +7,11 @@
 
 #include <QMainWindow>
 
-#include "debugger-client.h"
-
-#include <QSettings>
+#include <debugger/client.h>
 
 #include <typewriter/../../widget/codeeditor.h>
+
+#include <QSettings>
 
 class QAction;
 class QListWidget;

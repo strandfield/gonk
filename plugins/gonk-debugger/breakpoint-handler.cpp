@@ -4,7 +4,7 @@
 
 #include "breakpoint-handler.h"
 
-#include "communication-handler.h"
+#include <debugger/server.h>
 
 #include <script/interpreter/executioncontext.h>
 #include <script/program/statements.h>

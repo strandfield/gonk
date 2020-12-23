@@ -2,7 +2,7 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include "debugger-client.h"
+#include "client.h"
 
 #include <QHostAddress>
 #include <QTcpSocket>
@@ -18,42 +18,6 @@ namespace gonk
 
 namespace debugger
 {
-
-namespace priv
-{
-
-QByteArray MessageReader::read()
-{
-  QByteArray result = message;
-  message.clear();
-  current_read_size = 0;
-  return result;
-}
-
-bool MessageReader::operator()(QTcpSocket* socket)
-{
-  if (current_read_size != 0)
-  {
-    QByteArray data = socket->read(current_read_size - message.size());
-    message.append(data);
-    return current_read_size == message.size();
-  }
-  else
-  {
-    if (socket->bytesAvailable() >= sizeof(size_t))
-    {
-      QByteArray len = socket->read(sizeof(size_t));
-      current_read_size = *reinterpret_cast<const size_t*>(len.data());
-      return (*this)(socket);
-    }
-    else
-    {
-      return false;
-    }
-  }
-}
-
-} // namespace priv
 
 DebuggerMessage::~DebuggerMessage()
 {

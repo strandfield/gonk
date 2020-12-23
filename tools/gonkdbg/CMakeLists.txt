@@ -11,6 +11,7 @@ add_executable(gonkdbg ${GONKDBG_HDR_FILES} ${GONKDBG_SRC_FILES} res.qrc)
 
 target_include_directories(gonkdbg PRIVATE ".")
 
+target_link_libraries(gonkdbg gonk-debugger-api)
 target_link_libraries(gonkdbg typewriter-widget)
 target_link_libraries(gonkdbg Qt5::Core Qt5::Widgets Qt5::Network)
 
