@@ -5,6 +5,7 @@
 #include <QObject>
 
 #include "message.h"
+#include "message-reader.h"
 
 #include <QJsonObject>
 
@@ -138,8 +139,7 @@ private:
   QTcpServer* m_server = nullptr;
   QTcpSocket* m_socket = nullptr;
   std::vector<Request> m_requests;
-  QByteArray m_current_read;
-  size_t m_current_read_size = 0;
+  priv::MessageReader m_reader;
 };
 
 template<typename T>

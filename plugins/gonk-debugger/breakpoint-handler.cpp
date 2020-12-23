@@ -55,7 +55,7 @@ bool GonkDebugHandler::shouldBreak(script::interpreter::FunctionCall& call, scri
 void GonkDebugHandler::doBreak()
 {
   m_state = State::Break;
-  m_sp = m_call->stackOffset();
+  m_sp = static_cast<int>(m_call->stackOffset());
 
   comm.notifyBreak();
 

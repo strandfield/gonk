@@ -110,27 +110,10 @@ void Server::onNewConnection()
 
 void Server::read()
 {
-  if (m_current_read_size != 0)
+  while (m_reader(m_socket))
   {
-    QByteArray data = m_socket->read(m_current_read_size - m_current_read.size());
-    m_current_read.append(data);
-
-    if (m_current_read_size == data.size())
-    {
-      parseRequest(m_current_read);
-      m_current_read.clear();
-      m_current_read_size = 0;
-      read();
-    }
-  }
-  else
-  {
-    if (m_socket->bytesAvailable() >= sizeof(size_t))
-    {
-      QByteArray len = m_socket->read(sizeof(size_t));
-      m_current_read_size = *reinterpret_cast<const size_t*>(len.data());
-      read();
-    }
+    QByteArray data = m_reader.read();
+    parseRequest(data);
   }
 }
 
