@@ -16,7 +16,7 @@ namespace gonk
 
 namespace debugger
 {
-class CommunicationHandler;
+class Server;
 struct Request;
 } // namespace debugger
 
@@ -33,7 +33,7 @@ public:
     Break,
   };
 
-  GonkDebugHandler(debugger::CommunicationHandler& handler, State s = State::Running);
+  GonkDebugHandler(debugger::Server& handler, State s = State::Running);
   ~GonkDebugHandler();
 
   void interrupt(script::interpreter::FunctionCall& call, script::program::Breakpoint& info) override;
@@ -52,7 +52,7 @@ protected:
 private:
   State m_state;
   int m_sp = -1;
-  debugger::CommunicationHandler& comm;
+  debugger::Server& comm;
   script::interpreter::FunctionCall* m_call = nullptr;
   script::program::Breakpoint* m_breakpoint = nullptr;
   int m_breakpoint_counter = 0;

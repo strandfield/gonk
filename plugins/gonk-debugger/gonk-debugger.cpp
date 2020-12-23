@@ -26,7 +26,7 @@ class GonkDebuggerPlugin : public gonk::Plugin
 {
 public:
 
-  std::unique_ptr<gonk::debugger::CommunicationHandler> comm;
+  std::unique_ptr<gonk::debugger::Server> comm;
   std::shared_ptr<gonk::GonkDebugHandler> debug_handler;
 
   void load(script::Module m) override
@@ -38,7 +38,7 @@ public:
     // creates the QCoreApplication if it doesn't exist
     Gonk::Instance().qCoreApplication();
 
-    comm.reset(new gonk::debugger::CommunicationHandler);
+    comm.reset(new gonk::debugger::Server);
     comm->waitForConnection();
 
     debug_handler = std::make_shared<gonk::GonkDebugHandler>(*comm, gonk::GonkDebugHandler::StepInto);

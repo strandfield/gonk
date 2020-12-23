@@ -95,14 +95,14 @@ struct SourceCode
   std::string src;
 };
 
-/* CommunicationHandler */
+/* Server */
 
-class CommunicationHandler : public QObject
+class Server : public QObject
 {
   Q_OBJECT
 public:
-  CommunicationHandler();
-  ~CommunicationHandler();
+  Server();
+  ~Server();
 
   void waitForConnection();
 
@@ -143,7 +143,7 @@ private:
 };
 
 template<typename T>
-inline void CommunicationHandler::reply(T response_data)
+inline void Server::reply(T response_data)
 {
   QJsonObject obj = serialize(response_data);
   send(obj);

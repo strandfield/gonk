@@ -14,7 +14,7 @@
 namespace gonk
 {
 
-GonkDebugHandler::GonkDebugHandler(debugger::CommunicationHandler& handler, State s)
+GonkDebugHandler::GonkDebugHandler(debugger::Server& handler, State s)
   : comm(handler),
     m_state(s)
 {

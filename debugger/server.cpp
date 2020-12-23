@@ -18,20 +18,20 @@ namespace gonk
 namespace debugger
 {
 
-CommunicationHandler::CommunicationHandler()
+Server::Server()
 {
   m_server = new QTcpServer(this);
   m_server->listen(QHostAddress::LocalHost, 24242);
 
-  connect(m_server, &QTcpServer::newConnection, this, &CommunicationHandler::onNewConnection);
+  connect(m_server, &QTcpServer::newConnection, this, &Server::onNewConnection);
 }
 
-CommunicationHandler::~CommunicationHandler()
+Server::~Server()
 {
 
 }
 
-void CommunicationHandler::waitForConnection()
+void Server::waitForConnection()
 {
   qDebug() << "waiting for connection";
 
@@ -39,25 +39,25 @@ void CommunicationHandler::waitForConnection()
     return;
 
   QEventLoop ev;
-  QObject::connect(this, &CommunicationHandler::connectionEstablished, &ev, &QEventLoop::quit);
+  QObject::connect(this, &Server::connectionEstablished, &ev, &QEventLoop::quit);
   ev.exec();
 }
 
-void CommunicationHandler::notifyRun()
+void Server::notifyRun()
 {
   QJsonObject resp;
   resp["type"] = "run";
   send(resp);
 }
 
-void CommunicationHandler::notifyBreak()
+void Server::notifyBreak()
 {
   QJsonObject resp;
   resp["type"] = "break";
   send(resp);
 }
 
-void CommunicationHandler::notifyGoodbye()
+void Server::notifyGoodbye()
 {
   QJsonObject resp;
   resp["type"] = "goodbye";
@@ -65,24 +65,24 @@ void CommunicationHandler::notifyGoodbye()
   m_socket->waitForBytesWritten(10);
 }
 
-bool CommunicationHandler::hasPendingRequests() const
+bool Server::hasPendingRequests() const
 {
   return !m_requests.empty();
 }
 
-std::vector<Request>& CommunicationHandler::pendingRequests()
+std::vector<Request>& Server::pendingRequests()
 {
   return m_requests;
 }
 
-bool CommunicationHandler::receiveRequest()
+bool Server::receiveRequest()
 {
   size_t reqcount = m_requests.size();
   read();
   return m_requests.size() != reqcount;
 }
 
-bool CommunicationHandler::waitForRequest(int msecs)
+bool Server::waitForRequest(int msecs)
 {
   if (!m_socket)
     return false;
@@ -93,7 +93,7 @@ bool CommunicationHandler::waitForRequest(int msecs)
   return receiveRequest();
 }
 
-void CommunicationHandler::onNewConnection()
+void Server::onNewConnection()
 {
   m_socket = m_server->nextPendingConnection();
 
@@ -108,7 +108,7 @@ void CommunicationHandler::onNewConnection()
   }
 }
 
-void CommunicationHandler::read()
+void Server::read()
 {
   if (m_current_read_size != 0)
   {
@@ -134,13 +134,13 @@ void CommunicationHandler::read()
   }
 }
 
-void CommunicationHandler::parseRequest(QByteArray reqdata)
+void Server::parseRequest(QByteArray reqdata)
 {
   QJsonObject reqjson = QJsonDocument::fromJson(reqdata).object();
   m_requests.push_back(parseRequest(reqjson));
 }
 
-Request CommunicationHandler::parseRequest(QJsonObject reqjson)
+Request Server::parseRequest(QJsonObject reqjson)
 {
   QString reqtype = reqjson.value("type").toString();
 
@@ -192,7 +192,7 @@ Request CommunicationHandler::parseRequest(QJsonObject reqjson)
   return Request::make<RequestType::Run>();
 }
 
-QJsonObject CommunicationHandler::serialize(const SourceCode& src)
+QJsonObject Server::serialize(const SourceCode& src)
 {
   QJsonObject obj;
   obj["type"] = "sourcecode";
@@ -200,7 +200,7 @@ QJsonObject CommunicationHandler::serialize(const SourceCode& src)
   return obj;
 }
 
-QJsonObject CommunicationHandler::serialize(const BreakpointList& list)
+QJsonObject Server::serialize(const BreakpointList& list)
 {
   QJsonObject obj;
   obj["type"] = "breakpoints";
@@ -223,7 +223,7 @@ QJsonObject CommunicationHandler::serialize(const BreakpointList& list)
   return obj;
 }
 
-QJsonObject CommunicationHandler::serialize(const Callstack& cs)
+QJsonObject Server::serialize(const Callstack& cs)
 {
   QJsonObject obj;
   obj["type"] = "callstack";
@@ -242,7 +242,7 @@ QJsonObject CommunicationHandler::serialize(const Callstack& cs)
   return obj;
 }
 
-void CommunicationHandler::send(QJsonObject response)
+void Server::send(QJsonObject response)
 {
   if (m_socket)
   {
