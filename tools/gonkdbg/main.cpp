@@ -6,9 +6,15 @@
 
 #include <QApplication>
 
+#include <QIcon>
+
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
+
+  QApplication::setApplicationName("gonkdbg");
+  QApplication::setApplicationDisplayName("gonkdbg");
+  QApplication::setWindowIcon(QIcon(":/icon.svg"));
 
   MainWindow w;
   w.show();

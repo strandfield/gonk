@@ -49,12 +49,21 @@ private:
   bool m_debugger_paused = false;
   bool m_debugger_done = false;
   QListWidget* m_callstack = nullptr;
+  QListWidget* m_breakpoints = nullptr;
+  QListWidget* m_variables = nullptr;
+  /* File menu */
+  QMenu* m_file_menu = nullptr;
+  QAction* m_exit = nullptr;
+  /* Debugger menu */
   QMenu* m_debug_menu = nullptr;
   QAction* m_run = nullptr;
   QAction* m_pause = nullptr;
   QAction* m_step_into = nullptr;
   QAction* m_step_over = nullptr;
   QAction* m_step_out = nullptr;
+  /* Help menu */
+  QMenu* m_help_menu = nullptr;
+  QAction* m_about_qt = nullptr;
 };
 
 #endif // GONKDBG_MAINWINDOW_H

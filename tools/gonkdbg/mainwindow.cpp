@@ -5,16 +5,14 @@
 #include "mainwindow.h"
 
 #include <QAction>
+#include <QApplication>
 #include <QDockWidget>
-#include <QFileDialog>
 #include <QListWidget>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
-#include <QProgressDialog>
 #include <QSettings>
 #include <QStatusBar>
-#include <QTabWidget>
 
 #include <QDebug>
 
@@ -38,26 +36,55 @@ MainWindow::MainWindow()
   m_client->setParent(this);
   connect(m_client, &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
 
-  m_callstack = new QListWidget;
-  auto* dock = new QDockWidget(this);
-  dock->setWidget(m_callstack);
-  addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, dock);
+  {
+    m_variables = new QListWidget;
+    auto* dock = new QDockWidget(this);
+    dock->setWidget(m_variables);
+    addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, dock);
+  }
 
-  m_debug_menu = menuBar()->addMenu("Debugger");
+  {
+    m_callstack = new QListWidget;
+    auto* dock = new QDockWidget(this);
+    dock->setWidget(m_callstack);
+    addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
+  }
 
-  m_run = m_debug_menu->addAction("Run", this, &MainWindow::run);
-  m_run->setShortcut(QKeySequence(Qt::Key_F5));
+  {
+    m_breakpoints = new QListWidget;
+    auto* dock = new QDockWidget(this);
+    dock->setWidget(m_breakpoints);
+    addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
+  }
 
-  m_pause = m_debug_menu->addAction("Pause", this, &MainWindow::pause);
+  {
+    m_file_menu = menuBar()->addMenu("File");
+    m_exit = m_file_menu->addAction("Exit", []() { QApplication::exit(); });
+  }
 
-  m_step_into = m_debug_menu->addAction("Step into", this, &MainWindow::stepInto);
-  m_step_into->setShortcut(QKeySequence(Qt::Key_F11));
+  {
+    m_debug_menu = menuBar()->addMenu("Debugger");
 
-  m_step_over = m_debug_menu->addAction("Step over", this, &MainWindow::stepOver);
-  m_step_over->setShortcut(QKeySequence(Qt::Key_F10));
+    m_run = m_debug_menu->addAction("Run", this, &MainWindow::run);
+    m_run->setShortcut(QKeySequence(Qt::Key_F5));
 
-  m_step_out = m_debug_menu->addAction("Step out", this, &MainWindow::stepOut);
-  m_step_out->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F11));
+    m_pause = m_debug_menu->addAction("Pause", this, &MainWindow::pause);
+
+    m_step_into = m_debug_menu->addAction("Step into", this, &MainWindow::stepInto);
+    m_step_into->setShortcut(QKeySequence(Qt::Key_F11));
+
+    m_step_over = m_debug_menu->addAction("Step over", this, &MainWindow::stepOver);
+    m_step_over->setShortcut(QKeySequence(Qt::Key_F10));
+
+    m_step_out = m_debug_menu->addAction("Step out", this, &MainWindow::stepOut);
+    m_step_out->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F11));
+  }
+
+
+  {
+    m_help_menu = menuBar()->addMenu("Help");
+    m_about_qt = m_help_menu->addAction("About Qt", []() { QApplication::aboutQt(); });
+  }
 }
 
 void MainWindow::onSocketConnected()
@@ -101,6 +128,7 @@ void MainWindow::onDebuggerPaused()
   }
 
   m_client->getCallstack();
+  m_client->getBreakpoints();
 }
 
 void MainWindow::onDebuggerFinished()
@@ -135,6 +163,16 @@ void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
     for (const std::string& f : callstack.functions)
     {
       m_callstack->addItem(QString::fromStdString(f));
+    }
+  }
+  else if (dynamic_cast<gonk::debugger::BreakpointList*>(mssg.get()))
+  {
+    auto& breakpoints = static_cast<gonk::debugger::BreakpointList&>(*mssg);
+    m_breakpoints->clear();
+
+    for (const gonk::debugger::BreakpointData& bp : breakpoints.list)
+    {
+      m_breakpoints->addItem(QString::fromStdString(bp.function) + " (" + QString::number(bp.line) + ")");
     }
   }
 }
@@ -187,10 +225,9 @@ void MainWindow::showEvent(QShowEvent *e)
   if (m_settings->contains("windowState"))
     restoreState(m_settings->value("windowState").toByteArray());
 
+  statusBar()->showMessage("Connecting...", 1500);
+
   QMainWindow::showEvent(e);
-
-  //onSourceCodeReceived("\nvoid main()\n{\n\n}\n");
-
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
