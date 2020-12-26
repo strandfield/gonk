@@ -4,6 +4,9 @@
 
 #include "mainwindow.h"
 
+#include "callstackview.h"
+#include "controller.h"
+
 #include <QAction>
 #include <QApplication>
 #include <QDockWidget>
@@ -35,9 +38,9 @@ MainWindow::MainWindow()
 
   setCentralWidget(m_editor);
 
-  m_client = new gonk::debugger::Client;
-  m_client->setParent(this);
-  connect(m_client, &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
+  m_controller = new Controller(this);
+
+  connect(&(m_controller->client()), &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
 
   {
     m_variables = new QListWidget;
@@ -47,7 +50,9 @@ MainWindow::MainWindow()
   }
 
   {
-    m_callstack = new QListWidget;
+    m_callstack = new CallstackView(*m_controller);
+    connect(m_controller, &Controller::callstackUpdated, this, &MainWindow::onCallstackUpdated);
+
     auto* dock = new QDockWidget(this);
     dock->setWidget(m_callstack);
     addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
@@ -92,10 +97,10 @@ MainWindow::MainWindow()
 
 void MainWindow::onSocketConnected()
 {
-  connect(m_client, &gonk::debugger::Client::debuggerRunning, this, &MainWindow::onDebuggerRunning);
-  connect(m_client, &gonk::debugger::Client::debuggerPaused, this, &MainWindow::onDebuggerPaused);
-  connect(m_client, &gonk::debugger::Client::debuggerFinished, this, &MainWindow::onDebuggerFinished);
-  connect(m_client, &gonk::debugger::Client::messageReceived, this, &MainWindow::onMessageReceived);
+  connect(&m_controller->client(), &gonk::debugger::Client::debuggerRunning, this, &MainWindow::onDebuggerRunning);
+  connect(&m_controller->client(), &gonk::debugger::Client::debuggerPaused, this, &MainWindow::onDebuggerPaused);
+  connect(&m_controller->client(), &gonk::debugger::Client::debuggerFinished, this, &MainWindow::onDebuggerFinished);
+  connect(&m_controller->client(), &gonk::debugger::Client::messageReceived, this, &MainWindow::onMessageReceived);
 
   statusBar()->showMessage("Connected!", 1500);
 }
@@ -124,9 +129,9 @@ void MainWindow::onDebuggerPaused()
 
   statusBar()->showMessage("Pause...", 1000);
 
-  m_client->getCallstack();
-  m_client->getBreakpoints();
-  m_client->getVariables();
+  m_controller->client().getCallstack();
+  m_controller->client().getBreakpoints();
+  m_controller->client().getVariables();
 }
 
 void MainWindow::onDebuggerFinished()
@@ -142,27 +147,7 @@ void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
   if (!mssg)
     return;
 
-  if (dynamic_cast<gonk::debugger::Callstack*>(mssg.get()))
-  {
-    auto& callstack = static_cast<gonk::debugger::Callstack&>(*mssg);
-    m_callstack->clear();
-
-    std::string src_path;
-
-    for (const gonk::debugger::CallstackEntry& e : callstack.entries)
-    {
-      m_callstack->addItem(QString::fromStdString(e.function) + ", line: " + QString::number(e.line+1));
-
-      if (!e.path.empty())
-        src_path = e.path;
-    }
-
-    if (!m_has_source)
-    {
-      m_client->getSource(src_path);
-    }
-  }
-  else if (dynamic_cast<gonk::debugger::BreakpointList*>(mssg.get()))
+  if (dynamic_cast<gonk::debugger::BreakpointList*>(mssg.get()))
   {
     auto& breakpoints = static_cast<gonk::debugger::BreakpointList&>(*mssg);
     m_breakpoints->clear();
@@ -208,11 +193,30 @@ void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
   }
 }
 
+void MainWindow::onCallstackUpdated()
+{
+  if (!m_has_source)
+  {
+    auto callstack = m_controller->lastCallstackMessage();
+
+    std::string src_path;
+
+    for (const gonk::debugger::CallstackEntry& e : callstack->entries)
+    {
+      if (!e.path.empty())
+        src_path = e.path;
+    }
+
+    if(!src_path.empty())
+      m_controller->client().getSource(src_path);
+  }
+}
+
 void MainWindow::pause()
 {
   if (m_debugger_paused)
   {
-    m_client->action(gonk::debugger::Client::Action::Pause);
+    m_controller->client().action(gonk::debugger::Client::Action::Pause);
   }
 }
 
@@ -220,7 +224,7 @@ void MainWindow::run()
 {
   if (m_debugger_paused)
   {
-    m_client->action(gonk::debugger::Client::Action::Run);
+    m_controller->client().action(gonk::debugger::Client::Action::Run);
   }
 }
 
@@ -228,7 +232,7 @@ void MainWindow::stepInto()
 {
   if (m_debugger_paused)
   {
-    m_client->action(gonk::debugger::Client::Action::StepInto);
+    m_controller->client().action(gonk::debugger::Client::Action::StepInto);
   }
 }
 
@@ -236,7 +240,7 @@ void MainWindow::stepOver()
 {
   if (m_debugger_paused)
   {
-    m_client->action(gonk::debugger::Client::Action::StepOver);
+    m_controller->client().action(gonk::debugger::Client::Action::StepOver);
   }
 }
 
@@ -244,7 +248,7 @@ void MainWindow::stepOut()
 {
   if (m_debugger_paused)
   {
-    m_client->action(gonk::debugger::Client::Action::StepOut);
+    m_controller->client().action(gonk::debugger::Client::Action::StepOut);
   }
 }
 

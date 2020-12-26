@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
 
   QApplication::setApplicationName("gonkdbg");
   QApplication::setApplicationDisplayName("gonkdbg");
+  // Qt does not support clipping in the Svg, will need to do a png out of it, sad...
   QApplication::setWindowIcon(QIcon(":/icon.svg"));
 
   MainWindow w;

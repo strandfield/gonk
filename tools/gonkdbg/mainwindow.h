@@ -13,6 +13,9 @@
 
 #include <QSettings>
 
+class CallstackView;
+class Controller;
+
 class QAction;
 class QListWidget;
 
@@ -30,6 +33,9 @@ protected Q_SLOTS:
   void onDebuggerPaused();
   void onDebuggerFinished();
   void onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg);
+  void onCallstackUpdated();
+
+protected Q_SLOTS:
   void pause();
   void run();
   void stepInto();
@@ -42,13 +48,13 @@ protected:
 
 private:
   QSettings *m_settings = nullptr;
+  Controller* m_controller = nullptr;
   typewriter::QTypewriter* m_editor = nullptr;
   std::string m_source_path;
-  gonk::debugger::Client* m_client = nullptr;
   bool m_has_source = false;
   bool m_debugger_paused = false;
   bool m_debugger_done = false;
-  QListWidget* m_callstack = nullptr;
+  CallstackView* m_callstack = nullptr;
   QListWidget* m_breakpoints = nullptr;
   QListWidget* m_variables = nullptr;
   /* File menu */
