@@ -78,10 +78,11 @@ void Client::removeBreakpoint(int id)
   send(obj);
 }
 
-void Client::getSource()
+void Client::getSource(const std::string& path)
 {
   QJsonObject obj;
   obj["type"] = "getsource";
+  obj["path"] = QString::fromStdString(path);
   send(obj);
 }
 
@@ -141,7 +142,12 @@ void Client::processMessage(QJsonObject message)
   }
   else if (type == "sourcecode")
   {
-    Q_EMIT sourceCodeReceived(message.value("text").toString());
+    auto mssg = std::make_shared<SourceCode>();
+    mssg->source = message.value("text").toString().toStdString();
+    mssg->path = message.value("path").toString().toStdString();
+    mssg->syntaxtree = message.value("ast").toObject();
+
+    Q_EMIT messageReceived(mssg);
   }
   else if (type == "breakpoints")
   {
@@ -157,6 +163,7 @@ void Client::processMessage(QJsonObject message)
       bp.function = js.value("function").toString().toStdString();
       bp.id = js.value("id").toInt();
       bp.line = js.value("line").toInt();
+      bp.script_path = js.value("path").toString().toStdString();
 
       mssg->list.push_back(bp);
     }
@@ -171,7 +178,12 @@ void Client::processMessage(QJsonObject message)
 
     for (int i(0); i < list.size(); ++i)
     {
-      mssg->functions.push_back(list.at(i).toString().toStdString());
+      QJsonObject jsonentry = list.at(i).toObject();
+      debugger::CallstackEntry entry;
+      entry.function = jsonentry.value("function").toString().toStdString();
+      entry.path = jsonentry.value("path").toString().toStdString();
+      entry.line = jsonentry.value("line").toInt();
+      mssg->entries.push_back(entry);
     }
 
     Q_EMIT messageReceived(mssg);

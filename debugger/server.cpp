@@ -149,7 +149,9 @@ Request Server::parseRequest(QJsonObject reqjson)
   }
   else if (reqtype == "getsource")
   {
-    return Request::make<RequestType::GetSourceCode>();
+    GetSourceCode data;
+    data.path = reqjson["path"].toString().toStdString();
+    return Request(data);
   }
   else if (reqtype == "getbreakpoints")
   {
@@ -185,7 +187,9 @@ QJsonObject Server::serialize(const SourceCode& src)
 {
   QJsonObject obj;
   obj["type"] = "sourcecode";
-  obj["text"] = QString::fromStdString(src.src);
+  obj["path"] = QString::fromStdString(src.path);
+  obj["text"] = QString::fromStdString(src.source);
+  obj["ast"] = src.syntaxtree;
   return obj;
 }
 
@@ -203,6 +207,7 @@ QJsonObject Server::serialize(const BreakpointList& list)
       jsonbp["id"] = bpd.id;
       jsonbp["line"] = bpd.line;
       jsonbp["function"] = QString::fromStdString(bpd.function);
+      jsonbp["path"] = QString::fromStdString(bpd.script_path);
       jsonlist.push_back(jsonbp);
     }
 
@@ -220,9 +225,14 @@ QJsonObject Server::serialize(const Callstack& cs)
   {
     QJsonArray stack;
 
-    for (const auto& f : cs.functions)
+    for (const auto& e : cs.entries)
     {
-      stack.append(QString::fromStdString(f));
+      QJsonObject entry;
+      entry["function"] = QString::fromStdString(e.function);
+      entry["path"] = QString::fromStdString(e.path);
+      entry["line"] = e.line;
+
+      stack.append(entry);
     }
 
     obj["stack"] = stack;

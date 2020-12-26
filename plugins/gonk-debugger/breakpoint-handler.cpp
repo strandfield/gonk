@@ -4,6 +4,7 @@
 
 #include "breakpoint-handler.h"
 
+#include "ast-producer.h"
 #include "value-serializer.h"
 
 #include <debugger/server.h>
@@ -17,8 +18,8 @@
 namespace gonk
 {
 
-GonkDebugHandler::GonkDebugHandler(debugger::Server& handler, State s)
-  : comm(handler),
+GonkDebugHandler::GonkDebugHandler(debugger::Server& serv, State s)
+  : comm(serv),
     m_state(s)
 {
 
@@ -97,7 +98,7 @@ void GonkDebugHandler::process(debugger::Request& req)
     m_state = State::StepOut;
     break;
   case debugger::RequestType::GetSourceCode:
-    sendSource();
+    sendSource(req.data<debugger::GetSourceCode>().path);
     break;
   case debugger::RequestType::GetBreakpointList:
     sendBreakpointList();
@@ -119,10 +120,31 @@ void GonkDebugHandler::process(debugger::Request& req)
   }
 }
 
-void GonkDebugHandler::sendSource()
+void GonkDebugHandler::sendSource(const std::string& path)
 {
+  for (auto s : m_call->engine()->scripts())
+  {
+    if (s.path() == path)
+    {
+      debugger::SourceCode src;
+
+      src.path = path;
+      src.source = m_call->callee().script().source().content();
+
+      GonkAstProducer astproducer;
+      src.syntaxtree = astproducer.produce(m_call->callee().script().ast());
+
+      comm.reply(src);
+
+      return;
+    }
+  }
+
   debugger::SourceCode src;
-  src.src = m_call->callee().script().source().content();
+
+  src.path = path;
+  src.source = "could not find source code of " + path;
+
   comm.reply(src);
 }
 
@@ -134,6 +156,12 @@ void GonkDebugHandler::sendBreakpointList()
   {
     debugger::BreakpointData bp;
     bp.function = entry.second.front().first.name();
+
+    script::Script s = entry.second.front().first.script();
+
+    if (!s.isNull())
+      bp.script_path = s.path();
+
     bp.id = entry.first;
     bp.line = entry.second.front().second->line;
     list.list.push_back(bp);
@@ -151,7 +179,13 @@ void GonkDebugHandler::sendCallstack()
   for (size_t i(0); i < cs.size(); ++i)
   {
     script::Function f = cs[i]->callee();
-    result.functions.push_back(f.engine()->toString(f));
+
+    debugger::CallstackEntry entry;
+    entry.function = f.engine()->toString(f);
+    entry.path = f.script().isNull() ? std::string() : f.script().path();
+    entry.line = cs[i]->last_breakpoint ? cs[i]->last_breakpoint->line : 1;
+
+    result.entries.push_back(entry);
   }
 
   comm.reply(result);

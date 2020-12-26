@@ -41,6 +41,11 @@ enum class RequestType
 template<RequestType RT>
 struct EmptyData { };
 
+struct GetSourceCode
+{
+  std::string path;
+};
+
 struct GetVariables
 {
   int depth;
@@ -64,7 +69,7 @@ struct Request
     EmptyData<RequestType::StepInto>,
     EmptyData<RequestType::StepOver>,
     EmptyData<RequestType::StepOut>,
-    EmptyData<RequestType::GetSourceCode>,
+    GetSourceCode,
     EmptyData<RequestType::GetBreakpointList>,
     EmptyData<RequestType::GetCallStack>,
     GetVariables,
@@ -92,13 +97,6 @@ struct Request
   {
     return std::get<T>(data_);
   }
-};
-
-/* Responses */
-
-struct SourceCode
-{
-  std::string src;
 };
 
 /* Server */

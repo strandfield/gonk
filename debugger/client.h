@@ -40,7 +40,7 @@ public:
 
   void removeBreakpoint(int id);
 
-  void getSource();
+  void getSource(const std::string& path);
 
   void getBreakpoints();
 
@@ -53,7 +53,6 @@ Q_SIGNALS:
   void debuggerRunning();
   void debuggerPaused();
   void debuggerFinished();
-  void sourceCodeReceived(QString src);
   void messageReceived(std::shared_ptr<DebuggerMessage> mssg);
 
 protected Q_SLOTS:

@@ -24,15 +24,30 @@ public:
   virtual ~DebuggerMessage();
 };
 
+struct SourceCode : DebuggerMessage
+{
+  std::string path;
+  std::string source;
+  QJsonObject syntaxtree;
+};
+
+struct CallstackEntry
+{
+  std::string function;
+  std::string path;
+  int line;
+};
+
 struct Callstack : DebuggerMessage
 {
-  std::vector<std::string> functions;
+  std::vector<CallstackEntry> entries;
 };
 
 struct BreakpointData
 {
   int id;
   std::string function;
+  std::string script_path;
   int line;
 };
 

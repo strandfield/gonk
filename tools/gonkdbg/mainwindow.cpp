@@ -14,6 +14,9 @@
 #include <QSettings>
 #include <QStatusBar>
 
+#include <QFile>
+#include <QJsonDocument>
+
 #include <QDebug>
 
 MainWindow::MainWindow()
@@ -92,7 +95,6 @@ void MainWindow::onSocketConnected()
   connect(m_client, &gonk::debugger::Client::debuggerRunning, this, &MainWindow::onDebuggerRunning);
   connect(m_client, &gonk::debugger::Client::debuggerPaused, this, &MainWindow::onDebuggerPaused);
   connect(m_client, &gonk::debugger::Client::debuggerFinished, this, &MainWindow::onDebuggerFinished);
-  connect(m_client, &gonk::debugger::Client::sourceCodeReceived, this, &MainWindow::onSourceCodeReceived);
   connect(m_client, &gonk::debugger::Client::messageReceived, this, &MainWindow::onMessageReceived);
 
   statusBar()->showMessage("Connected!", 1500);
@@ -122,11 +124,6 @@ void MainWindow::onDebuggerPaused()
 
   statusBar()->showMessage("Pause...", 1000);
 
-  if (!m_has_source)
-  {
-    m_client->getSource();
-  }
-
   m_client->getCallstack();
   m_client->getBreakpoints();
   m_client->getVariables();
@@ -140,17 +137,6 @@ void MainWindow::onDebuggerFinished()
   m_debugger_done = true;
 }
 
-void MainWindow::onSourceCodeReceived(QString src)
-{
-  typewriter::TextCursor cursor{ m_editor->document() };
-  cursor.setPosition(typewriter::Position{ m_editor->document()->lineCount() + 1, 0 }, typewriter::TextCursor::KeepAnchor);
-  cursor.removeSelectedText();
-  std::string src_str = src.toStdString();
-  cursor.insertText(src_str);
-
-  m_has_source = true;
-}
-
 void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg)
 {
   if (!mssg)
@@ -161,9 +147,19 @@ void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
     auto& callstack = static_cast<gonk::debugger::Callstack&>(*mssg);
     m_callstack->clear();
 
-    for (const std::string& f : callstack.functions)
+    std::string src_path;
+
+    for (const gonk::debugger::CallstackEntry& e : callstack.entries)
     {
-      m_callstack->addItem(QString::fromStdString(f));
+      m_callstack->addItem(QString::fromStdString(e.function) + ", line: " + QString::number(e.line+1));
+
+      if (!e.path.empty())
+        src_path = e.path;
+    }
+
+    if (!m_has_source)
+    {
+      m_client->getSource(src_path);
     }
   }
   else if (dynamic_cast<gonk::debugger::BreakpointList*>(mssg.get()))
@@ -190,6 +186,25 @@ void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
       else if (v.value.isString())
         m_variables->addItem(QString::fromStdString(v.name) + " : " + v.value.toString());
     }
+  }
+  else if (dynamic_cast<gonk::debugger::SourceCode*>(mssg.get()))
+  {
+    auto& src = static_cast<gonk::debugger::SourceCode&>(*mssg);
+
+    typewriter::TextCursor cursor{ m_editor->document() };
+    cursor.setPosition(typewriter::Position{ m_editor->document()->lineCount() + 1, 0 }, typewriter::TextCursor::KeepAnchor);
+    cursor.removeSelectedText();
+    cursor.insertText(src.source);
+
+    {
+      QFile stfile{ "syntax.json" };
+      stfile.open(QIODevice::WriteOnly | QIODevice::Truncate);
+      stfile.write(QJsonDocument(src.syntaxtree).toJson());
+      stfile.close();
+    }
+
+    m_has_source = true;
+    m_source_path = src.path;
   }
 }
 

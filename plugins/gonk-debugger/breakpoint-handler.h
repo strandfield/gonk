@@ -33,7 +33,7 @@ public:
     Break,
   };
 
-  GonkDebugHandler(debugger::Server& handler, State s = State::Running);
+  GonkDebugHandler(debugger::Server& serv, State s = State::Running);
   ~GonkDebugHandler();
 
   void interrupt(script::interpreter::FunctionCall& call, script::program::Breakpoint& info) override;
@@ -42,7 +42,7 @@ protected:
   bool shouldBreak(script::interpreter::FunctionCall& call, script::program::Breakpoint& info);
   void doBreak();
   void process(debugger::Request& req);
-  void sendSource();
+  void sendSource(const std::string& path);
   void sendBreakpointList();
   void sendCallstack();
   void sendVariables(int d);

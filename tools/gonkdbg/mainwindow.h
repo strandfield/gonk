@@ -29,7 +29,6 @@ protected Q_SLOTS:
   void onDebuggerRunning();
   void onDebuggerPaused();
   void onDebuggerFinished();
-  void onSourceCodeReceived(QString src);
   void onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg);
   void pause();
   void run();
@@ -44,6 +43,7 @@ protected:
 private:
   QSettings *m_settings = nullptr;
   typewriter::QTypewriter* m_editor = nullptr;
+  std::string m_source_path;
   gonk::debugger::Client* m_client = nullptr;
   bool m_has_source = false;
   bool m_debugger_paused = false;
