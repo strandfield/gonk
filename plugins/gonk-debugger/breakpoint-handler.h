@@ -45,7 +45,7 @@ protected:
   void sendSource();
   void sendBreakpointList();
   void sendCallstack();
-  void sendVariables();
+  void sendVariables(int d);
   void addBreakpoint(int line);
   void removeBreakpoint(int id);
 

@@ -4,9 +4,12 @@
 
 #include "breakpoint-handler.h"
 
+#include "value-serializer.h"
+
 #include <debugger/server.h>
 
 #include <script/interpreter/executioncontext.h>
+#include <script/interpreter/workspace.h>
 #include <script/program/statements.h>
 #include <script/engine.h>
 #include <script/script.h>
@@ -103,7 +106,7 @@ void GonkDebugHandler::process(debugger::Request& req)
     sendCallstack();
     break;
   case debugger::RequestType::GetVariables:
-    sendVariables();
+    sendVariables(req.data<debugger::GetVariables>().depth);
     break;
   case debugger::RequestType::AddBreakpoint:
     addBreakpoint(req.data<debugger::AddBreakpoint>().line);
@@ -154,9 +157,32 @@ void GonkDebugHandler::sendCallstack()
   comm.reply(result);
 }
 
-void GonkDebugHandler::sendVariables()
+void GonkDebugHandler::sendVariables(int d)
 {
+  script::interpreter::Callstack& cs = m_call->executionContext()->callstack;
+  int cs_size = static_cast<int>(cs.size());
 
+  d = (d < 0 || d >= cs_size) ? (cs_size-1) : d;
+
+  script::interpreter::FunctionCall* fc = cs[d];
+  script::Engine* e = fc->engine();
+  script::interpreter::Workspace w{ fc };
+  GonkValueSerializer serializer{ *e };
+
+  debugger::VariableList result;
+  result.callstack_depth = d;
+
+  for (size_t i(0); i < w.size(); ++i)
+  {
+    debugger::Variable v;
+    v.offset = static_cast<int>(w.stackOffsetAt(i));
+    v.type = e->toString(w.varTypeAt(i));
+    v.name = w.nameAt(i);
+    v.value = serializer.serialize(w.valueAt(i));
+    result.variables.push_back(v);
+  }
+
+  comm.reply(result);
 }
 
 void GonkDebugHandler::addBreakpoint(int line)

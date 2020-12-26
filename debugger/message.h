@@ -41,6 +41,20 @@ struct BreakpointList : DebuggerMessage
   std::vector<BreakpointData> list;
 };
 
+struct Variable
+{
+  int offset;
+  std::string type;
+  std::string name;
+  QJsonValue value;
+};
+
+struct VariableList : DebuggerMessage
+{
+  int callstack_depth = -1;
+  std::vector<Variable> variables;
+};
+
 } // namespace debugger
 
 } // namespace gonk

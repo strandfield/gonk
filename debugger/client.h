@@ -46,6 +46,8 @@ public:
 
   void getCallstack();
 
+  void getVariables(int depth = -1);
+
 Q_SIGNALS:
   void connectionEstablished();
   void debuggerRunning();

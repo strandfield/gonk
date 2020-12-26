@@ -159,6 +159,12 @@ Request Server::parseRequest(QJsonObject reqjson)
   {
     return Request::make<RequestType::GetCallStack>();
   }
+  else if (reqtype == "getvariables")
+  {
+    GetVariables data;
+    data.depth = reqjson["depth"].toInt();
+    return Request(data);
+  }
   else if (reqtype == "addbreakpoint")
   {
     AddBreakpoint data;
@@ -220,6 +226,31 @@ QJsonObject Server::serialize(const Callstack& cs)
     }
 
     obj["stack"] = stack;
+  }
+
+  return obj;
+}
+
+QJsonObject Server::serialize(const VariableList& vlist)
+{
+  QJsonObject obj;
+  obj["type"] = "variables";
+  obj["depth"] = vlist.callstack_depth;
+
+  {
+    QJsonArray vars;
+
+    for (const auto& v : vlist.variables)
+    {
+      QJsonObject e;
+      e["offset"] = v.offset;
+      e["type"] = QString::fromStdString(v.type);
+      e["name"] = QString::fromStdString(v.name);
+      e["value"] = v.value;
+      vars.push_back(e);
+    }
+
+    obj["variables"] = vars;
   }
 
   return obj;

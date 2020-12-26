@@ -129,6 +129,7 @@ void MainWindow::onDebuggerPaused()
 
   m_client->getCallstack();
   m_client->getBreakpoints();
+  m_client->getVariables();
 }
 
 void MainWindow::onDebuggerFinished()
@@ -173,6 +174,21 @@ void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
     for (const gonk::debugger::BreakpointData& bp : breakpoints.list)
     {
       m_breakpoints->addItem(QString::fromStdString(bp.function) + " (" + QString::number(bp.line) + ")");
+    }
+  }
+  else if (dynamic_cast<gonk::debugger::VariableList*>(mssg.get()))
+  {
+    auto& variables = static_cast<gonk::debugger::VariableList&>(*mssg);
+    m_variables->clear();
+
+    for (const gonk::debugger::Variable& v : variables.variables)
+    {
+      if(v.value.isBool())
+        m_variables->addItem(QString::fromStdString(v.name) + " : " + (v.value.toBool() ? "true" : "false"));
+      else if (v.value.isDouble())
+        m_variables->addItem(QString::fromStdString(v.name) + " : " + QString::number(v.value.toDouble()));
+      else if (v.value.isString())
+        m_variables->addItem(QString::fromStdString(v.name) + " : " + v.value.toString());
     }
   }
 }

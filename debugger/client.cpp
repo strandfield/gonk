@@ -99,6 +99,14 @@ void Client::getCallstack()
   send(obj);
 }
 
+void Client::getVariables(int depth)
+{
+  QJsonObject obj;
+  obj["type"] = "getvariables";
+  obj["depth"] = depth;
+  send(obj);
+}
+
 void Client::onSocketConnected()
 {
   connect(m_socket, &QAbstractSocket::readyRead, this, &Client::onReadyRead);
@@ -164,6 +172,28 @@ void Client::processMessage(QJsonObject message)
     for (int i(0); i < list.size(); ++i)
     {
       mssg->functions.push_back(list.at(i).toString().toStdString());
+    }
+
+    Q_EMIT messageReceived(mssg);
+  }
+  else if (type == "variables")
+  {
+    auto mssg = std::make_shared<VariableList>();
+
+    mssg->callstack_depth = message.value("depth").toInt();
+
+    QJsonArray list = message.value("variables").toArray();
+
+    for (int i(0); i < list.size(); ++i)
+    {
+      QJsonObject varjson = list.at(i).toObject();
+      Variable var;
+      var.name = varjson.value("name").toString().toStdString();
+      var.offset = varjson.value("offset").toInt();
+      var.type = varjson.value("type").toString().toStdString();
+      var.value = varjson.value("value");
+
+      mssg->variables.push_back(var);
     }
 
     Q_EMIT messageReceived(mssg);

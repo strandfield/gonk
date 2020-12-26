@@ -41,6 +41,11 @@ enum class RequestType
 template<RequestType RT>
 struct EmptyData { };
 
+struct GetVariables
+{
+  int depth;
+};
+
 struct AddBreakpoint
 {
   int line;
@@ -62,7 +67,7 @@ struct Request
     EmptyData<RequestType::GetSourceCode>,
     EmptyData<RequestType::GetBreakpointList>,
     EmptyData<RequestType::GetCallStack>,
-    EmptyData<RequestType::GetVariables>,
+    GetVariables,
     AddBreakpoint,
     RemoveBreakpoint
   > data_;
@@ -133,6 +138,7 @@ protected:
   QJsonObject serialize(const SourceCode& src);
   QJsonObject serialize(const BreakpointList& list);
   QJsonObject serialize(const Callstack& cs);
+  QJsonObject serialize(const VariableList& vlist);
   void send(QJsonObject response);
 
 private:
