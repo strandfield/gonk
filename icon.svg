@@ -9,11 +9,10 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="256"
    height="256"
-   viewBox="0 0 210 297"
    version="1.1"
    id="svg8"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="dessin_simple.svg"
+   sodipodi:docname="icon.svg"
    inkscape:export-filename="C:\Users\Vincent\Programmation\gonk\ignore\dessin_64.png"
    inkscape:export-xdpi="24.000002"
    inkscape:export-ydpi="24.000002">
@@ -63,9 +62,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.5739327"
-     inkscape:cx="134.6876"
-     inkscape:cy="124.3846"
+     inkscape:zoom="1.7450255"
+     inkscape:cx="100.0414"
+     inkscape:cy="150.62358"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -101,34 +100,35 @@
     <circle
        style="fill:#0346f7;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
        id="path839"
-       cx="104.99999"
-       cy="148.5"
-       r="139.21875" />
+       cx="127.62501"
+       cy="128.00002"
+       r="121.40627" />
     <circle
        style="fill:#00052d;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
        id="path839-3"
-       cx="105.43216"
-       cy="148.66573"
-       r="120.63611" />
+       cx="128.00186"
+       cy="128.14453"
+       r="105.2012" />
     <path
        id="rect870"
        clip-path="url(#clipPath1578)"
        style="fill:#53594f;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
-       d="M 21.468719,222.75002 H 188.53122 v 46.40624 H 21.468719 Z" />
+       d="M 21.468719,222.75002 H 188.53122 v 46.40624 H 21.468719 Z"
+       transform="matrix(0.87205399,0,0,0.87205399,36.059335,-1.5000088)" />
     <rect
        style="fill:#000000;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
        id="rect872"
-       width="167.0625"
-       height="37.125"
-       x="21.46875"
-       y="185.625" />
+       width="145.68752"
+       height="32.375004"
+       x="54.781246"
+       y="160.375" />
     <rect
        style="fill:#60635c;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
        id="rect874"
-       width="129.9375"
-       height="9.28125"
-       x="40.031219"
-       y="194.90625" />
+       width="113.31252"
+       height="8.093751"
+       x="70.968719"
+       y="168.46875" />
     <path
        style="fill:#60635c;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
        id="rect876"
@@ -139,41 +139,42 @@
        clip-path="url(#clipPath916)"
        inkscape:path-effect="#path-effect920"
        d="M 21.468719,92.8125 H 188.53122 v 92.81249 H 21.468719 Z"
-       sodipodi:type="rect" />
+       sodipodi:type="rect"
+       transform="matrix(0.87205399,0,0,0.87205399,36.059335,-1.5000088)" />
     <rect
        style="fill:#60635c;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
        id="rect878"
-       width="46.406246"
-       height="18.5625"
-       x="40.03125"
-       y="74.25" />
+       width="40.468754"
+       height="16.187502"
+       x="70.968742"
+       y="63.25" />
     <rect
        style="fill:#60635c;fill-opacity:1;stroke:#2ad4ff;stroke-width:0"
        id="rect878-9"
-       width="46.406246"
-       height="18.5625"
-       x="123.5625"
-       y="74.25" />
+       width="40.468754"
+       height="16.187502"
+       x="143.8125"
+       y="63.25" />
     <rect
-       style="fill:#60635c;fill-opacity:0;stroke:#020202;stroke-width:2.3203125;stroke-miterlimit:10;stroke-dasharray:none;stroke-linejoin:round;stroke-opacity:1;stroke-linecap:round"
+       style="fill:#60635c;fill-opacity:0;stroke:#020202;stroke-width:2.02344;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        id="rect895"
-       width="129.9375"
-       height="74.25"
-       x="40.03125"
-       y="102.09375" />
+       width="113.31252"
+       height="64.750008"
+       x="70.968742"
+       y="87.53125" />
     <rect
        style="fill:#020202;fill-opacity:1;stroke:#020202;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        id="rect897"
-       width="18.5625"
-       height="27.843748"
-       x="151.40623"
-       y="102.09374" />
+       width="16.187502"
+       height="24.281252"
+       x="168.09375"
+       y="87.53125" />
     <rect
        style="fill:#000000;fill-opacity:1;stroke:#020202;stroke-width:0;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        id="rect897-2"
-       width="18.5625"
-       height="27.843748"
-       x="40.03125"
-       y="102.09375" />
+       width="16.187502"
+       height="24.281252"
+       x="70.968742"
+       y="87.53125" />
   </g>
 </svg>
