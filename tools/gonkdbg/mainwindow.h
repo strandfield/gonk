@@ -15,6 +15,7 @@
 
 class CallstackView;
 class Controller;
+class VariablesView;
 
 class QAction;
 class QListWidget;
@@ -32,7 +33,6 @@ protected Q_SLOTS:
   void onDebuggerStateChanged();
   void onCallstackUpdated();
   void onBreakpointsUpdated();
-  void onVariablesUpdated();
   void setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src);
 
 protected:
@@ -46,7 +46,7 @@ private:
   std::string m_source_path;
   CallstackView* m_callstack = nullptr;
   QListWidget* m_breakpoints = nullptr;
-  QListWidget* m_variables = nullptr;
+  VariablesView* m_variables = nullptr;
   /* File menu */
   QMenu* m_file_menu = nullptr;
   QAction* m_exit = nullptr;

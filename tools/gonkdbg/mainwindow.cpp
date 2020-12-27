@@ -6,6 +6,7 @@
 
 #include "callstackview.h"
 #include "controller.h"
+#include "variablesview.h"
 
 #include <QAction>
 #include <QApplication>
@@ -44,10 +45,9 @@ MainWindow::MainWindow()
   connect(m_controller, &Controller::debuggerStateChanged, this, &MainWindow::onDebuggerStateChanged);
   connect(m_controller, &Controller::callstackUpdated, this, &MainWindow::onCallstackUpdated);
   connect(m_controller, &Controller::breakpointsUpdated, this, &MainWindow::onBreakpointsUpdated);
-  connect(m_controller, &Controller::variablesUpdated, this, &MainWindow::onVariablesUpdated);
 
   {
-    m_variables = new QListWidget;
+    m_variables = new VariablesView(*m_controller);
     auto* dock = new QDockWidget(this);
     dock->setObjectName("variables-dock");
     dock->setWidget(m_variables);
@@ -127,6 +127,8 @@ void MainWindow::onDebuggerStateChanged()
     m_step_over->setEnabled(false);
     m_step_out->setEnabled(false);
 
+    m_callstack->setEnabled(false);
+    m_variables->setEnabled(false);
   }
   else if (s == Controller::DebuggerState::Paused)
   {
@@ -135,6 +137,10 @@ void MainWindow::onDebuggerStateChanged()
     m_step_into->setEnabled(true);
     m_step_over->setEnabled(true);
     m_step_out->setEnabled(true);
+
+    // @TODO: Not the best place to do that, but that will do... for now!
+    m_callstack->setEnabled(true);
+    m_variables->setEnabled(true);
   }
 }
 
@@ -167,22 +173,6 @@ void MainWindow::onBreakpointsUpdated()
   for (const gonk::debugger::BreakpointData& bp : breakpoints->list)
   {
     m_breakpoints->addItem(QString::fromStdString(bp.function) + " (" + QString::number(bp.line) + ")");
-  }
-}
-
-void MainWindow::onVariablesUpdated()
-{
-  auto variables = m_controller->lastVariablesMessage();
-  m_variables->clear();
-
-  for (const gonk::debugger::Variable& v : variables->variables)
-  {
-    if (v.value.isBool())
-      m_variables->addItem(QString::fromStdString(v.name) + " : " + (v.value.toBool() ? "true" : "false"));
-    else if (v.value.isDouble())
-      m_variables->addItem(QString::fromStdString(v.name) + " : " + QString::number(v.value.toDouble()));
-    else if (v.value.isString())
-      m_variables->addItem(QString::fromStdString(v.name) + " : " + v.value.toString());
   }
 }
 
