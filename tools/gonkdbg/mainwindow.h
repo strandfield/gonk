@@ -29,18 +29,11 @@ public:
 
 protected Q_SLOTS:
   void onSocketConnected();
-  void onDebuggerRunning();
-  void onDebuggerPaused();
-  void onDebuggerFinished();
-  void onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg);
+  void onDebuggerStateChanged();
   void onCallstackUpdated();
-
-protected Q_SLOTS:
-  void pause();
-  void run();
-  void stepInto();
-  void stepOver();
-  void stepOut();
+  void onBreakpointsUpdated();
+  void onVariablesUpdated();
+  void setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src);
 
 protected:
   void showEvent(QShowEvent *e);
@@ -51,9 +44,6 @@ private:
   Controller* m_controller = nullptr;
   typewriter::QTypewriter* m_editor = nullptr;
   std::string m_source_path;
-  bool m_has_source = false;
-  bool m_debugger_paused = false;
-  bool m_debugger_done = false;
   CallstackView* m_callstack = nullptr;
   QListWidget* m_breakpoints = nullptr;
   QListWidget* m_variables = nullptr;

@@ -41,19 +41,24 @@ MainWindow::MainWindow()
   m_controller = new Controller(this);
 
   connect(&(m_controller->client()), &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
+  connect(m_controller, &Controller::debuggerStateChanged, this, &MainWindow::onDebuggerStateChanged);
+  connect(m_controller, &Controller::callstackUpdated, this, &MainWindow::onCallstackUpdated);
+  connect(m_controller, &Controller::breakpointsUpdated, this, &MainWindow::onBreakpointsUpdated);
+  connect(m_controller, &Controller::variablesUpdated, this, &MainWindow::onVariablesUpdated);
 
   {
     m_variables = new QListWidget;
     auto* dock = new QDockWidget(this);
+    dock->setObjectName("variables-dock");
     dock->setWidget(m_variables);
     addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, dock);
   }
 
   {
     m_callstack = new CallstackView(*m_controller);
-    connect(m_controller, &Controller::callstackUpdated, this, &MainWindow::onCallstackUpdated);
 
     auto* dock = new QDockWidget(this);
+    dock->setObjectName("callstack-dock");
     dock->setWidget(m_callstack);
     addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
   }
@@ -61,6 +66,7 @@ MainWindow::MainWindow()
   {
     m_breakpoints = new QListWidget;
     auto* dock = new QDockWidget(this);
+    dock->setObjectName("breakpoints-dock");
     dock->setWidget(m_breakpoints);
     addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
   }
@@ -73,18 +79,18 @@ MainWindow::MainWindow()
   {
     m_debug_menu = menuBar()->addMenu("Debugger");
 
-    m_run = m_debug_menu->addAction("Run", this, &MainWindow::run);
+    m_run = m_debug_menu->addAction("Run", m_controller, &Controller::run);
     m_run->setShortcut(QKeySequence(Qt::Key_F5));
 
-    m_pause = m_debug_menu->addAction("Pause", this, &MainWindow::pause);
+    m_pause = m_debug_menu->addAction("Pause", m_controller, &Controller::pause);
 
-    m_step_into = m_debug_menu->addAction("Step into", this, &MainWindow::stepInto);
+    m_step_into = m_debug_menu->addAction("Step into", m_controller, &Controller::stepInto);
     m_step_into->setShortcut(QKeySequence(Qt::Key_F11));
 
-    m_step_over = m_debug_menu->addAction("Step over", this, &MainWindow::stepOver);
+    m_step_over = m_debug_menu->addAction("Step over", m_controller, &Controller::stepOver);
     m_step_over->setShortcut(QKeySequence(Qt::Key_F10));
 
-    m_step_out = m_debug_menu->addAction("Step out", this, &MainWindow::stepOut);
+    m_step_out = m_debug_menu->addAction("Step out", m_controller, &Controller::stepOut);
     m_step_out->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F11));
   }
 
@@ -97,159 +103,103 @@ MainWindow::MainWindow()
 
 void MainWindow::onSocketConnected()
 {
-  connect(&m_controller->client(), &gonk::debugger::Client::debuggerRunning, this, &MainWindow::onDebuggerRunning);
-  connect(&m_controller->client(), &gonk::debugger::Client::debuggerPaused, this, &MainWindow::onDebuggerPaused);
-  connect(&m_controller->client(), &gonk::debugger::Client::debuggerFinished, this, &MainWindow::onDebuggerFinished);
-  connect(&m_controller->client(), &gonk::debugger::Client::messageReceived, this, &MainWindow::onMessageReceived);
-
   statusBar()->showMessage("Connected!", 1500);
 }
 
-void MainWindow::onDebuggerRunning()
+void MainWindow::onDebuggerStateChanged()
 {
-  m_debugger_paused = false;
-  statusBar()->showMessage("Running!", 1000);
+  int s = m_controller->debuggerState();
 
-  m_pause->setEnabled(true);
-  m_run->setEnabled(false);
-  m_step_into->setEnabled(false);
-  m_step_over->setEnabled(false);
-  m_step_out->setEnabled(false);
-}
+  if(s == Controller::DebuggerState::Running)
+    statusBar()->showMessage("Running!", 1000);
+  else if (s == Controller::DebuggerState::Paused)
+    statusBar()->showMessage("Pause...", 1000);
+  else if (s == Controller::DebuggerState::Finished)
+    statusBar()->showMessage("Done!");
 
-void MainWindow::onDebuggerPaused()
-{
-  m_debugger_paused = true;
+  m_debug_menu->setEnabled(s != Controller::DebuggerState::Finished);
 
-  m_pause->setEnabled(false);  
-  m_run->setEnabled(true);
-  m_step_into->setEnabled(true);
-  m_step_over->setEnabled(true);
-  m_step_out->setEnabled(true);
-
-  statusBar()->showMessage("Pause...", 1000);
-
-  m_controller->client().getCallstack();
-  m_controller->client().getBreakpoints();
-  m_controller->client().getVariables();
-}
-
-void MainWindow::onDebuggerFinished()
-{
-  statusBar()->showMessage("Done!");
-  m_debug_menu->setEnabled(false);
-  qDebug() << "done";
-  m_debugger_done = true;
-}
-
-void MainWindow::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg)
-{
-  if (!mssg)
-    return;
-
-  if (dynamic_cast<gonk::debugger::BreakpointList*>(mssg.get()))
+  if (s == Controller::DebuggerState::Running)
   {
-    auto& breakpoints = static_cast<gonk::debugger::BreakpointList&>(*mssg);
-    m_breakpoints->clear();
+    m_pause->setEnabled(true);
+    m_run->setEnabled(false);
+    m_step_into->setEnabled(false);
+    m_step_over->setEnabled(false);
+    m_step_out->setEnabled(false);
 
-    for (const gonk::debugger::BreakpointData& bp : breakpoints.list)
-    {
-      m_breakpoints->addItem(QString::fromStdString(bp.function) + " (" + QString::number(bp.line) + ")");
-    }
   }
-  else if (dynamic_cast<gonk::debugger::VariableList*>(mssg.get()))
+  else if (s == Controller::DebuggerState::Paused)
   {
-    auto& variables = static_cast<gonk::debugger::VariableList&>(*mssg);
-    m_variables->clear();
-
-    for (const gonk::debugger::Variable& v : variables.variables)
-    {
-      if(v.value.isBool())
-        m_variables->addItem(QString::fromStdString(v.name) + " : " + (v.value.toBool() ? "true" : "false"));
-      else if (v.value.isDouble())
-        m_variables->addItem(QString::fromStdString(v.name) + " : " + QString::number(v.value.toDouble()));
-      else if (v.value.isString())
-        m_variables->addItem(QString::fromStdString(v.name) + " : " + v.value.toString());
-    }
-  }
-  else if (dynamic_cast<gonk::debugger::SourceCode*>(mssg.get()))
-  {
-    auto& src = static_cast<gonk::debugger::SourceCode&>(*mssg);
-
-    typewriter::TextCursor cursor{ m_editor->document() };
-    cursor.setPosition(typewriter::Position{ m_editor->document()->lineCount() + 1, 0 }, typewriter::TextCursor::KeepAnchor);
-    cursor.removeSelectedText();
-    cursor.insertText(src.source);
-
-    {
-      QFile stfile{ "syntax.json" };
-      stfile.open(QIODevice::WriteOnly | QIODevice::Truncate);
-      stfile.write(QJsonDocument(src.syntaxtree).toJson());
-      stfile.close();
-    }
-
-    m_has_source = true;
-    m_source_path = src.path;
+    m_pause->setEnabled(false);
+    m_run->setEnabled(true);
+    m_step_into->setEnabled(true);
+    m_step_over->setEnabled(true);
+    m_step_out->setEnabled(true);
   }
 }
 
 void MainWindow::onCallstackUpdated()
 {
-  if (!m_has_source)
+  auto callstack = m_controller->lastCallstackMessage();
+
+  if (callstack == nullptr)
+    return;
+
+  const auto& callstack_top = callstack->entries.back();
+  std::shared_ptr<gonk::debugger::SourceCode> src = m_controller->getSource(callstack_top.path);
+
+  if (src)
   {
-    auto callstack = m_controller->lastCallstackMessage();
-
-    std::string src_path;
-
-    for (const gonk::debugger::CallstackEntry& e : callstack->entries)
-    {
-      if (!e.path.empty())
-        src_path = e.path;
-    }
-
-    if(!src_path.empty())
-      m_controller->client().getSource(src_path);
+    setSourceCode(src);
+  }
+  else
+  {
+    connect(m_controller, &Controller::sourceCodeReceived, this, &MainWindow::setSourceCode);
+    m_controller->client().getSource(callstack_top.path);
   }
 }
 
-void MainWindow::pause()
+void MainWindow::onBreakpointsUpdated()
 {
-  if (m_debugger_paused)
+  auto breakpoints = m_controller->lastBreakpointListMessage();
+  m_breakpoints->clear();
+
+  for (const gonk::debugger::BreakpointData& bp : breakpoints->list)
   {
-    m_controller->client().action(gonk::debugger::Client::Action::Pause);
+    m_breakpoints->addItem(QString::fromStdString(bp.function) + " (" + QString::number(bp.line) + ")");
   }
 }
 
-void MainWindow::run()
+void MainWindow::onVariablesUpdated()
 {
-  if (m_debugger_paused)
+  auto variables = m_controller->lastVariablesMessage();
+  m_variables->clear();
+
+  for (const gonk::debugger::Variable& v : variables->variables)
   {
-    m_controller->client().action(gonk::debugger::Client::Action::Run);
+    if (v.value.isBool())
+      m_variables->addItem(QString::fromStdString(v.name) + " : " + (v.value.toBool() ? "true" : "false"));
+    else if (v.value.isDouble())
+      m_variables->addItem(QString::fromStdString(v.name) + " : " + QString::number(v.value.toDouble()));
+    else if (v.value.isString())
+      m_variables->addItem(QString::fromStdString(v.name) + " : " + v.value.toString());
   }
 }
 
-void MainWindow::stepInto()
+void MainWindow::setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src)
 {
-  if (m_debugger_paused)
-  {
-    m_controller->client().action(gonk::debugger::Client::Action::StepInto);
-  }
-}
+  if (sender() != nullptr)
+    disconnect(m_controller, &Controller::sourceCodeReceived, this, &MainWindow::setSourceCode);
 
-void MainWindow::stepOver()
-{
-  if (m_debugger_paused)
-  {
-    m_controller->client().action(gonk::debugger::Client::Action::StepOver);
-  }
-}
+  if (m_source_path == src->path)
+    return;
 
-void MainWindow::stepOut()
-{
-  if (m_debugger_paused)
-  {
-    m_controller->client().action(gonk::debugger::Client::Action::StepOut);
-  }
+  typewriter::TextCursor cursor{ m_editor->document() };
+  cursor.setPosition(typewriter::Position{ m_editor->document()->lineCount() + 1, 0 }, typewriter::TextCursor::KeepAnchor);
+  cursor.removeSelectedText();
+  cursor.insertText(src->source);
+
+  m_source_path = src->path;
 }
 
 void MainWindow::showEvent(QShowEvent *e)
