@@ -30,12 +30,7 @@ MainWindow::MainWindow()
   m_settings = new QSettings("settings.ini", QSettings::IniFormat, this);
 
   const char* source =
-    "\n"
-    "void main()\n"
-    "{\n"
-    "  print(66);\n"
-    "}\n"
-    "\n";
+    "/* source code will appear here once the debugger has been reached */";
 
   m_editor = new typewriter::QTypewriter(new typewriter::TextDocument(source));
 
@@ -271,26 +266,6 @@ void MainWindow::showEvent(QShowEvent *e)
   statusBar()->showMessage("Connecting...", 1500);
 
   QMainWindow::showEvent(e);
-
-
-  //{
-
-  //  typewriter::SyntaxHighlighter highlighter{ m_editor->view() };
-  //  highlighter.setFormat(1, 0, 4, 1);
-  //  highlighter.setFormat(3, 8, 2, 2);
-  //  highlighter.setFormat(3, 2, 5, 3);
-
-  //  /*
-  //  const char* source =
-  //  "\n"
-  //  "void main()\n"
-  //  "{\n"
-  //  "  print(66);\n"
-  //  "}\n"
-  //  "\n";
-  //  */
-  //}
-
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
