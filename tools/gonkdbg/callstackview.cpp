@@ -22,6 +22,8 @@ CallstackView::CallstackView(Controller& c)
   setHeaderLabels(QStringList() << "#" << "Function" << "File" << "Line");
 
   connect(&m_controller, &Controller::callstackUpdated, this, &CallstackView::onCallstackUpdated);
+
+  connect(this, &QTreeWidget::itemDoubleClicked, this, &CallstackView::onItemDoubleClicked);
 }
 
 void CallstackView::onCallstackUpdated()
@@ -50,5 +52,14 @@ void CallstackView::onCallstackUpdated()
     }
 
     addTopLevelItem(item);
+  }
+}
+
+void CallstackView::onItemDoubleClicked(QTreeWidgetItem* item, int column)
+{
+  if (item)
+  {
+    int n = item->text(NUMBER_COLUMN).toInt() - 1;
+    Q_EMIT frameDoubleClicked(n);
   }
 }

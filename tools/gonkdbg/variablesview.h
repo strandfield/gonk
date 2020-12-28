@@ -20,6 +20,7 @@ public:
 
 protected Q_SLOTS:
   void onVariablesUpdated();
+  void onCurrentFrameChanged(int n);
 
 private:
   Controller& m_controller;

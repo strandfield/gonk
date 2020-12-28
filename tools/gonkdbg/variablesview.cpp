@@ -21,11 +21,23 @@ VariablesView::VariablesView(Controller& c)
   setHeaderLabels(QStringList() << "Name" << "Value" << "Type");
 
   connect(&m_controller, &Controller::variablesUpdated, this, &VariablesView::onVariablesUpdated);
+  connect(&m_controller, &Controller::currentFrameChanged, this, &VariablesView::onCurrentFrameChanged);
 }
 
 void VariablesView::onVariablesUpdated()
 {
-  auto& variables = *m_controller.lastVariablesMessage();
+  if (m_controller.currentFrame() == -1)
+    return;
+
+  auto mssg = m_controller.variables().at(m_controller.currentFrame());
+
+  if (mssg == nullptr)
+  {
+    m_controller.client().getVariables(m_controller.currentFrame());
+    return;
+  }
+
+  auto& variables = *mssg;
 
   clear();
 
@@ -47,3 +59,12 @@ void VariablesView::onVariablesUpdated()
     addTopLevelItem(item);
   }
 }
+
+void VariablesView::onCurrentFrameChanged(int n)
+{
+  if (n == -1)
+    return;
+
+  onVariablesUpdated();
+}
+

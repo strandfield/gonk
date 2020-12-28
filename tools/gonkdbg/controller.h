@@ -16,6 +16,8 @@ class Controller : public QObject
   Q_OBJECT
 
   Q_PROPERTY(int debuggerState READ debuggerState NOTIFY debuggerStateChanged)
+  Q_PROPERTY(int currentFrame READ currentFrame NOTIFY currentFrameChanged)
+
 public:
   explicit Controller(QObject* parent = nullptr);
   ~Controller() = default;
@@ -32,6 +34,9 @@ public:
   int debuggerState() const;
   bool debuggerPaused() const;
 
+  int currentFrame() const;
+  void setCurrentFrame(int n);
+
   bool hasSource(const std::string& path) const;
   std::shared_ptr<gonk::debugger::SourceCode> getSource(const std::string& path) const;
 
@@ -40,6 +45,8 @@ public:
   std::shared_ptr<gonk::debugger::Callstack> lastCallstackMessage() const;
   std::shared_ptr<gonk::debugger::BreakpointList> lastBreakpointListMessage() const;
   std::shared_ptr<gonk::debugger::VariableList> lastVariablesMessage() const;
+
+  const std::vector<std::shared_ptr<gonk::debugger::VariableList>>& variables() const;
 
 public Q_SLOTS:
   void pause();
@@ -50,6 +57,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
   void debuggerStateChanged();
+  void currentFrameChanged(int n);
   void callstackUpdated();
   void breakpointsUpdated();
   void variablesUpdated();
@@ -68,9 +76,11 @@ protected:
 private:
   gonk::debugger::Client* m_client;
   int m_debugger_state = 0;
+  int m_current_frame = -1;
   std::shared_ptr<gonk::debugger::Callstack> m_last_callstack_message;
   std::shared_ptr<gonk::debugger::BreakpointList> m_last_breakpoints_message;
   std::shared_ptr<gonk::debugger::VariableList> m_last_variables_message;
+  std::vector<std::shared_ptr<gonk::debugger::VariableList>> m_variables;
   std::map<std::string, std::shared_ptr<gonk::debugger::SourceCode>> m_source_codes;
 };
 

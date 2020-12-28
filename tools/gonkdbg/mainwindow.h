@@ -35,6 +35,7 @@ protected Q_SLOTS:
   void onBreakpointsUpdated();
   void setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src);
   void onGutterLineClicked(int line);
+  void onFrameSelected(int n);
 
 protected:
   void showEvent(QShowEvent *e);

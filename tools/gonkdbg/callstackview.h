@@ -18,8 +18,12 @@ public:
   explicit CallstackView(Controller& c);
   ~CallstackView() = default;
 
+Q_SIGNALS:
+  void frameDoubleClicked(int n);
+
 protected Q_SLOTS:
   void onCallstackUpdated();
+  void onItemDoubleClicked(QTreeWidgetItem* item, int column);
 
 private:
   Controller& m_controller;

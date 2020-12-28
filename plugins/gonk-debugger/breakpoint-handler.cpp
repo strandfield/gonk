@@ -54,7 +54,7 @@ bool GonkDebugHandler::shouldBreak(script::interpreter::FunctionCall& call, scri
 {
   return (m_state == State::StepInto) ||
     (info.status == 1) ||
-    (m_state == State::StepOver && call.stackOffset() == m_sp) ||
+    (m_state == State::StepOver && call.stackOffset() == m_sp && info.leading) ||
     (m_state == State::StepOut && call.stackOffset() < m_sp);
 }
 

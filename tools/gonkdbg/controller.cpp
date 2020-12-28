@@ -33,6 +33,20 @@ bool Controller::debuggerPaused() const
   return debuggerState() == DebuggerState::Paused;
 }
 
+int Controller::currentFrame() const
+{
+  return m_current_frame;
+}
+
+void Controller::setCurrentFrame(int n)
+{
+  if (m_current_frame != n)
+  {
+    m_current_frame = n;
+    Q_EMIT currentFrameChanged(n);
+  }
+}
+
 bool Controller::hasSource(const std::string& path) const
 {
   return m_source_codes.find(path) != m_source_codes.end();
@@ -73,6 +87,11 @@ std::shared_ptr<gonk::debugger::BreakpointList> Controller::lastBreakpointListMe
 std::shared_ptr<gonk::debugger::VariableList> Controller::lastVariablesMessage() const
 {
   return m_last_variables_message;
+}
+
+const std::vector<std::shared_ptr<gonk::debugger::VariableList>>& Controller::variables() const
+{
+  return m_variables;
 }
 
 void Controller::pause()
@@ -126,6 +145,7 @@ void Controller::onSocketConnected()
 void Controller::onDebuggerRunning()
 {
   setDebuggerState(DebuggerState::Running);
+  setCurrentFrame(-1);
 }
 
 void Controller::onDebuggerPaused()
@@ -150,6 +170,12 @@ void Controller::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
   if (dynamic_cast<gonk::debugger::Callstack*>(mssg.get()))
   {
     m_last_callstack_message = std::static_pointer_cast<gonk::debugger::Callstack>(mssg);
+
+    m_variables.clear();
+    m_variables.resize(m_last_callstack_message->entries.size(), nullptr);
+
+    setCurrentFrame(static_cast<int>(m_last_callstack_message->entries.size()) - 1);
+
     Q_EMIT callstackUpdated();
   }
   else if(dynamic_cast<gonk::debugger::BreakpointList*>(mssg.get()))
@@ -160,6 +186,7 @@ void Controller::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
   else if (dynamic_cast<gonk::debugger::VariableList*>(mssg.get()))
   {
     m_last_variables_message = std::static_pointer_cast<gonk::debugger::VariableList>(mssg);
+    m_variables[m_last_variables_message->callstack_depth] = m_last_variables_message;
     Q_EMIT variablesUpdated();
   }
   else if (dynamic_cast<gonk::debugger::SourceCode*>(mssg.get()))
@@ -186,3 +213,4 @@ void Controller::setDebuggerState(int s)
     Q_EMIT debuggerStateChanged();
   }
 }
+

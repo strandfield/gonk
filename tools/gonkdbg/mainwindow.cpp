@@ -68,6 +68,7 @@ MainWindow::MainWindow()
 
   {
     m_callstack = new CallstackView(*m_controller);
+    connect(m_callstack, &CallstackView::frameDoubleClicked, this, &MainWindow::onFrameSelected);
 
     auto* dock = new QDockWidget(this);
     dock->setObjectName("callstack-dock");
@@ -221,6 +222,13 @@ void MainWindow::onGutterLineClicked(int line)
   m_controller->client().getBreakpoints();
 }
 
+void MainWindow::onFrameSelected(int n)
+{
+  m_controller->setCurrentFrame(n);
+
+  updateMarkers();
+}
+
 void MainWindow::updateMarkers()
 {
   m_editor->gutter()->clearMarkers();
@@ -229,7 +237,10 @@ void MainWindow::updateMarkers()
 
   if (callstack != nullptr)
   {
-    const auto& callstack_top = callstack->entries.back();
+    const auto& callstack_top = [&]() -> const gonk::debugger::CallstackEntry& {
+      return m_controller->currentFrame() == -1 ? callstack->entries.back() : callstack->entries.at(m_controller->currentFrame());
+    }();
+
     std::shared_ptr<gonk::debugger::SourceCode> src = m_controller->getSource(callstack_top.path);
 
     m_editor->gutter()->addMarker(callstack_top.line, typewriter::MarkerType::Breakposition);
