@@ -4,6 +4,7 @@
 
 #include "mainwindow.h"
 
+#include "breakpointsview.h"
 #include "callstackview.h"
 #include "controller.h"
 #include "syntaxhighlighter.h"
@@ -46,6 +47,8 @@ MainWindow::MainWindow()
   fmt.text_color = QColor(Qt::green);
   m_editor->setTextFormat(3, fmt);
 
+  connect(m_editor->gutter(), &typewriter::QTypewriterGutter::clicked, this, &MainWindow::onGutterLineClicked);
+
   setCentralWidget(m_editor);
 
   m_controller = new Controller(this);
@@ -73,7 +76,7 @@ MainWindow::MainWindow()
   }
 
   {
-    m_breakpoints = new QListWidget;
+    m_breakpoints = new BreakpointsView(*m_controller);
     auto* dock = new QDockWidget(this);
     dock->setObjectName("breakpoints-dock");
     dock->setWidget(m_breakpoints);
@@ -151,6 +154,8 @@ void MainWindow::onDebuggerStateChanged()
     m_callstack->setEnabled(true);
     m_variables->setEnabled(true);
   }
+
+  updateMarkers();
 }
 
 void MainWindow::onCallstackUpdated()
@@ -166,6 +171,8 @@ void MainWindow::onCallstackUpdated()
   if (src)
   {
     setSourceCode(src);
+
+    updateMarkers();
   }
   else
   {
@@ -176,13 +183,7 @@ void MainWindow::onCallstackUpdated()
 
 void MainWindow::onBreakpointsUpdated()
 {
-  auto breakpoints = m_controller->lastBreakpointListMessage();
-  m_breakpoints->clear();
-
-  for (const gonk::debugger::BreakpointData& bp : breakpoints->list)
-  {
-    m_breakpoints->addItem(QString::fromStdString(bp.function) + " (" + QString::number(bp.line) + ")");
-  }
+  updateMarkers();
 }
 
 void MainWindow::setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src)
@@ -202,6 +203,50 @@ void MainWindow::setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src)
   highlighter.highlight(src);
 
   m_source_path = src->path;
+
+  updateMarkers();
+}
+
+void MainWindow::onGutterLineClicked(int line)
+{
+  if (m_controller->hasBreakpoint(m_source_path, line))
+  {
+    m_controller->client().removeBreakpoint(m_source_path, line);
+  }
+  else
+  {
+    m_controller->client().addBreakpoint(m_source_path, line);
+  }
+
+  m_controller->client().getBreakpoints();
+}
+
+void MainWindow::updateMarkers()
+{
+  m_editor->gutter()->clearMarkers();
+
+  auto callstack = m_controller->lastCallstackMessage();
+
+  if (callstack != nullptr)
+  {
+    const auto& callstack_top = callstack->entries.back();
+    std::shared_ptr<gonk::debugger::SourceCode> src = m_controller->getSource(callstack_top.path);
+
+    m_editor->gutter()->addMarker(callstack_top.line, typewriter::MarkerType::Breakposition);
+  }
+
+  auto breakpoints = m_controller->lastBreakpointListMessage();
+
+  if (breakpoints)
+  {
+    for (const gonk::debugger::BreakpointData& bp : breakpoints->list)
+    {
+      if (bp.script_path == m_source_path)
+      {
+        m_editor->gutter()->addMarker(bp.line, typewriter::MarkerType::Breakpoint);
+      }
+    }
+  }
 }
 
 void MainWindow::showEvent(QShowEvent *e)

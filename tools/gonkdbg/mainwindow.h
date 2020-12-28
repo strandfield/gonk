@@ -13,12 +13,12 @@
 
 #include <QSettings>
 
+class BreakpointsView;
 class CallstackView;
 class Controller;
 class VariablesView;
 
 class QAction;
-class QListWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -34,10 +34,14 @@ protected Q_SLOTS:
   void onCallstackUpdated();
   void onBreakpointsUpdated();
   void setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src);
+  void onGutterLineClicked(int line);
 
 protected:
   void showEvent(QShowEvent *e);
   void closeEvent(QCloseEvent *e);
+
+protected:
+  void updateMarkers();
 
 private:
   QSettings *m_settings = nullptr;
@@ -45,7 +49,7 @@ private:
   typewriter::QTypewriter* m_editor = nullptr;
   std::string m_source_path;
   CallstackView* m_callstack = nullptr;
-  QListWidget* m_breakpoints = nullptr;
+  BreakpointsView* m_breakpoints = nullptr;
   VariablesView* m_variables = nullptr;
   /* File menu */
   QMenu* m_file_menu = nullptr;

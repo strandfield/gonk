@@ -30,7 +30,7 @@ void CallstackView::onCallstackUpdated()
 
   clear();
 
-  int d = callstack.entries.size();
+  int d = static_cast<int>(callstack.entries.size());
 
   for (auto it = callstack.entries.rbegin(); it != callstack.entries.rend(); ++it)
   {

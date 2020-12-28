@@ -170,6 +170,7 @@ Request Server::parseRequest(QJsonObject reqjson)
   else if (reqtype == "addbreakpoint")
   {
     AddBreakpoint data;
+    data.script_path = reqjson["path"].toString().toStdString();
     data.line = reqjson["line"].toInt();
     return Request(data);
   }
@@ -177,6 +178,13 @@ Request Server::parseRequest(QJsonObject reqjson)
   {
     RemoveBreakpoint data;
     data.id = reqjson["id"].toInt();
+
+    if (data.id == -1)
+    {
+      data.script_path = reqjson["path"].toString().toStdString();
+      data.line = reqjson["line"].toInt();
+    }
+
     return Request(data);
   }
 

@@ -15,6 +15,8 @@
 #include <script/engine.h>
 #include <script/script.h>
 
+#include <algorithm>
+
 namespace gonk
 {
 
@@ -54,6 +56,17 @@ bool GonkDebugHandler::shouldBreak(script::interpreter::FunctionCall& call, scri
     (info.status == 1) ||
     (m_state == State::StepOver && call.stackOffset() == m_sp) ||
     (m_state == State::StepOut && call.stackOffset() < m_sp);
+}
+
+script::Script GonkDebugHandler::findScript(const std::string& path) const
+{
+  for (auto s : m_call->engine()->scripts())
+  {
+    if (s.path() == path)
+      return s;
+  }
+
+  return script::Script();
 }
 
 void GonkDebugHandler::doBreak()
@@ -110,10 +123,20 @@ void GonkDebugHandler::process(debugger::Request& req)
     sendVariables(req.data<debugger::GetVariables>().depth);
     break;
   case debugger::RequestType::AddBreakpoint:
-    addBreakpoint(req.data<debugger::AddBreakpoint>().line);
+  {
+    auto data = req.data<debugger::AddBreakpoint>();
+    addBreakpoint(data.script_path, data.line);
+  }
     break;
   case debugger::RequestType::RemoveBreakpoint:
-    removeBreakpoint(req.data<debugger::RemoveBreakpoint>().id);
+  {
+    auto data = req.data<debugger::RemoveBreakpoint>();
+
+    if (data.id >= 0)
+      removeBreakpoint(data.id);
+    else
+      removeBreakpoint(data.script_path, data.line);
+  }
     break;
   default:
     break;
@@ -122,30 +145,29 @@ void GonkDebugHandler::process(debugger::Request& req)
 
 void GonkDebugHandler::sendSource(const std::string& path)
 {
-  for (auto s : m_call->engine()->scripts())
+  script::Script s = findScript(path);
+
+  if (s.isNull())
   {
-    if (s.path() == path)
-    {
-      debugger::SourceCode src;
+    debugger::SourceCode src;
 
-      src.path = path;
-      src.source = m_call->callee().script().source().content();
+    src.path = path;
+    src.source = "could not find source code of " + path;
 
-      GonkAstProducer astproducer;
-      src.syntaxtree = astproducer.produce(m_call->callee().script().ast());
-
-      comm.reply(src);
-
-      return;
-    }
+    comm.reply(src);
   }
+  else
+  {
+    debugger::SourceCode src;
 
-  debugger::SourceCode src;
+    src.path = path;
+    src.source = m_call->callee().script().source().content();
 
-  src.path = path;
-  src.source = "could not find source code of " + path;
+    GonkAstProducer astproducer;
+    src.syntaxtree = astproducer.produce(m_call->callee().script().ast());
 
-  comm.reply(src);
+    comm.reply(src);
+  }
 }
 
 void GonkDebugHandler::sendBreakpointList()
@@ -219,11 +241,16 @@ void GonkDebugHandler::sendVariables(int d)
   comm.reply(result);
 }
 
-void GonkDebugHandler::addBreakpoint(int line)
+void GonkDebugHandler::addBreakpoint(const std::string& script_path, int line)
 {
-  std::vector<BreakpointEntry> bps = m_call->callee().script().breakpoints(line);
+  script::Script s = findScript(script_path);
 
-  if (bps.empty())
+  if (s.isNull())
+    return;
+
+  std::vector<BreakpointEntry> bps = s.breakpoints(line);
+
+  if (bps.empty() || hasBreakpoint(bps.front().second->line))
     return;
 
   for (auto p : bps)
@@ -236,12 +263,41 @@ void GonkDebugHandler::addBreakpoint(int line)
 
 void GonkDebugHandler::removeBreakpoint(int id)
 {
-  std::vector<BreakpointEntry>& list = m_breakpoints[id];
+  auto it = m_breakpoints.find(id);
+  eraseBreakpoint(it);
+}
 
-  for (auto p : list)
+void GonkDebugHandler::removeBreakpoint(const std::string& script_path, int line)
+{
+  auto it = std::find_if(m_breakpoints.begin(), m_breakpoints.end(), [&](const std::pair<const int, std::vector<BreakpointEntry>>& e) {
+    return e.second.front().first.script().path() == script_path && e.second.front().second->line == line;
+    });
+
+  eraseBreakpoint(it);
+}
+
+bool GonkDebugHandler::hasBreakpoint(int line)
+{
+  for (const auto& e : m_breakpoints)
+  {
+    if (e.second.front().second->line == line)
+      return true;
+  }
+
+  return false;
+}
+
+void GonkDebugHandler::eraseBreakpoint(std::map<int, std::vector<BreakpointEntry>>::iterator it)
+{
+  if (it == m_breakpoints.end())
+    return;
+
+  for (auto p : it->second)
   {
     p.second->status = 0;
   }
+
+  m_breakpoints.erase(it);
 }
 
 } // namespace gonk

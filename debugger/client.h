@@ -36,9 +36,10 @@ public:
 
   void action(Action a);
 
-  void addBreakpoint(int line);
+  void addBreakpoint(const std::string& script_path, int line);
 
   void removeBreakpoint(int id);
+  void removeBreakpoint(const std::string& script_path, int line);
 
   void getSource(const std::string& path);
 

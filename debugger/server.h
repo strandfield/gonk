@@ -53,12 +53,15 @@ struct GetVariables
 
 struct AddBreakpoint
 {
+  std::string script_path;
   int line;
 };
 
 struct RemoveBreakpoint
 {
-  int id;
+  int id = -1;
+  std::string script_path;
+  int line = -1;
 };
 
 struct Request

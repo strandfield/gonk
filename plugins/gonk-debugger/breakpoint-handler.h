@@ -40,14 +40,21 @@ public:
 
 protected:
   bool shouldBreak(script::interpreter::FunctionCall& call, script::program::Breakpoint& info);
+  script::Script findScript(const std::string& path) const;
   void doBreak();
   void process(debugger::Request& req);
   void sendSource(const std::string& path);
   void sendBreakpointList();
   void sendCallstack();
   void sendVariables(int d);
-  void addBreakpoint(int line);
+  void addBreakpoint(const std::string& script_path, int line);
   void removeBreakpoint(int id);
+  void removeBreakpoint(const std::string& script_path, int line);
+  bool hasBreakpoint(int line);
+
+  using BreakpointEntry = std::pair<script::Function, std::shared_ptr<script::program::Breakpoint>>;
+
+  void eraseBreakpoint(std::map<int, std::vector<BreakpointEntry>>::iterator it);
 
 private:
   State m_state;
@@ -56,7 +63,6 @@ private:
   script::interpreter::FunctionCall* m_call = nullptr;
   script::program::Breakpoint* m_breakpoint = nullptr;
   int m_breakpoint_counter = 0;
-  using BreakpointEntry = std::pair<script::Function, std::shared_ptr<script::program::Breakpoint>>;
   std::map<int, std::vector<BreakpointEntry>> m_breakpoints;
 };
 

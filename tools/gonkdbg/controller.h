@@ -35,6 +35,8 @@ public:
   bool hasSource(const std::string& path) const;
   std::shared_ptr<gonk::debugger::SourceCode> getSource(const std::string& path) const;
 
+  bool hasBreakpoint(const std::string& script_path, int line) const;
+
   std::shared_ptr<gonk::debugger::Callstack> lastCallstackMessage() const;
   std::shared_ptr<gonk::debugger::BreakpointList> lastBreakpointListMessage() const;
   std::shared_ptr<gonk::debugger::VariableList> lastVariablesMessage() const;

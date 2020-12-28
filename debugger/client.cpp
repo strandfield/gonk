@@ -62,10 +62,11 @@ void Client::action(Action a)
   send(obj);
 }
 
-void Client::addBreakpoint(int line)
+void Client::addBreakpoint(const std::string& script_path, int line)
 {
   QJsonObject obj;
   obj["type"] = "addbreakpoint";
+  obj["path"] = QString::fromStdString(script_path);
   obj["line"] = line;
   send(obj);
 }
@@ -75,6 +76,16 @@ void Client::removeBreakpoint(int id)
   QJsonObject obj;
   obj["type"] = "removebreakpoint";
   obj["id"] = id;
+  send(obj);
+}
+
+void Client::removeBreakpoint(const std::string& script_path, int line)
+{
+  QJsonObject obj;
+  obj["type"] = "removebreakpoint";
+  obj["path"] = QString::fromStdString(script_path);
+  obj["line"] = line;
+  obj["id"] = -1;
   send(obj);
 }
 
