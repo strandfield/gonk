@@ -134,7 +134,7 @@ public:
   {
     QJsonObject ret;
     
-    if (tok.flags & script::parser::Token::Keyword)
+    if ((tok.flags & script::parser::Token::Keyword) == script::parser::Token::Keyword)
       ret["type"] = "kw";
     else if (tok.flags & script::parser::Token::Literal)
       ret["type"] = "lit";
@@ -144,7 +144,7 @@ public:
       ret["type"] = "op";
     else if (tok.flags & script::parser::Token::Punctuator)
       ret["type"] = "p";
-    else if (tok.flags & script::parser::Token::Punctuator)
+    else
       ret["type"] = "o";
 
     ret["offset"] = static_cast<int>(ast.offset(tok));
