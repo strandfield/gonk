@@ -37,7 +37,6 @@ protected:
 private:
   Gonk& m_gonk;
   script::CompileMode m_mode = script::CompileMode::Release;
-  size_t m_argv_offset = 1;
 };
 
 } // namespace gonk

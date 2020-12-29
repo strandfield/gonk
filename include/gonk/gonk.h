@@ -7,6 +7,8 @@
 
 #include "gonk/gonk-defs.h"
 
+#include "gonk/cli.h"
+
 #include <script/classtemplate.h>
 #include <script/engine.h>
 
@@ -16,7 +18,7 @@ namespace gonk
 {
 class ModuleManager;
 class PrettyPrinter;
-} // namesapce gonk
+} // namespace gonk
 
 class GONK_API Gonk
 {
@@ -34,6 +36,7 @@ public:
 
   QCoreApplication& qCoreApplication();
 
+  const gonk::CLI& cli() const;
   gonk::ModuleManager& moduleManager() const;
 
   script::Engine * scriptEngine() { return &m_engine; }
@@ -53,8 +56,7 @@ protected:
 
 private:
   static Gonk* m_instance;
-  int m_argc;
-  char** m_argv;
+  gonk::CLI m_cli;
   script::Engine m_engine;
   std::unique_ptr<gonk::ModuleManager> m_module_manager;
   std::unique_ptr<gonk::PrettyPrinter> m_printer;

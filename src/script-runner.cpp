@@ -35,13 +35,12 @@ int ScriptRunner::run()
 
 int ScriptRunner::runScript()
 {
-  if (m_gonk.argv(m_argv_offset) == "--debug")
+  if (m_gonk.cli().debug)
   {
     m_mode = script::CompileMode::Debug;
-    ++m_argv_offset;
   }
 
-  std::string path = m_gonk.argv(m_argv_offset++);
+  std::string path = m_gonk.cli().script.value();
 
   {
     std::ifstream file{ path };
@@ -183,9 +182,9 @@ script::Value ScriptRunner::invokeMain(const script::Function& f)
 
   script::Value args = f.engine()->construct(vec_str, std::vector<script::Value>());
 
-  for (int i(m_argv_offset); i < m_gonk.argc(); ++i)
+  for (std::string arg : m_gonk.cli().extras)
   {
-    push_back.invoke({ args, e->newString(m_gonk.argv()[i]) });
+    push_back.invoke({ args, e->newString(arg) });
   }
 
   return f.invoke({args});
