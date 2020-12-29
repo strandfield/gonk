@@ -7,9 +7,7 @@
 
 #include "gonk/gonk-defs.h"
 
-#include <optional>
 #include <string>
-#include <vector>
 
 namespace gonk
 {

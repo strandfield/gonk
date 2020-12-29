@@ -4,23 +4,121 @@
 
 #include "controller.h"
 
+#include "gonk/cli-parser.h"
+
+#include <QApplication>
 #include <QFile>
 #include <QJsonDocument>
+#include <QProcess>
 
 #include <QDebug>
 
-Controller::Controller(QObject* parent)
-  : QObject(parent)
+#include <stdexcept>
+
+class GonkdbgCliParser : public gonk::GenericCliParser<GonkdbgCLI>
 {
+public:
+
+  using GenericCliParser<GonkdbgCLI>::GenericCliParser;
+
+  static bool isScriptName(const std::string& arg)
+  {
+    if (arg.empty())
+      return false;
+
+    if (arg.size() >= 4)
+    {
+      if (std::string(arg.cend() - 4, arg.end()) == ".gnk")
+        return true;
+    }
+
+    // We cannot say at 100% but it's probable...
+    return true;
+  }
+
+  void parse()
+  {
+    while (!atEnd())
+    {
+      std::string arg = read();
+
+      if (isOption(arg))
+        throw std::runtime_error("Unrecognized option");
+
+      if (isScriptName(arg))
+      {
+        cli.script = arg;
+        parseExtras();
+      }
+    }
+  }
+
+protected:
+  void parseExtras()
+  {
+    while (!atEnd())
+    {
+      std::string arg = read();
+      cli.extras.push_back(arg);
+    }
+  }
+};
+
+GonkdbgCLI::GonkdbgCLI(int argc_, char** argv_)
+  : argc(argc_),
+  argv(argv_)
+{
+  GonkdbgCliParser parser{ *this };
+  parser.parse();
+}
+
+bool GonkdbgCLI::empty() const
+{
+  return !script.has_value();
+}
+
+Controller::Controller(int& argc, char** argv, QObject* parent)
+  : QObject(parent),
+    m_cli(argc, argv)
+{
+  if (!m_cli.empty())
+  {
+    m_process = new QProcess(this);
+    m_process->setProgram("gonk");
+
+    QStringList args;
+    args << "--debug";
+
+    args << QString::fromStdString(m_cli.script.value());
+
+    for (const std::string& arg : m_cli.extras)
+      args << QString::fromStdString(arg);
+    
+    m_process->setArguments(args);
+
+    m_process->start();
+  }
+
+
   m_client = new gonk::debugger::Client;
   m_client->setParent(this);
 
   connect(&client(), &gonk::debugger::Client::connectionEstablished, this, &Controller::onSocketConnected);
 }
 
+const GonkdbgCLI& Controller::cli() const
+{
+  return m_cli;
+}
+
 gonk::debugger::Client& Controller::client() const
 {
   return *m_client;
+}
+
+QProcess* Controller::process() const
+{
+  return m_process;
 }
 
 int Controller::debuggerState() const

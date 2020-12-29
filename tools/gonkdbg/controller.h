@@ -10,6 +10,27 @@
 #include <debugger/client.h>
 
 #include <map>
+#include <optional>
+#include <string>
+
+class QProcess;
+
+class GonkdbgCLI
+{
+public:
+  GonkdbgCLI(int argc_, char** argv_);
+
+public:
+  int argc;
+  char** argv;
+
+public:
+  std::optional<std::string> script;
+  std::vector<std::string> extras;
+
+public:
+  bool empty() const;
+};
 
 class Controller : public QObject
 {
@@ -19,10 +40,12 @@ class Controller : public QObject
   Q_PROPERTY(int currentFrame READ currentFrame NOTIFY currentFrameChanged)
 
 public:
-  explicit Controller(QObject* parent = nullptr);
+  explicit Controller(int& argc, char** argv, QObject* parent = nullptr);
   ~Controller() = default;
 
+  const GonkdbgCLI& cli() const;
   gonk::debugger::Client& client() const;
+  QProcess* process() const;
 
   enum DebuggerState
   {
@@ -74,7 +97,9 @@ protected:
   void setDebuggerState(int s);
 
 private:
+  GonkdbgCLI m_cli;
   gonk::debugger::Client* m_client;
+  QProcess* m_process = nullptr;
   int m_debugger_state = 0;
   int m_current_frame = -1;
   std::shared_ptr<gonk::debugger::Callstack> m_last_callstack_message;

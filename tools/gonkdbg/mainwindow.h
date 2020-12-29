@@ -19,13 +19,14 @@ class Controller;
 class VariablesView;
 
 class QAction;
+class QPlainTextEdit;
 
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
 
 public:
-  explicit MainWindow();
+  explicit MainWindow(int& argc, char** argv);
   ~MainWindow() = default;
 
 protected Q_SLOTS:
@@ -36,6 +37,7 @@ protected Q_SLOTS:
   void setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src);
   void onGutterLineClicked(int line);
   void onFrameSelected(int n);
+  void onReadyReadStandardOutput();
 
 protected:
   void showEvent(QShowEvent *e);
@@ -52,6 +54,7 @@ private:
   CallstackView* m_callstack = nullptr;
   BreakpointsView* m_breakpoints = nullptr;
   VariablesView* m_variables = nullptr;
+  QPlainTextEdit* m_output = nullptr;
   /* File menu */
   QMenu* m_file_menu = nullptr;
   QAction* m_exit = nullptr;

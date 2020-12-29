@@ -17,6 +17,8 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPlainTextEdit>
+#include <QProcess>
 #include <QSettings>
 #include <QStatusBar>
 
@@ -25,7 +27,7 @@
 
 #include <QDebug>
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(int& argc, char** argv)
 {
   m_settings = new QSettings("settings.ini", QSettings::IniFormat, this);
 
@@ -46,7 +48,7 @@ MainWindow::MainWindow()
 
   setCentralWidget(m_editor);
 
-  m_controller = new Controller(this);
+  m_controller = new Controller(argc, argv, this);
 
   connect(&(m_controller->client()), &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
   connect(m_controller, &Controller::debuggerStateChanged, this, &MainWindow::onDebuggerStateChanged);
@@ -55,7 +57,7 @@ MainWindow::MainWindow()
 
   {
     m_variables = new VariablesView(*m_controller);
-    auto* dock = new QDockWidget(this);
+    auto* dock = new QDockWidget(QString("Locals"), this);
     dock->setObjectName("variables-dock");
     dock->setWidget(m_variables);
     addDockWidget(Qt::DockWidgetArea::RightDockWidgetArea, dock);
@@ -65,7 +67,7 @@ MainWindow::MainWindow()
     m_callstack = new CallstackView(*m_controller);
     connect(m_callstack, &CallstackView::frameDoubleClicked, this, &MainWindow::onFrameSelected);
 
-    auto* dock = new QDockWidget(this);
+    auto* dock = new QDockWidget(QString("Callstack"), this);
     dock->setObjectName("callstack-dock");
     dock->setWidget(m_callstack);
     addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
@@ -73,10 +75,21 @@ MainWindow::MainWindow()
 
   {
     m_breakpoints = new BreakpointsView(*m_controller);
-    auto* dock = new QDockWidget(this);
+    auto* dock = new QDockWidget(QString("Breakpoints"), this);
     dock->setObjectName("breakpoints-dock");
     dock->setWidget(m_breakpoints);
     addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
+  }
+
+  if (m_controller->process())
+  {
+    m_output = new QPlainTextEdit();
+    auto* dock = new QDockWidget(QString("Output"), this);
+    dock->setObjectName("output-dock");
+    dock->setWidget(m_output);
+    addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
+
+    connect(m_controller->process(), &QProcess::readyReadStandardOutput, this, &MainWindow::onReadyReadStandardOutput);
   }
 
   {
@@ -222,6 +235,11 @@ void MainWindow::onFrameSelected(int n)
   m_controller->setCurrentFrame(n);
 
   updateMarkers();
+}
+
+void MainWindow::onReadyReadStandardOutput()
+{
+  m_output->appendPlainText(QString::fromUtf8(m_controller->process()->readAllStandardOutput()));
 }
 
 void MainWindow::updateMarkers()
