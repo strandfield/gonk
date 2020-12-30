@@ -4,18 +4,26 @@
 
 #include "gonk-debugger-defs.h"
 
-#include <script/value.h>
+#include "gonk/pretty-print.h"
 
-#include <QJsonValue>
+#include <QJsonArray>
+#include <QJsonObject>
+
+#include <memory>
+
+namespace script
+{
+class Class;
+} // namespace script
 
 namespace gonk
 {
 
-// @TODO: try to merge/unify/refactor with gonk::PrettyPrinter
 class GonkValueSerializer
 {
 private:
   script::Engine& m_engine;
+  std::unique_ptr<gonk::PrettyPrinter> m_printer;
 
 public:
 
@@ -23,6 +31,8 @@ public:
 
   QJsonValue serialize(const script::Value& val) const;
 
+protected:
+  size_t serialize_members(const script::Value& val, const script::Class& cla, QJsonArray& result);
 };
 
 } // namespace gonk

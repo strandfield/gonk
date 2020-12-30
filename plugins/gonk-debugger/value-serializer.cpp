@@ -4,8 +4,10 @@
 
 #include "value-serializer.h"
 
+#include <script/class.h>
+#include <script/datamember.h>
 #include <script/engine.h>
-#include <script/enumerator.h>
+#include <script/object.h>
 #include <script/typesystem.h>
 
 #include <QJsonArray>
@@ -17,56 +19,52 @@ namespace gonk
 {
 
 GonkValueSerializer::GonkValueSerializer(script::Engine& e)
-  : m_engine(e)
+  : m_engine(e),
+    m_printer(new gonk::PrettyPrinter(e))
 {
 
 }
 
 QJsonValue GonkValueSerializer::serialize(const script::Value& val) const
 {
-  switch (val.type().baseType().data())
+  std::string repr = m_printer->repr(val);
+  return QString::fromStdString(repr);
+
+  /*if (!val.type().isObjectType())
+    return QString::fromStdString(repr);
+
+  QJsonObject result;
+  result["__type"] = "object";
+  result["__repr"] = QString::fromStdString(repr);
+
+  script::Class cla = m_engine.typeSystem()->getClass(val.type());
+
   {
-  case script::Type::Void:
-    return "void";
-  case script::Type::Boolean:
-    return val.toBool() ? true : false;
-  case script::Type::Char:
-    return QString(QChar(val.toChar()));
-  case script::Type::Int:
-    return val.toInt();
-  case script::Type::Float:
-    return val.toFloat();
-  case script::Type::Double:
-    return val.toDouble();
-  case script::Type::String:
-    return QString::fromStdString(val.toString());
-  default:
-    break;
+    QJsonArray members;
+
+    std::vector<script::DataMember> mbs = cla.dataMembers();
   }
 
-  if (val.type().isEnumType())
+  return result;*/
+}
+
+size_t GonkValueSerializer::serialize_members(const script::Value& val, const script::Class& cla, QJsonArray& result)
+{
+  size_t off = 0;
+
+  if (!cla.parent().isNull())
+    off = serialize_members(val, cla.parent(), result);
+
+  for (const script::DataMember& dm : cla.dataMembers())
   {
-    script::Enumerator enm = val.toEnumerator();
-    return QString::fromStdString(enm.enumeration().name() + "::" + enm.name());
+    QJsonValue jsonval = serialize(val.toObject().at(off));
+    QJsonObject jsonmember;
+    jsonmember["name"] = QString::fromStdString(dm.name);
+    result.append(jsonmember);
+    ++off;
   }
 
-  //if (val.type().isObjectType())
-  //{
-  //  script::Function repr_func = reprFunction(val.type());
-
-  //  if (!repr_func.isNull())
-  //  {
-  //    std::string repr = repr_func.invoke({ val }).toString();
-  //    std::cout << repr << std::endl;
-  //    return;
-  //  }
-  //}
-
-  std::stringstream ss;
-  ss << (void*)(val.impl());
-
-  std::string repr_str = m_engine.typeSystem()->typeName(val.type()) + "@" + ss.str();
-  return QString::fromStdString(repr_str);
+  return off;
 }
 
 } // namespace gonk

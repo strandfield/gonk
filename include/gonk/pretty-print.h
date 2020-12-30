@@ -21,6 +21,7 @@ public:
   explicit PrettyPrinter(script::Engine& e);
  
   void print(const script::Value& val);
+  std::string repr(const script::Value& val);
 
 protected:
   script::Function reprFunction(const script::Type& t);
