@@ -139,6 +139,7 @@ protected:
   QJsonObject serialize(const SourceCode& src);
   QJsonObject serialize(const BreakpointList& list);
   QJsonObject serialize(const Callstack& cs);
+  QJsonObject serialize(const Variable& v);
   QJsonObject serialize(const VariableList& vlist);
   void send(QJsonObject response);
 

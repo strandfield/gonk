@@ -25,46 +25,32 @@ GonkValueSerializer::GonkValueSerializer(script::Engine& e)
 
 }
 
-QJsonValue GonkValueSerializer::serialize(const script::Value& val) const
+std::shared_ptr<debugger::Variable> GonkValueSerializer::serialize(const script::Value& val) const
 {
-  std::string repr = m_printer->repr(val);
-  return QString::fromStdString(repr);
+  auto ret = std::make_shared<debugger::Variable>();
+  ret->value = m_printer->repr(val);
 
-  /*if (!val.type().isObjectType())
-    return QString::fromStdString(repr);
-
-  QJsonObject result;
-  result["__type"] = "object";
-  result["__repr"] = QString::fromStdString(repr);
+  if (!val.type().isObjectType())
+    return ret;
 
   script::Class cla = m_engine.typeSystem()->getClass(val.type());
+  serialize_members(val, cla, ret->members);
 
-  {
-    QJsonArray members;
-
-    std::vector<script::DataMember> mbs = cla.dataMembers();
-  }
-
-  return result;*/
+  return ret;
 }
 
-size_t GonkValueSerializer::serialize_members(const script::Value& val, const script::Class& cla, QJsonArray& result)
+void GonkValueSerializer::serialize_members(const script::Value& val, const script::Class& cla, std::vector<std::shared_ptr<debugger::Variable>>& result) const
 {
-  size_t off = 0;
-
   if (!cla.parent().isNull())
-    off = serialize_members(val, cla.parent(), result);
+    serialize_members(val, cla.parent(), result);
 
   for (const script::DataMember& dm : cla.dataMembers())
   {
-    QJsonValue jsonval = serialize(val.toObject().at(off));
-    QJsonObject jsonmember;
-    jsonmember["name"] = QString::fromStdString(dm.name);
-    result.append(jsonmember);
-    ++off;
+    std::shared_ptr<debugger::Variable> mvar = serialize(val.toObject().at(result.size()));
+    mvar->name = dm.name;
+    mvar->type = m_engine.typeSystem()->typeName(dm.type);
+    result.push_back(mvar);
   }
-
-  return off;
 }
 
 } // namespace gonk

@@ -223,6 +223,8 @@ void GonkDebugHandler::sendVariables(int d)
   script::interpreter::FunctionCall* fc = cs[d];
   script::Engine* e = fc->engine();
   script::interpreter::Workspace w{ fc };
+  // @TODO: store one instance of GonkValueSerializer as a member
+  // this would allow the _gonk_repr__ function lookup to be cached
   GonkValueSerializer serializer{ *e };
 
   debugger::VariableList result;
@@ -230,11 +232,10 @@ void GonkDebugHandler::sendVariables(int d)
 
   for (size_t i(0); i < w.size(); ++i)
   {
-    debugger::Variable v;
-    v.offset = static_cast<int>(w.stackOffsetAt(i));
-    v.type = e->toString(w.varTypeAt(i));
-    v.name = w.nameAt(i);
-    v.value = serializer.serialize(w.valueAt(i));
+    std::shared_ptr<debugger::Variable> v = serializer.serialize(w.valueAt(i));
+    v->offset = static_cast<int>(w.stackOffsetAt(i));
+    v->type = e->toString(w.varTypeAt(i));
+    v->name = w.nameAt(i);
     result.variables.push_back(v);
   }
 

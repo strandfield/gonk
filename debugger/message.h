@@ -58,16 +58,17 @@ struct BreakpointList : DebuggerMessage
 
 struct Variable
 {
-  int offset;
+  int offset = -1;
   std::string type;
   std::string name;
-  QJsonValue value;
+  std::string value;
+  std::vector<std::shared_ptr<Variable>> members;
 };
 
 struct VariableList : DebuggerMessage
 {
   int callstack_depth = -1;
-  std::vector<Variable> variables;
+  std::vector<std::shared_ptr<Variable>> variables;
 };
 
 } // namespace debugger

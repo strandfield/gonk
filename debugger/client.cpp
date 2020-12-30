@@ -135,6 +135,26 @@ void Client::onReadyRead()
   }
 }
 
+static std::shared_ptr<debugger::Variable> deserializeVar(const QJsonObject& json)
+{
+  auto ret = std::make_shared<debugger::Variable>();
+
+  ret->name = json.value("name").toString().toStdString();
+  ret->offset = json.value("offset").toInt();
+  ret->type = json.value("type").toString().toStdString();
+  ret->value = json.value("value").toString().toStdString();
+
+  if (json.value("members").toArray().size() > 0)
+  {
+    QJsonArray members = json.value("members").toArray();
+
+    for (int i(0); i < members.size(); ++i)
+      ret->members.push_back(deserializeVar(members.at(i).toObject()));
+  }
+
+  return ret;
+}
+
 void Client::processMessage(QJsonObject message)
 {
   QString type = message.value("type").toString();
@@ -210,13 +230,7 @@ void Client::processMessage(QJsonObject message)
     for (int i(0); i < list.size(); ++i)
     {
       QJsonObject varjson = list.at(i).toObject();
-      Variable var;
-      var.name = varjson.value("name").toString().toStdString();
-      var.offset = varjson.value("offset").toInt();
-      var.type = varjson.value("type").toString().toStdString();
-      var.value = varjson.value("value");
-
-      mssg->variables.push_back(var);
+      mssg->variables.push_back(deserializeVar(varjson));
     }
 
     Q_EMIT messageReceived(mssg);

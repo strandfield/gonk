@@ -11,6 +11,8 @@
 
 class Controller;
 
+class QTreeWidgetItem;
+
 class VariablesView : public QTreeWidget
 {
   Q_OBJECT
@@ -21,6 +23,9 @@ public:
 protected Q_SLOTS:
   void onVariablesUpdated();
   void onCurrentFrameChanged(int n);
+
+protected:
+  QTreeWidgetItem* createItem(const gonk::debugger::Variable& var);
 
 private:
   Controller& m_controller;

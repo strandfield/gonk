@@ -249,6 +249,25 @@ QJsonObject Server::serialize(const Callstack& cs)
   return obj;
 }
 
+QJsonObject Server::serialize(const Variable& v)
+{
+  QJsonObject ret;
+  ret["offset"] = v.offset;
+  ret["type"] = QString::fromStdString(v.type);
+  ret["name"] = QString::fromStdString(v.name);
+  ret["value"] = QString::fromStdString(v.value);
+
+  if (!v.members.empty())
+  {
+    QJsonArray members;
+    for (std::shared_ptr<Variable> memvar : v.members)
+      members.append(serialize(*memvar));
+    ret["members"] = members;
+  }
+
+  return ret;
+}
+
 QJsonObject Server::serialize(const VariableList& vlist)
 {
   QJsonObject obj;
@@ -260,11 +279,7 @@ QJsonObject Server::serialize(const VariableList& vlist)
 
     for (const auto& v : vlist.variables)
     {
-      QJsonObject e;
-      e["offset"] = v.offset;
-      e["type"] = QString::fromStdString(v.type);
-      e["name"] = QString::fromStdString(v.name);
-      e["value"] = v.value;
+      QJsonObject e = serialize(*v);
       vars.push_back(e);
     }
 

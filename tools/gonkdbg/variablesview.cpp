@@ -41,21 +41,9 @@ void VariablesView::onVariablesUpdated()
 
   clear();
 
-  for (const gonk::debugger::Variable& v : variables.variables)
+  for (std::shared_ptr<gonk::debugger::Variable> v : variables.variables)
   {
-    QTreeWidgetItem* item = new QTreeWidgetItem;
-    item->setFlags(Qt::ItemFlag::ItemIsEnabled | Qt::ItemFlag::ItemNeverHasChildren);
-
-    item->setText(NAME_COLUMN, QString::fromStdString(v.name));
-    item->setText(TYPE_COLUMN, QString::fromStdString(v.type));
-
-    if (v.value.isBool())
-      item->setText(VALUE_COLUMN, v.value.toBool() ? "true" : "false");
-    else if (v.value.isDouble())
-      item->setText(VALUE_COLUMN, QString::number(v.value.toDouble()));
-    else if (v.value.isString())
-      item->setText(VALUE_COLUMN, v.value.toString());
-
+    QTreeWidgetItem* item = createItem(*v);
     addTopLevelItem(item);
   }
 }
@@ -68,3 +56,17 @@ void VariablesView::onCurrentFrameChanged(int n)
   onVariablesUpdated();
 }
 
+QTreeWidgetItem* VariablesView::createItem(const gonk::debugger::Variable& v)
+{
+  QTreeWidgetItem* item = new QTreeWidgetItem;
+  item->setFlags(Qt::ItemFlag::ItemIsEnabled);
+
+  item->setText(NAME_COLUMN, QString::fromStdString(v.name));
+  item->setText(TYPE_COLUMN, QString::fromStdString(v.type));
+  item->setText(VALUE_COLUMN, QString::fromStdString(v.value));
+
+  for (auto member : v.members)
+    item->addChild(createItem(*member));
+
+  return item;
+}
