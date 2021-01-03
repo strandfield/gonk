@@ -38,6 +38,7 @@ protected Q_SLOTS:
   void onGutterLineClicked(int line);
   void onFrameSelected(int n);
   void onReadyReadStandardOutput();
+  void onReadyReadStandardError();
 
 protected:
   void showEvent(QShowEvent *e);

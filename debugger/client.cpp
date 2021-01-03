@@ -5,7 +5,6 @@
 #include "client.h"
 
 #include <QHostAddress>
-#include <QTcpSocket>
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -24,16 +23,28 @@ DebuggerMessage::~DebuggerMessage()
 
 }
 
-Client::Client(int port)
+Client::Client(QObject* parent)
+  : QObject(parent)
 {
   m_socket = new QTcpSocket(this);
   connect(m_socket, &QAbstractSocket::connected, this, &Client::onSocketConnected);
-  m_socket->connectToHost(QHostAddress::LocalHost, port);
+  connect(m_socket, &QAbstractSocket::disconnected, this, &Client::onSocketDisconnected);
+  connect(m_socket, &QAbstractSocket::stateChanged, this, &Client::onSocketStateChanged);
 }
 
 Client::~Client()
 {
 
+}
+
+QTcpSocket* Client::socket() const
+{
+  return m_socket;
+}
+
+void Client::connectToDebugger(int port)
+{
+  m_socket->connectToHost(QHostAddress::LocalHost, port);
 }
 
 void Client::action(Action a)
@@ -123,6 +134,15 @@ void Client::onSocketConnected()
 {
   connect(m_socket, &QAbstractSocket::readyRead, this, &Client::onReadyRead);
   Q_EMIT connectionEstablished();
+}
+
+void Client::onSocketDisconnected()
+{
+  Q_EMIT connectionLost();
+}
+
+void Client::onSocketStateChanged(QAbstractSocket::SocketState socketState)
+{
 }
 
 void Client::onReadyRead()

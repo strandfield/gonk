@@ -9,6 +9,8 @@
 
 #include <debugger/client.h>
 
+#include <QProcess>
+
 #include <map>
 #include <optional>
 #include <string>
@@ -88,10 +90,12 @@ Q_SIGNALS:
 
 protected Q_SLOTS:
   void onSocketConnected();
+  void onConnectionLost();
   void onDebuggerRunning();
   void onDebuggerPaused();
   void onDebuggerFinished();
   void onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg);
+  void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 protected:
   void setDebuggerState(int s);

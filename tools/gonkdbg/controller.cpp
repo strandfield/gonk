@@ -9,7 +9,6 @@
 #include <QApplication>
 #include <QFile>
 #include <QJsonDocument>
-#include <QProcess>
 
 #include <QDebug>
 
@@ -97,13 +96,14 @@ Controller::Controller(int& argc, char** argv, QObject* parent)
     m_process->setArguments(args);
 
     m_process->start();
+    connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &Controller::onProcessFinished);
   }
 
-
-  m_client = new gonk::debugger::Client;
-  m_client->setParent(this);
+  m_client = new gonk::debugger::Client(this);
+  m_client->connectToDebugger();
 
   connect(&client(), &gonk::debugger::Client::connectionEstablished, this, &Controller::onSocketConnected);
+  connect(&client(), &gonk::debugger::Client::connectionLost, this, &Controller::onConnectionLost);
 }
 
 const GonkdbgCLI& Controller::cli() const
@@ -240,6 +240,11 @@ void Controller::onSocketConnected()
   connect(&client(), &gonk::debugger::Client::messageReceived, this, &Controller::onMessageReceived);
 }
 
+void Controller::onConnectionLost()
+{
+  setDebuggerState(DebuggerState::Finished);
+}
+
 void Controller::onDebuggerRunning()
 {
   setDebuggerState(DebuggerState::Running);
@@ -301,6 +306,11 @@ void Controller::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
 
     Q_EMIT sourceCodeReceived(src);
   }
+}
+
+void Controller::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+  setDebuggerState(DebuggerState::Finished);
 }
 
 void Controller::setDebuggerState(int s)

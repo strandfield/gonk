@@ -10,7 +10,7 @@
 #include "message.h"
 #include "message-reader.h"
 
-class QTcpSocket;
+#include <QTcpSocket>
 
 namespace gonk
 {
@@ -22,8 +22,11 @@ class Client : public QObject
 {
   Q_OBJECT
 public:
-  explicit Client(int port = 24242);
+  explicit Client(QObject* parent = nullptr);
   ~Client();
+
+  QTcpSocket* socket() const;
+  void connectToDebugger(int port = 24242);
 
   enum Action
   {
@@ -51,6 +54,7 @@ public:
 
 Q_SIGNALS:
   void connectionEstablished();
+  void connectionLost();
   void debuggerRunning();
   void debuggerPaused();
   void debuggerFinished();
@@ -58,6 +62,8 @@ Q_SIGNALS:
 
 protected Q_SLOTS:
   void onSocketConnected();
+  void onSocketDisconnected();
+  void onSocketStateChanged(QAbstractSocket::SocketState socketState);
   void onReadyRead();
 
 protected:

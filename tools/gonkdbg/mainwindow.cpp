@@ -90,6 +90,7 @@ MainWindow::MainWindow(int& argc, char** argv)
     addDockWidget(Qt::DockWidgetArea::BottomDockWidgetArea, dock);
 
     connect(m_controller->process(), &QProcess::readyReadStandardOutput, this, &MainWindow::onReadyReadStandardOutput);
+    connect(m_controller->process(), &QProcess::readyReadStandardError, this, &MainWindow::onReadyReadStandardError);
   }
 
   {
@@ -120,6 +121,8 @@ MainWindow::MainWindow(int& argc, char** argv)
     m_help_menu = menuBar()->addMenu("Help");
     m_about_qt = m_help_menu->addAction("About Qt", []() { QApplication::aboutQt(); });
   }
+
+  onDebuggerStateChanged();
 }
 
 void MainWindow::onSocketConnected()
@@ -240,6 +243,20 @@ void MainWindow::onFrameSelected(int n)
 void MainWindow::onReadyReadStandardOutput()
 {
   m_output->appendPlainText(QString::fromUtf8(m_controller->process()->readAllStandardOutput()));
+}
+
+void MainWindow::onReadyReadStandardError()
+{
+  QString text = QString::fromUtf8(m_controller->process()->readAllStandardError());
+  text = text.trimmed();
+  QTextCursor cursor{ m_output->document() };
+  cursor.movePosition(QTextCursor::End);
+  QTextCharFormat fmt;
+  fmt.setForeground(Qt::red);
+  cursor.setCharFormat(fmt);
+  cursor.insertText(text);
+  cursor.setCharFormat(QTextCharFormat());
+  cursor.insertText("\n");
 }
 
 void MainWindow::updateMarkers()
