@@ -20,6 +20,16 @@ public:
   explicit GonkSyntaxHighlighter(typewriter::TextView& view);
   ~GonkSyntaxHighlighter() = default;
 
+  enum Format
+  {
+    Keyword = 1,
+    Literal = 2,
+    Identifier = 3,
+    Operator = 4,
+    Punctuator = 5,
+    Other = 6,
+  };
+
   void highlight(std::shared_ptr<gonk::debugger::SourceCode> src);
 
 protected:

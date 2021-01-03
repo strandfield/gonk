@@ -36,13 +36,14 @@ MainWindow::MainWindow(int& argc, char** argv)
 
   m_editor = new typewriter::QTypewriter(new typewriter::TextDocument(source));
 
+  // @TODO: rework these formats & GonkSyntaxHighlighter
   typewriter::TextFormat fmt = m_editor->defaultFormat();
-  fmt.text_color = QColor(Qt::yellow);
-  m_editor->setTextFormat(1, fmt);
+  fmt.text_color = QColor(Qt::darkYellow);
+  m_editor->setTextFormat(GonkSyntaxHighlighter::Keyword, fmt);
   fmt.text_color = QColor(Qt::blue);
-  m_editor->setTextFormat(2, fmt);
-  fmt.text_color = QColor(Qt::green);
-  m_editor->setTextFormat(3, fmt);
+  m_editor->setTextFormat(GonkSyntaxHighlighter::Literal, fmt);
+  fmt.text_color = QColor(Qt::darkGreen);
+  m_editor->setTextFormat(GonkSyntaxHighlighter::Identifier, fmt);
 
   connect(m_editor->gutter(), &typewriter::QTypewriterGutter::clicked, this, &MainWindow::onGutterLineClicked);
 

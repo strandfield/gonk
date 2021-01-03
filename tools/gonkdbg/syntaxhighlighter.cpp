@@ -83,27 +83,27 @@ void GonkSyntaxHighlighter::recursive_highlight(const QJsonObject& json)
 
     if (type == keyword)
     {
-      m_highlighter.setFormat(line, col, width, 1);
+      m_highlighter.setFormat(line, col, width, Keyword);
     }
     else if (type == lit)
     {
-      m_highlighter.setFormat(line, col, width, 2);
+      m_highlighter.setFormat(line, col, width, Literal);
     }
     else if (type == identifier)
     {
-      m_highlighter.setFormat(line, col, width, 3);
+      m_highlighter.setFormat(line, col, width, Identifier);
     }
     else if (type == op)
     {
-      m_highlighter.setFormat(line, col, width, 4);
+      m_highlighter.setFormat(line, col, width, Operator);
     }
     else if (type == punctuator)
     {
-      m_highlighter.setFormat(line, col, width, 5);
+      m_highlighter.setFormat(line, col, width, Punctuator);
     }
     else
     {
-      m_highlighter.setFormat(line, col, width, 6);
+      m_highlighter.setFormat(line, col, width, Other);
     }
   }
   else
