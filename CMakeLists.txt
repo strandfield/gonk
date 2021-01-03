@@ -11,7 +11,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 set(CMAKE_AUTOMOC ON)
-find_package(Qt5 COMPONENTS Core Gui Widgets Sql)
+find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network)
 
 ##################################################################
 ###### dependencies
@@ -54,6 +54,12 @@ if (WIN32)
   set_target_properties(gonk PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
   set_target_properties(gonk PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
+
+##################################################################
+###### debugger
+##################################################################
+
+add_subdirectory(debugger)
 
 ##################################################################
 ###### plugins

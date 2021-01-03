@@ -341,8 +341,8 @@ int main(int argc, char* argv[])
 
   gonk::register_pointer_template(engine.rootNamespace());
 
-  class_type_id_offset = engine.typeSystem()->reserve(script::Type::ObjectFlag, 256);
-  enum_type_id_offset = engine.typeSystem()->reserve(script::Type::EnumFlag, 256);
+  class_type_id_offset = static_cast<int>(engine.typeSystem()->reserve(script::Type::ObjectFlag, 256));
+  enum_type_id_offset = static_cast<int>(engine.typeSystem()->reserve(script::Type::EnumFlag, 256));
 
   test_simple_bindind(engine);
 

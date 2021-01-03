@@ -7,3 +7,6 @@
 [submodule "dependencies/liquid"]
 	path = dependencies/liquid
 	url = https://github.com/bandicode/liquid.git
+[submodule "dependencies/typewriter"]
+	path = dependencies/typewriter
+	url = https://github.com/bandicode/typewriter.git

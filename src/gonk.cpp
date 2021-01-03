@@ -14,6 +14,8 @@
 #include <script/module.h>
 #include <script/namespace.h>
 
+#include <QCoreApplication>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -56,8 +58,7 @@ static std::string executable_dir()
 }
 
 Gonk::Gonk(int & argc, char **argv)
-  : m_argc(argc),
-    m_argv(argv)
+  : m_cli(argc, argv)
 {
   m_instance = this;
 
@@ -69,17 +70,17 @@ Gonk::Gonk(int & argc, char **argv)
 
 Gonk::~Gonk()
 {
-
+  m_engine.tearDown();
 }
 
 int Gonk::argc() const
 {
-  return m_argc;
+  return m_cli.argc;
 }
 
 char** Gonk::argv() const
 {
-  return m_argv;
+  return m_cli.argv;
 }
 
 std::string Gonk::argv(size_t index) const
@@ -89,7 +90,7 @@ std::string Gonk::argv(size_t index) const
 
 int Gonk::exec()
 {
-  if (argc() <= 1)
+  if (cli().empty())
   {
     std::cout << "Gonk!" << std::endl;
     return 0;
@@ -98,11 +99,11 @@ int Gonk::exec()
   m_module_manager->addImportPath(executable_dir() + "/modules");
   m_module_manager->fetchModules();
 
-  if (argv(1) == "--interactive")
+  if (cli().interactive)
   {
     return interactiveSession();
   }
-  else if (argv(1) == "--list-modules")
+  else if (cli().list_modules)
   {
     listModules();
     return 0;
@@ -116,6 +117,19 @@ int Gonk::exec()
 Gonk& Gonk::Instance()
 {
   return *m_instance;
+}
+
+QCoreApplication& Gonk::qCoreApplication()
+{
+  if (!m_qapp)
+    m_qapp.reset(new QCoreApplication(m_cli.argc, m_cli.argv));
+
+  return *m_qapp;
+}
+
+const gonk::CLI& Gonk::cli() const
+{
+  return m_cli;
 }
 
 gonk::ModuleManager& Gonk::moduleManager() const

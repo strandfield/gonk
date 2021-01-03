@@ -12,6 +12,7 @@
 #include <script/typesystem.h>
 
 #include <iostream>
+#include <sstream>
 
 namespace gonk
 {
@@ -22,30 +23,24 @@ PrettyPrinter::PrettyPrinter(script::Engine& e)
 
 }
 
-void PrettyPrinter::print(const script::Value& val)
+std::string PrettyPrinter::repr(const script::Value& val)
 {
   switch (val.type().baseType().data())
   {
   case script::Type::Void:
-    return;
+    return "";
   case script::Type::Boolean:
-    std::cout << (val.toBool() ? "true" : "false") << std::endl;
-    return;
+    return (val.toBool() ? "true" : "false");
   case script::Type::Char:
-    std::cout << val.toChar() << std::endl;
-    return;
+    return std::string(1, val.toChar());
   case script::Type::Int:
-    std::cout << val.toInt() << std::endl;
-    return;
+    return std::to_string(val.toInt());
   case script::Type::Float:
-    std::cout << val.toFloat() << std::endl;
-    return;
+    return std::to_string(val.toFloat());
   case script::Type::Double:
-    std::cout << val.toDouble() << std::endl;
-    return;
+    return std::to_string(val.toDouble());
   case script::Type::String:
-    std::cout << val.toString() << std::endl;
-    return;
+    return val.toString();
   default:
     break;
   }
@@ -53,8 +48,7 @@ void PrettyPrinter::print(const script::Value& val)
   if (val.type().isEnumType())
   {
     script::Enumerator enm = val.toEnumerator();
-    std::cout << enm.enumeration().name() << "::" << enm.name() << std::endl;
-    return;
+    return enm.enumeration().name() + "::" + enm.name();
   }
 
   if (val.type().isObjectType())
@@ -63,13 +57,20 @@ void PrettyPrinter::print(const script::Value& val)
 
     if (!repr_func.isNull())
     {
-      std::string repr = repr_func.invoke({ val }).toString();
-      std::cout << repr << std::endl;
-      return;
+      return repr_func.invoke({ val }).toString();
     }
   }
 
-  std::cout << m_engine.typeSystem()->typeName(val.type()) << "@" << (void*)(val.impl()) << std::endl;
+  std::stringstream ss;
+  ss << m_engine.typeSystem()->typeName(val.type());
+  ss << "@";
+  ss << (void*)(val.impl());
+  return ss.str();
+}
+
+void PrettyPrinter::print(const script::Value& val)
+{
+  std::cout << repr(val) << std::endl;
 }
 
 script::Function PrettyPrinter::reprFunction(const script::Type& t)
