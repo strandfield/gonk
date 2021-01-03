@@ -95,15 +95,16 @@ Controller::Controller(int& argc, char** argv, QObject* parent)
     
     m_process->setArguments(args);
 
+    // @TODO: move to standalone, manually called function
     m_process->start();
     connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &Controller::onProcessFinished);
+    Q_EMIT processStarted();
   }
 
   m_client = new gonk::debugger::Client(this);
   m_client->connectToDebugger();
 
   connect(&client(), &gonk::debugger::Client::connectionEstablished, this, &Controller::onSocketConnected);
-  connect(&client(), &gonk::debugger::Client::connectionLost, this, &Controller::onConnectionLost);
 }
 
 const GonkdbgCLI& Controller::cli() const
@@ -119,16 +120,6 @@ gonk::debugger::Client& Controller::client() const
 QProcess* Controller::process() const
 {
   return m_process;
-}
-
-int Controller::debuggerState() const
-{
-  return m_debugger_state;
-}
-
-bool Controller::debuggerPaused() const
-{
-  return debuggerState() == DebuggerState::Paused;
 }
 
 int Controller::currentFrame() const
@@ -194,7 +185,7 @@ const std::vector<std::shared_ptr<gonk::debugger::VariableList>>& Controller::va
 
 void Controller::pause()
 {
-  if (debuggerPaused())
+  if (client().isConnected() && client().isPaused())
   {
     client().action(gonk::debugger::Client::Action::Pause);
   }
@@ -202,7 +193,7 @@ void Controller::pause()
 
 void Controller::run()
 {
-  if (debuggerPaused())
+  if (client().isConnected() && client().isPaused())
   {
     client().action(gonk::debugger::Client::Action::Run);
   }
@@ -210,7 +201,7 @@ void Controller::run()
 
 void Controller::stepInto()
 {
-  if (debuggerPaused())
+  if (client().isConnected() && client().isPaused())
   {
     client().action(gonk::debugger::Client::Action::StepInto);
   }
@@ -218,7 +209,7 @@ void Controller::stepInto()
 
 void Controller::stepOver()
 {
-  if (debuggerPaused())
+  if (client().isConnected() && client().isPaused())
   {
     client().action(gonk::debugger::Client::Action::StepOver);
   }
@@ -226,7 +217,7 @@ void Controller::stepOver()
 
 void Controller::stepOut()
 {
-  if (debuggerPaused())
+  if (client().isConnected() && client().isPaused())
   {
     client().action(gonk::debugger::Client::Action::StepOut);
   }
@@ -236,33 +227,19 @@ void Controller::onSocketConnected()
 {
   connect(&client(), &gonk::debugger::Client::debuggerRunning, this, &Controller::onDebuggerRunning);
   connect(&client(), &gonk::debugger::Client::debuggerPaused, this, &Controller::onDebuggerPaused);
-  connect(&client(), &gonk::debugger::Client::debuggerFinished, this, &Controller::onDebuggerFinished);
   connect(&client(), &gonk::debugger::Client::messageReceived, this, &Controller::onMessageReceived);
-}
-
-void Controller::onConnectionLost()
-{
-  setDebuggerState(DebuggerState::Finished);
 }
 
 void Controller::onDebuggerRunning()
 {
-  setDebuggerState(DebuggerState::Running);
   setCurrentFrame(-1);
 }
 
 void Controller::onDebuggerPaused()
 {
-  setDebuggerState(DebuggerState::Paused);
-
   client().getCallstack();
   client().getBreakpoints();
   client().getVariables();
-}
-
-void Controller::onDebuggerFinished()
-{
-  setDebuggerState(DebuggerState::Finished);
 }
 
 void Controller::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg)
@@ -310,15 +287,5 @@ void Controller::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
 
 void Controller::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-  setDebuggerState(DebuggerState::Finished);
+  Q_EMIT processFinished();
 }
-
-void Controller::setDebuggerState(int s)
-{
-  if (m_debugger_state != s)
-  {
-    m_debugger_state = s;
-    Q_EMIT debuggerStateChanged();
-  }
-}
-

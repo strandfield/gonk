@@ -51,7 +51,7 @@ MainWindow::MainWindow(int& argc, char** argv)
   m_controller = new Controller(argc, argv, this);
 
   connect(&(m_controller->client()), &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
-  connect(m_controller, &Controller::debuggerStateChanged, this, &MainWindow::onDebuggerStateChanged);
+  connect(&(m_controller->client()), &gonk::debugger::Client::stateChanged, this, &MainWindow::onDebuggerStateChanged);
   connect(m_controller, &Controller::callstackUpdated, this, &MainWindow::onCallstackUpdated);
   connect(m_controller, &Controller::breakpointsUpdated, this, &MainWindow::onBreakpointsUpdated);
 
@@ -132,18 +132,23 @@ void MainWindow::onSocketConnected()
 
 void MainWindow::onDebuggerStateChanged()
 {
-  int s = m_controller->debuggerState();
+  int s = m_controller->client().state();
 
-  if(s == Controller::DebuggerState::Running)
+  if (s == gonk::debugger::Client::Connecting)
+    statusBar()->showMessage("Connecting...", 1000);
+  else if (s == gonk::debugger::Client::Disconnected)
+    statusBar()->showMessage("Disconnected...");
+
+  if(s == gonk::debugger::Client::DebuggerRunning)
     statusBar()->showMessage("Running!", 1000);
-  else if (s == Controller::DebuggerState::Paused)
+  else if (s == gonk::debugger::Client::DebuggerPaused)
     statusBar()->showMessage("Pause...", 1000);
-  else if (s == Controller::DebuggerState::Finished)
+  else if (s == gonk::debugger::Client::DebuggerFinished)
     statusBar()->showMessage("Done!");
 
-  m_debug_menu->setEnabled(s != Controller::DebuggerState::Finished);
+  m_debug_menu->setEnabled(m_controller->client().isConnected());
 
-  if (s == Controller::DebuggerState::Running)
+  if (s == gonk::debugger::Client::DebuggerRunning)
   {
     m_pause->setEnabled(true);
     m_run->setEnabled(false);
@@ -154,18 +159,18 @@ void MainWindow::onDebuggerStateChanged()
     m_callstack->setEnabled(false);
     m_variables->setEnabled(false);
   }
-  else if (s == Controller::DebuggerState::Paused)
+  else if (s == gonk::debugger::Client::DebuggerPaused)
   {
     m_pause->setEnabled(false);
     m_run->setEnabled(true);
     m_step_into->setEnabled(true);
     m_step_over->setEnabled(true);
     m_step_out->setEnabled(true);
-
-    // @TODO: Not the best place to do that, but that will do... for now!
-    m_callstack->setEnabled(true);
-    m_variables->setEnabled(true);
   }
+
+  // @TODO: Not the best place to do that, but that will do... for now!
+  m_callstack->setEnabled(s == gonk::debugger::Client::DebuggerPaused);
+  m_variables->setEnabled(s == gonk::debugger::Client::DebuggerPaused);
 
   updateMarkers();
 }

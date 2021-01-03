@@ -44,7 +44,56 @@ QTcpSocket* Client::socket() const
 
 void Client::connectToDebugger(int port)
 {
+  setState(State::Connecting);
   m_socket->connectToHost(QHostAddress::LocalHost, port);
+}
+
+Client::State Client::state() const
+{
+  return m_state;
+}
+
+void Client::setState(State s)
+{
+  if (m_state != s)
+  {
+    if (m_state == State::DebuggerFinished)
+      return;
+
+    int prev = m_state;
+    m_state = s;
+
+    if (s == State::Disconnected && prev == State::Connecting)
+      Q_EMIT connectionFailed();
+    else if ((s == State::DebuggerRunning || s == State::DebuggerPaused) && prev == State::Connecting)
+      Q_EMIT connectionEstablished();
+    else if (s == State::Disconnected && (prev == State::DebuggerRunning || prev == State::DebuggerPaused))
+      Q_EMIT connectionLost();
+
+    if (s == State::DebuggerRunning)
+      Q_EMIT debuggerRunning();
+    else if (s == State::DebuggerPaused)
+      Q_EMIT debuggerPaused();
+    else if (s == State::DebuggerFinished)
+      Q_EMIT debuggerFinished();
+
+    Q_EMIT stateChanged(s, prev);
+  }
+}
+
+bool Client::isConnected() const
+{
+  return m_state == State::DebuggerPaused || m_state == State::DebuggerRunning;
+}
+
+bool Client::isConnecting() const
+{
+  return m_state == State::Connecting;
+}
+
+bool Client::isPaused() const
+{
+  return m_state == State::DebuggerPaused;
 }
 
 void Client::action(Action a)
@@ -133,16 +182,18 @@ void Client::getVariables(int depth)
 void Client::onSocketConnected()
 {
   connect(m_socket, &QAbstractSocket::readyRead, this, &Client::onReadyRead);
-  Q_EMIT connectionEstablished();
+  setState(State::DebuggerRunning);
 }
 
 void Client::onSocketDisconnected()
 {
-  Q_EMIT connectionLost();
+  setState(State::Disconnected);
 }
 
 void Client::onSocketStateChanged(QAbstractSocket::SocketState socketState)
 {
+  if (socketState == QAbstractSocket::UnconnectedState)
+    setState(State::Disconnected);
 }
 
 void Client::onReadyRead()
@@ -181,15 +232,16 @@ void Client::processMessage(QJsonObject message)
 
   if (type == "run")
   {
-    Q_EMIT debuggerRunning();
+    setState(State::DebuggerRunning);
   }
   else if (type == "break")
   {
-    Q_EMIT debuggerPaused();
+    setState(State::DebuggerPaused);
   }
   else if (type == "goodbye")
   {
-    Q_EMIT debuggerFinished();
+    setState(State::DebuggerFinished);
+    m_socket->disconnectFromHost();
   }
   else if (type == "sourcecode")
   {

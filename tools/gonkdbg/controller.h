@@ -38,7 +38,6 @@ class Controller : public QObject
 {
   Q_OBJECT
 
-  Q_PROPERTY(int debuggerState READ debuggerState NOTIFY debuggerStateChanged)
   Q_PROPERTY(int currentFrame READ currentFrame NOTIFY currentFrameChanged)
 
 public:
@@ -48,16 +47,6 @@ public:
   const GonkdbgCLI& cli() const;
   gonk::debugger::Client& client() const;
   QProcess* process() const;
-
-  enum DebuggerState
-  {
-    Finished = 0,
-    Running = 1,
-    Paused = 2,
-  };
-
-  int debuggerState() const;
-  bool debuggerPaused() const;
 
   int currentFrame() const;
   void setCurrentFrame(int n);
@@ -81,7 +70,8 @@ public Q_SLOTS:
   void stepOut();
 
 Q_SIGNALS:
-  void debuggerStateChanged();
+  void processStarted();
+  void processFinished();
   void currentFrameChanged(int n);
   void callstackUpdated();
   void breakpointsUpdated();
@@ -90,21 +80,15 @@ Q_SIGNALS:
 
 protected Q_SLOTS:
   void onSocketConnected();
-  void onConnectionLost();
   void onDebuggerRunning();
   void onDebuggerPaused();
-  void onDebuggerFinished();
   void onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessage> mssg);
   void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
-
-protected:
-  void setDebuggerState(int s);
 
 private:
   GonkdbgCLI m_cli;
   gonk::debugger::Client* m_client;
   QProcess* m_process = nullptr;
-  int m_debugger_state = 0;
   int m_current_frame = -1;
   std::shared_ptr<gonk::debugger::Callstack> m_last_callstack_message;
   std::shared_ptr<gonk::debugger::BreakpointList> m_last_breakpoints_message;

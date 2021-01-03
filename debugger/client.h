@@ -28,6 +28,20 @@ public:
   QTcpSocket* socket() const;
   void connectToDebugger(int port = 24242);
 
+  enum State
+  {
+    Disconnected = 0,
+    Connecting = 1,
+    DebuggerRunning = 2,
+    DebuggerPaused = 3,
+    DebuggerFinished = 4,
+  };
+
+  State state() const;
+  bool isConnected() const;
+  bool isConnecting() const;
+  bool isPaused() const;
+
   enum Action
   {
     Pause,
@@ -53,7 +67,9 @@ public:
   void getVariables(int depth = -1);
 
 Q_SIGNALS:
+  void stateChanged(int cur, int prev);
   void connectionEstablished();
+  void connectionFailed();
   void connectionLost();
   void debuggerRunning();
   void debuggerPaused();
@@ -67,12 +83,15 @@ protected Q_SLOTS:
   void onReadyRead();
 
 protected:
+  void setState(State s);
+
   void processMessage(QJsonObject message);
 
   void send(QJsonObject response);
 
 private:
   QTcpSocket* m_socket = nullptr;
+  State m_state = State::Disconnected;
   priv::MessageReader m_reader;
 };
 
