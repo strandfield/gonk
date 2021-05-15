@@ -278,6 +278,82 @@ struct const_void_member_wrapper_t<void(ClassType::*)(A1)const, F> {
   }
 };
 
+/****************************************************************
+generic member function wrapper
+****************************************************************/
+
+template<typename R, typename T, typename... Args>
+class MethodWrapper : public script::FunctionBodyInterface
+{
+public:
+  R(T::*method)(Args...);
+
+public:
+  explicit MethodWrapper(R(T::*mem)(Args...))
+    : method(mem)
+  {
+
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::false_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    T& ref = value_cast<T&>(c->arg(0));
+    return make_value<R>(((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...));
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::true_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    T& ref = value_cast<T&>(c->arg(0));
+    ((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...);
+    return script::Value::Void;
+  }
+
+  script::Value invoke(script::FunctionCall* c) override
+  {
+    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<T>::value>());
+  }
+};
+
+template<typename R, typename T, typename... Args>
+class ConstMethodWrapper : public script::FunctionBodyInterface
+{
+public:
+  R(T::* method)(Args...)const;
+
+public:
+  explicit ConstMethodWrapper(R(T::* mem)(Args...)const)
+    : method(mem)
+  {
+
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::false_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    const T& ref = value_cast<T&>(c->arg(0));
+    return make_value<R>(((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...), c->engine());
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::true_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    const T& ref = value_cast<T&>(c->arg(0));
+    ((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...);
+    return script::Value::Void;
+  }
+
+  script::Value invoke(script::FunctionCall* c) override
+  {
+    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<T>::value>());
+  }
+};
+
 } // namespace wrapper
 
 } // namespace gonk

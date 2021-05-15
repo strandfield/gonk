@@ -321,6 +321,29 @@ script::FunctionBuilder const_void_member_function(script::Class& cla, std::stri
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
 
+/* generic member function */
+
+template<typename R, typename T, typename...Args>
+script::FunctionBuilder method(script::Class& cla, std::string name, R(T::*memfun)(Args...))
+{
+  script::FunctionBuilder builder = cla.newMethod(std::move(name));
+  builder.returns(make_type<T>());
+  builder.params(make_type<Args>()...);
+  builder.setBody(std::make_shared<gonk::wrapper::MethodWrapper<R, T, Args...>>(memfun));
+  return builder;
+}
+
+template<typename R, typename T, typename...Args>
+script::FunctionBuilder method(script::Class& cla, std::string name, R(T::* memfun)(Args...)const)
+{
+  script::FunctionBuilder builder = cla.newMethod(std::move(name));
+  builder.setConst();
+  builder.returns(make_type<T>());
+  builder.params(make_type<Args>()...);
+  builder.setBody(std::make_shared<gonk::wrapper::ConstMethodWrapper<R, T, Args...>>(memfun));
+  return builder;
+}
+
 } // namespace bind
 
 } // namespace gonk

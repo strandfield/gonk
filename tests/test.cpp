@@ -60,6 +60,16 @@ enum class EnumTypeIds
   LastTypeId,
 };
 
+int guaranteed_random()
+{
+  return 6;
+}
+
+void assign_random(int& x)
+{
+  x = 6;
+}
+
 int add(int a, int b)
 {
   return a + b;
@@ -129,6 +139,21 @@ void test_simple_bindind(script::Engine& e)
   using namespace script;
 
   Namespace ns = e.rootNamespace();
+
+  {
+    Function f = gonk::bind::function(ns, "guaranteed_random", &guaranteed_random).get();
+    script::Value x = f.invoke({});
+    ASSERT(x.isInt());
+    ASSERT_EQ(x.toInt(), 6);
+  }
+
+  {
+    Function f = gonk::bind::function(ns, "assign_random", &assign_random).get();
+    int x = 0;
+    script::Value xx = e.expose(x);
+    f.invoke({ xx });
+    ASSERT_EQ(x, 6);
+  }
   
   Function add_func = gonk::bind::free_function<int, int, int, &add>(ns, "add").get();
   ASSERT(add_func.returnType() == Type::Int);
@@ -222,6 +247,20 @@ void test_simple_bindind(script::Engine& e)
     result = address_if_true.invoke(locals.data());
     ASSERT(script::get<gonk::Pointer<Point>>(result) == &pt);
     e.destroy(result);
+  }
+
+  {
+    Function mem = gonk::bind::method(pt, "get2X", &Point::get2X).get();
+    ASSERT(mem.isMemberFunction());
+    ASSERT_EQ(mem.memberOf(), pt);
+    ASSERT_EQ(mem.name(), "get2X");
+    ASSERT(mem.isConst());
+
+    Point pt{ 6, 6 };
+    script::Value self = e.expose(pt);
+    script::Value x = mem.invoke({ self });
+    ASSERT(x.type() == Type::Int);
+    ASSERT(x.toInt() == 12);
   }
 
   Function incr_x = gonk::bind::chainable_memfn<Point, int, &Point::incrX>(pt, "incrX").get();

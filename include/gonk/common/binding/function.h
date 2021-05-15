@@ -111,6 +111,18 @@ script::FunctionBuilder void_function(script::Namespace & ns, std::string && nam
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
 
+/* generic function */
+
+template<typename T, typename...Args>
+script::FunctionBuilder function(script::Namespace& ns, std::string name, T(*fun)(Args...))
+{
+  script::FunctionBuilder builder = ns.newFunction(std::move(name));
+  builder.returns(make_type<T>());
+  builder.params(make_type<Args>()...);
+  builder.setBody(std::make_shared<gonk::wrapper::FunctionWrapper<T, Args...>>(fun));
+  return builder;
+}
+
 } // namespace bind
 
 } // namespace gonk
