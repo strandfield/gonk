@@ -8,7 +8,7 @@
 #include "gonk/common/values.h"
 
 #include <script/interpreter/executioncontext.h>
-#include <script/functionbody.h>
+#include <script/function-impl.h>
 
 #include <tuple>
 #include <type_traits>
@@ -145,16 +145,42 @@ struct void_function_wrapper_t<void(*)(A1, A2, A3, A4, A5, A6), f> {
 };
 
 template<typename T, typename... Args>
-class FunctionWrapper : public script::FunctionBodyInterface
+class FunctionWrapper : public script::FunctionImpl
 {
 public:
   T(*function)(Args...);
+  std::string m_name;
+  script::DynamicPrototype proto;
 
 public:
-  explicit FunctionWrapper(T(*fun)(Args...))
-    : function(fun)
+  explicit FunctionWrapper(script::Symbol sym, std::string name, T(*fun)(Args...))
+    : FunctionImpl(sym.engine()),
+      function(fun),
+      m_name(std::move(name))
+  {
+    enclosing_symbol = sym.impl();
+    proto.setReturnType(make_type<T>());
+    proto.set({ make_type<Args>()... });
+  }
+
+  const std::string& name() const override
+  {
+    return m_name;
+  }
+
+  bool is_native() const override
+  {
+    return true;
+  }
+
+  void set_body(std::shared_ptr<script::program::Statement>) override
   {
 
+  }
+
+  const script::Prototype& prototype() const override
+  {
+    return proto;
   }
 
   template<std::size_t... Is>

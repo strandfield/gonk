@@ -324,24 +324,21 @@ script::FunctionBuilder const_void_member_function(script::Class& cla, std::stri
 /* generic member function */
 
 template<typename R, typename T, typename...Args>
-script::FunctionBuilder method(script::Class& cla, std::string name, R(T::*memfun)(Args...))
+script::Function method(script::Class& cla, std::string name, R(T::*memfun)(Args...))
 {
-  script::FunctionBuilder builder = cla.newMethod(std::move(name));
-  builder.returns(make_type<T>());
-  builder.params(make_type<Args>()...);
-  builder.setBody(std::make_shared<gonk::wrapper::MethodWrapper<R, T, Args...>>(memfun));
-  return builder;
+  auto impl = std::make_shared<gonk::wrapper::MethodWrapper<R, T, Args...>>(cla, std::move(name), memfun);
+  script::Function ret{ impl };
+  cla.addMethod(ret);
+  return ret;
 }
 
 template<typename R, typename T, typename...Args>
-script::FunctionBuilder method(script::Class& cla, std::string name, R(T::* memfun)(Args...)const)
+script::Function method(script::Class& cla, std::string name, R(T::*memfun)(Args...)const)
 {
-  script::FunctionBuilder builder = cla.newMethod(std::move(name));
-  builder.setConst();
-  builder.returns(make_type<T>());
-  builder.params(make_type<Args>()...);
-  builder.setBody(std::make_shared<gonk::wrapper::ConstMethodWrapper<R, T, Args...>>(memfun));
-  return builder;
+  auto impl = std::make_shared<gonk::wrapper::ConstMethodWrapper<R, T, Args...>>(cla, std::move(name), memfun);
+  script::Function ret{ impl };
+  cla.addMethod(ret);
+  return ret;
 }
 
 } // namespace bind

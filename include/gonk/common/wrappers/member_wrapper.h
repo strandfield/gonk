@@ -8,6 +8,7 @@
 #include "gonk/common/values.h"
 
 #include <script/interpreter/executioncontext.h>
+#include <script/function-impl.h>
 
 namespace gonk
 {
@@ -283,16 +284,43 @@ generic member function wrapper
 ****************************************************************/
 
 template<typename R, typename T, typename... Args>
-class MethodWrapper : public script::FunctionBodyInterface
+class MethodWrapper : public script::FunctionImpl
 {
 public:
   R(T::*method)(Args...);
+  std::string m_name;
+  script::DynamicPrototype proto;
 
 public:
-  explicit MethodWrapper(R(T::*mem)(Args...))
-    : method(mem)
+  explicit MethodWrapper(script::Class& cla, std::string name, R(T::* mem)(Args...))
+    : FunctionImpl(cla.engine()),
+      method(mem),
+      m_name(std::move(name))
+  {
+    enclosing_symbol = script::Symbol(cla).impl();
+    proto.setReturnType(make_type<T>());
+    proto.set({ make_type<T&>().withFlag(script::Type::ThisFlag), make_type<Args>()... });
+  }
+
+
+  const std::string& name() const override
+  {
+    return m_name;
+  }
+
+  bool is_native() const override
+  {
+    return true;
+  }
+
+  void set_body(std::shared_ptr<script::program::Statement>) override
   {
 
+  }
+
+  const script::Prototype& prototype() const override
+  {
+    return proto;
   }
 
   template<std::size_t... Is>
@@ -319,16 +347,43 @@ public:
 };
 
 template<typename R, typename T, typename... Args>
-class ConstMethodWrapper : public script::FunctionBodyInterface
+class ConstMethodWrapper : public script::FunctionImpl
 {
 public:
   R(T::* method)(Args...)const;
+  std::string m_name;
+  script::DynamicPrototype proto;
 
 public:
-  explicit ConstMethodWrapper(R(T::* mem)(Args...)const)
-    : method(mem)
+  explicit ConstMethodWrapper(script::Class& cla, std::string name, R(T::* mem)(Args...)const)
+    : FunctionImpl(cla.engine()),
+      method(mem),
+      m_name(std::move(name))
+  {
+    enclosing_symbol = script::Symbol(cla).impl();
+    proto.setReturnType(make_type<T>());
+    proto.set({ make_type<const T&>().withFlag(script::Type::ThisFlag), make_type<Args>()... });
+  }
+
+
+  const std::string& name() const override
+  {
+    return m_name;
+  }
+
+  bool is_native() const override
+  {
+    return true;
+  }
+
+  void set_body(std::shared_ptr<script::program::Statement>) override
   {
 
+  }
+
+  const script::Prototype& prototype() const override
+  {
+    return proto;
   }
 
   template<std::size_t... Is>

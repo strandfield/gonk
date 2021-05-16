@@ -141,14 +141,14 @@ void test_simple_bindind(script::Engine& e)
   Namespace ns = e.rootNamespace();
 
   {
-    Function f = gonk::bind::function(ns, "guaranteed_random", &guaranteed_random).get();
+    Function f = gonk::bind::function(ns, "guaranteed_random", &guaranteed_random);
     script::Value x = f.invoke({});
     ASSERT(x.isInt());
     ASSERT_EQ(x.toInt(), 6);
   }
 
   {
-    Function f = gonk::bind::function(ns, "assign_random", &assign_random).get();
+    Function f = gonk::bind::function(ns, "assign_random", &assign_random);
     int x = 0;
     script::Value xx = e.expose(x);
     f.invoke({ xx });
@@ -250,7 +250,7 @@ void test_simple_bindind(script::Engine& e)
   }
 
   {
-    Function mem = gonk::bind::method(pt, "get2X", &Point::get2X).get();
+    Function mem = gonk::bind::method(pt, "get2X", &Point::get2X);
     ASSERT(mem.isMemberFunction());
     ASSERT_EQ(mem.memberOf(), pt);
     ASSERT_EQ(mem.name(), "get2X");
