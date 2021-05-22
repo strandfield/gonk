@@ -10,3 +10,6 @@
 [submodule "dependencies/typewriter"]
 	path = dependencies/typewriter
 	url = https://github.com/bandicode/typewriter.git
+[submodule "dependencies/libclang-utils"]
+	path = dependencies/libclang-utils
+	url = https://github.com/bandicode/libclang-utils.git

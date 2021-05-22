@@ -9,6 +9,7 @@
 
 #include "gonk/common/wrappers/function_wrapper.h"
 
+#include <script/class.h>
 #include <script/namespace.h>
 #include <script/functionbuilder.h>
 
@@ -117,6 +118,15 @@ template<typename T, typename...Args>
 script::Function function(script::Namespace& ns, std::string name, T(*fun)(Args...))
 {
   auto impl = std::make_shared<gonk::wrapper::FunctionWrapper<T, Args...>>(script::Symbol{ ns }, std::move(name), fun);
+  script::Function ret{ impl };
+  ns.addFunction(ret);
+  return ret;
+}
+
+template<typename T, typename...Args>
+script::Function function(script::Class& cla, std::string name, T(*fun)(Args...))
+{
+  auto impl = std::make_shared<gonk::wrapper::FunctionWrapper<T, Args...>>(script::Symbol{ cla }, std::move(name), fun);
   script::Function ret{ impl };
   ns.addFunction(ret);
   return ret;
