@@ -8,6 +8,7 @@
 #include "gonk/common/values.h"
 
 #include <script/interpreter/executioncontext.h>
+#include <script/function-impl.h>
 
 namespace gonk
 {
@@ -275,6 +276,136 @@ struct const_void_member_wrapper_t<void(ClassType::*)(A1)const, F> {
     ClassType & ref = value_cast<ClassType&>(c->arg(0));
     ((ref).*(F))(value_cast<A1>(c->arg(1)));
     return script::Value::Void;
+  }
+};
+
+/****************************************************************
+generic member function wrapper
+****************************************************************/
+
+template<typename R, typename T, typename... Args>
+class MethodWrapper : public script::FunctionImpl
+{
+public:
+  R(T::*method)(Args...);
+  std::string m_name;
+  script::DynamicPrototype proto;
+
+public:
+  explicit MethodWrapper(script::Class& cla, std::string name, R(T::* mem)(Args...))
+    : FunctionImpl(cla.engine()),
+      method(mem),
+      m_name(std::move(name))
+  {
+    enclosing_symbol = script::Symbol(cla).impl();
+    proto.setReturnType(make_type<T>());
+    proto.set({ make_type<T&>().withFlag(script::Type::ThisFlag), make_type<Args>()... });
+  }
+
+
+  const std::string& name() const override
+  {
+    return m_name;
+  }
+
+  bool is_native() const override
+  {
+    return true;
+  }
+
+  void set_body(std::shared_ptr<script::program::Statement>) override
+  {
+
+  }
+
+  const script::Prototype& prototype() const override
+  {
+    return proto;
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::false_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    T& ref = value_cast<T&>(c->arg(0));
+    return make_value<R>(((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...));
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::true_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    T& ref = value_cast<T&>(c->arg(0));
+    ((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...);
+    return script::Value::Void;
+  }
+
+  script::Value invoke(script::FunctionCall* c) override
+  {
+    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<T>::value>());
+  }
+};
+
+template<typename R, typename T, typename... Args>
+class ConstMethodWrapper : public script::FunctionImpl
+{
+public:
+  R(T::* method)(Args...)const;
+  std::string m_name;
+  script::DynamicPrototype proto;
+
+public:
+  explicit ConstMethodWrapper(script::Class& cla, std::string name, R(T::* mem)(Args...)const)
+    : FunctionImpl(cla.engine()),
+      method(mem),
+      m_name(std::move(name))
+  {
+    enclosing_symbol = script::Symbol(cla).impl();
+    proto.setReturnType(make_type<T>());
+    proto.set({ make_type<const T&>().withFlag(script::Type::ThisFlag), make_type<Args>()... });
+  }
+
+
+  const std::string& name() const override
+  {
+    return m_name;
+  }
+
+  bool is_native() const override
+  {
+    return true;
+  }
+
+  void set_body(std::shared_ptr<script::program::Statement>) override
+  {
+
+  }
+
+  const script::Prototype& prototype() const override
+  {
+    return proto;
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::false_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    const T& ref = value_cast<T&>(c->arg(0));
+    return make_value<R>(((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...), c->engine());
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::true_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    const T& ref = value_cast<T&>(c->arg(0));
+    ((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...);
+    return script::Value::Void;
+  }
+
+  script::Value invoke(script::FunctionCall* c) override
+  {
+    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<T>::value>());
   }
 };
 

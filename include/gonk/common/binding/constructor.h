@@ -21,27 +21,27 @@ namespace bind
 template<typename T>
 script::ConstructorBuilder default_constructor(script::Class& c)
 {
-  return c.newConstructor(constructor_binder<T>::default_ctor);
+  return script::ConstructorBuilder(c).setCallback(constructor_binder<T>::default_ctor);
 }
 
 template<typename T>
 script::ConstructorBuilder copy_constructor(script::Class& c)
 {
-  return c.newConstructor(constructor_binder<T>::copy_ctor)
+  return script::ConstructorBuilder(c).setCallback(constructor_binder<T>::copy_ctor)
     .params(script::Type::cref(make_type<T>()));
 }
 
 template<typename T, typename... Args>
 script::ConstructorBuilder constructor(script::Class& c)
 {
-  return c.newConstructor(constructor_binder<T>::template generic_ctor<Args...>)
+  return script::ConstructorBuilder(c).setCallback(constructor_binder<T>::template generic_ctor<Args...>)
     .params(make_type<Args>()...);
 }
 
 template<typename T, typename... Args>
 script::ConstructorBuilder custom_constructor(script::Class& c, script::NativeFunctionSignature func)
 {
-  return c.newConstructor(func)
+  return script::ConstructorBuilder(c).setCallback(func)
     .params(make_type<Args>()...);
 }
 

@@ -8,6 +8,11 @@
 #include "gonk/common/values.h"
 
 #include <script/interpreter/executioncontext.h>
+#include <script/function-impl.h>
+
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 namespace gonk
 {
@@ -136,6 +141,66 @@ struct void_function_wrapper_t<void(*)(A1, A2, A3, A4, A5, A6), f> {
   static script::Value wrap(script::FunctionCall *c) {
     f(value_cast<A1>(c->arg(0)), value_cast<A2>(c->arg(1)), value_cast<A3>(c->arg(2)), value_cast<A4>(c->arg(3)), value_cast<A5>(c->arg(4)), value_cast<A6>(c->arg(5)));
     return script::Value::Void;
+  }
+};
+
+template<typename T, typename... Args>
+class FunctionWrapper : public script::FunctionImpl
+{
+public:
+  T(*function)(Args...);
+  std::string m_name;
+  script::DynamicPrototype proto;
+
+public:
+  explicit FunctionWrapper(script::Symbol sym, std::string name, T(*fun)(Args...))
+    : FunctionImpl(sym.engine()),
+      function(fun),
+      m_name(std::move(name))
+  {
+    enclosing_symbol = sym.impl();
+    proto.setReturnType(make_type<T>());
+    proto.set({ make_type<Args>()... });
+  }
+
+  const std::string& name() const override
+  {
+    return m_name;
+  }
+
+  bool is_native() const override
+  {
+    return true;
+  }
+
+  void set_body(std::shared_ptr<script::program::Statement>) override
+  {
+
+  }
+
+  const script::Prototype& prototype() const override
+  {
+    return proto;
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::false_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    return make_value<T>(function(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is))...), c->engine());
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>, std::true_type)
+  {
+    using Tuple = std::tuple<Args...>;
+    function(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is))...);
+    return script::Value::Void;
+  }
+
+  script::Value invoke(script::FunctionCall* c) override
+  {
+    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<T>::value>());
   }
 };
 
