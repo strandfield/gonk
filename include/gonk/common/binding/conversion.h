@@ -22,7 +22,7 @@ namespace bind
 template<typename T, typename Dst>
 void conversion(script::Class& cla)
 {
-  auto builder = cla.newConversion(script::make_type<Dst>(), gonk::wrapper::conversion<T&, Dst>)
+  auto builder = script::CastBuilder(cla).setCallback(gonk::wrapper::conversion<T&, Dst>)
     .returns(script::make_type<Dst>());
 
   if constexpr (std::is_const<T>::value)

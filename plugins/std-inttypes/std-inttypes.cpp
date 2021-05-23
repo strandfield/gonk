@@ -488,7 +488,8 @@ static void register_int_type(script::Namespace& ns, std::string name)
     .returns(gonk::make_type<T&>())
     .create();
 
-  c.newConversion(script::Type::Int, callbacks::operator_int<T>)
+  script::CastBuilder(c).setCallback(callbacks::operator_int<T>)
+    .setReturnType(script::Type::Int)
     .setConst()
     .create();
 
