@@ -295,9 +295,9 @@ static void register_int_type(script::Namespace& ns, std::string name)
 {
   script::Class c = ns.newClass(name).get();
 
-  c.newConstructor(callbacks::ctor_default<T>).create();
+  script::ConstructorBuilder(c).setCallback(callbacks::ctor_default<T>).create();
 
-  c.newConstructor(callbacks::ctor_int<T>)
+  script::ConstructorBuilder(c).setCallback(callbacks::ctor_int<T>)
     .setExplicit()
     .params(gonk::make_type<const int&>()).create();
 

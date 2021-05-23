@@ -247,19 +247,19 @@ static script::Value neq(script::FunctionCall* c)
 void fill_instance(script::Class& c, script::Type t)
 {
   // std::vector();
-  c.newConstructor(callbacks::default_ctor).create();
+  script::ConstructorBuilder(c).setCallback(callbacks::default_ctor).create();
   // std::vector(const std::vector<T>& other);
-  c.newConstructor(callbacks::copy_ctor)
+  script::ConstructorBuilder(c).setCallback(callbacks::copy_ctor)
     .params(script::Type::cref(c.id())).create();
   // ~std::vector();
   script::DestructorBuilder(c).setCallback(callbacks::dtor).create();
 
   // std::vector(int count);
-  c.newConstructor(callbacks::ctor_int)
+  script::ConstructorBuilder(c).setCallback(callbacks::ctor_int)
     .params(script::Type::Int)
     .create();
   // std::vector(int size, const T& value);
-  c.newConstructor(callbacks::ctor_int_T)
+  script::ConstructorBuilder(c).setCallback(callbacks::ctor_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
 
