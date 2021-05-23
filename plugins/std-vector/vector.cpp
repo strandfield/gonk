@@ -264,7 +264,7 @@ void fill_instance(script::Class& c, script::Type t)
     .create();
 
   // std::vector<T> operator=(const std::vector<T>& other);
-  c.newOperator(script::AssignmentOperator, callbacks::op_assign)
+  script::OperatorBuilder(script::Symbol(c), script::AssignmentOperator).setCallback(callbacks::op_assign)
     .returns(script::Type::ref(c.id()))
     .params(script::Type::cref(c.id()))
     .create();
@@ -281,7 +281,7 @@ void fill_instance(script::Class& c, script::Type t)
     .setConst()
     .create();
   // T& operator[](int index);
-  c.newOperator(script::SubscriptOperator, callbacks::op_subscript)
+  script::OperatorBuilder(script::Symbol(c), script::SubscriptOperator).setCallback(callbacks::op_subscript)
     .returns(script::Type::ref(t))
     .params(script::Type::Int)
     .create();
@@ -355,13 +355,13 @@ void fill_instance(script::Class& c, script::Type t)
     .create();
 
   // bool operator==(const std::vector<T>& other) const;
-  c.newOperator(script::EqualOperator, callbacks::eq)
+  script::OperatorBuilder(script::Symbol(c), script::EqualOperator).setCallback(callbacks::eq)
     .params(script::Type::cref(c.id()))
     .setConst()
     .create();
 
   // bool operator!=(const std::vector<T>& other) const;
-  c.newOperator(script::InequalOperator, callbacks::neq)
+  script::OperatorBuilder(script::Symbol(c), script::InequalOperator).setCallback(callbacks::neq)
     .params(script::Type::cref(c.id()))
     .setConst()
     .create();
