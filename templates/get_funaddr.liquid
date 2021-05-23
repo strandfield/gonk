@@ -1,9 +1,0 @@
-{% assign fn = include.function %}
-{% if fn.implementation %}
-    {% assign funaddr = fn.implementation %}
-{% elsif fn.genwrapper %}
-    {% assign funaddr = fn | mangled_name %}
-{% else %}
-    {% assign funaddr = fn | qualified_name %}
-{% endif %}
-{% assign funaddr = '&' + funaddr parent_scope %}

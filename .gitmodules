@@ -1,12 +1,6 @@
 [submodule "dependencies/libscript"]
 	path = dependencies/libscript
 	url = https://github.com/bandicode/libscript.git
-[submodule "dependencies/cxxast"]
-	path = dependencies/cxxast
-	url = https://github.com/bandicode/cxxast.git
-[submodule "dependencies/liquid"]
-	path = dependencies/liquid
-	url = https://github.com/bandicode/liquid.git
 [submodule "dependencies/typewriter"]
 	path = dependencies/typewriter
 	url = https://github.com/bandicode/typewriter.git

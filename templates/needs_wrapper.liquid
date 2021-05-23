@@ -1,6 +1,0 @@
-{% assign fn = include.function %}
-{% if fn.genwrapper %}
-  {% assign function_needs_wrapper = true parent_scope %}
-{% else %}
-  {% assign function_needs_wrapper = false parent_scope %}
-{%endif %}
