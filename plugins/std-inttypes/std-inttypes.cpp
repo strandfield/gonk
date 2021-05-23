@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2021 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -492,7 +492,7 @@ static void register_int_type(script::Namespace& ns, std::string name)
     .setConst()
     .create();
 
-  c.newMethod("__gonk_repr__", callbacks::to_string<T>)
+  script::FunctionBuilder(c, "__gonk_repr__").setCallback(callbacks::to_string<T>)
     .setConst()
     .returns(script::Type::String)
     .create();

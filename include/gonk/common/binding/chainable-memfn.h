@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2021 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -23,7 +23,7 @@ namespace bind
 template<typename T, typename A1, T&(T::*F)(A1)>
 script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
     .returns(script::Type::ref(make_type<T>()))
     .params(make_type<A1>());
 }
@@ -31,7 +31,7 @@ script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 template<typename T, typename A1, typename A2, T&(T::*F)(A1, A2)>
 script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
     .returns(script::Type::ref(make_type<T>()))
     .params(make_type<A1>(), make_type<A2>());
 }
@@ -39,7 +39,7 @@ script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 template<typename T, typename A1, typename A2, typename A3, T&(T::*F)(A1, A2, A3)>
 script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
     .returns(script::Type::ref(make_type<T>()))
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>());
 }
@@ -47,7 +47,7 @@ script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 template<typename T, typename A1, typename A2, typename A3, typename A4, T&(T::*F)(A1, A2, A3, A4)>
 script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
     .returns(script::Type::ref(make_type<T>()))
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>());
 }
@@ -55,7 +55,7 @@ script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, T&(T::*F)(A1, A2, A3, A4, A5)>
 script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
     .returns(script::Type::ref(make_type<T>()))
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>());
 }
@@ -63,7 +63,7 @@ script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, T&(T::*F)(A1, A2, A3, A4, A5, A6)>
 script::FunctionBuilder chainable_memfn(script::Class& cla, std::string && name)
 {
-  return cla.newMethod(std::move(name), wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::chainable_member_wrapper_t<decltype(F), F>::wrap)
     .returns(script::Type::ref(make_type<T>()))
     .params(make_type<A1>(), make_type<A2>(), make_type<A3>(), make_type<A4>(), make_type<A5>(), make_type<A6>());
 }

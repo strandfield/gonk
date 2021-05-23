@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2021 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -268,13 +268,14 @@ void fill_instance(script::Class& c, script::Type t)
     .returns(script::Type::ref(c.id()))
     .params(script::Type::cref(c.id()))
     .create();
+
   // void assign(int count, const T& value);
-  c.newMethod("assign", callbacks::assign_int_T)
+  script::FunctionBuilder(c, "assign").setCallback(callbacks::assign_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
 
   // T at(int index) const;
-  c.newMethod("at", callbacks::at_int)
+  script::FunctionBuilder(c, "at").setCallback(callbacks::at_int)
     .returns(t)
     .params(script::Type::Int)
     .setConst()
@@ -285,71 +286,71 @@ void fill_instance(script::Class& c, script::Type t)
     .params(script::Type::Int)
     .create();
   // T front() const;
-  c.newMethod("front", callbacks::front_const)
+  script::FunctionBuilder(c, "front").setCallback(callbacks::front_const)
     .returns(t)
     .setConst()
     .create();
   // T& front();
-  c.newMethod("front", callbacks::front)
+  script::FunctionBuilder(c, "front").setCallback(callbacks::front)
     .returns(script::Type::ref(t))
     .create();
   // T back() const;
-  c.newMethod("back", callbacks::back_const)
+  script::FunctionBuilder(c, "back").setCallback(callbacks::back_const)
     .returns(t)
     .setConst()
     .create();
   // T& back();
-  c.newMethod("back", callbacks::back)
+  script::FunctionBuilder(c, "back").setCallback(callbacks::back)
     .returns(script::Type::ref(t))
     .create();
 
   // bool empty() const;
-  c.newMethod("empty", callbacks::empty)
+  script::FunctionBuilder(c, "empty").setCallback(callbacks::empty)
     .returns(script::Type::Boolean)
     .setConst()
     .create();
   // int size() const;
-  c.newMethod("size", callbacks::size)
+  script::FunctionBuilder(c, "size").setCallback(callbacks::size)
     .returns(script::Type::Int)
     .setConst()
     .create();
   // void reserve(int capacity);
-  c.newMethod("reserve", callbacks::reserve)
+  script::FunctionBuilder(c, "reserve").setCallback(callbacks::reserve)
     .params(script::Type::Int)
     .create();
   // int capacity() const;
-  c.newMethod("capacity", callbacks::capacity)
+  script::FunctionBuilder(c, "capacity").setCallback(callbacks::capacity)
     .returns(script::Type::Int)
     .setConst()
     .create();
   // void shrink_to_fit();
-  c.newMethod("shrink_to_fit", callbacks::shrink_to_fit)
+  script::FunctionBuilder(c, "shrink_to_fit").setCallback(callbacks::shrink_to_fit)
     .create();
 
   // void clear();
-  c.newMethod("clear", callbacks::clear)
+  script::FunctionBuilder(c, "clear").setCallback(callbacks::clear)
     .create();
   // void insert(int index, const T& value);
-  c.newMethod("insert", callbacks::insert_int_T)
+  script::FunctionBuilder(c, "insert").setCallback(callbacks::insert_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
   // void erase(int index);
-  c.newMethod("erase", callbacks::erase_int)
+  script::FunctionBuilder(c, "erase").setCallback(callbacks::erase_int)
     .params(script::Type::Int)
     .create();
   // void push_back(const T& value);
-  c.newMethod("push_back", callbacks::push_back)
+  script::FunctionBuilder(c, "push_back").setCallback(callbacks::push_back)
     .params(script::Type::cref(t))
     .create();
   // void pop_back();
-  c.newMethod("pop_back", callbacks::pop_back)
+  script::FunctionBuilder(c, "pop_back").setCallback(callbacks::pop_back)
     .create();
   // void resize(int size);
-  c.newMethod("resize", callbacks::resize_int)
+  script::FunctionBuilder(c, "resize").setCallback(callbacks::resize_int)
     .params(script::Type::Int)
     .create();
   // void resize(int size, const T& value);
-  c.newMethod("resize", callbacks::resize_int_T)
+  script::FunctionBuilder(c, "resize").setCallback(callbacks::resize_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
 
