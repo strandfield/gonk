@@ -21,7 +21,7 @@ namespace bind
 template<typename T>
 script::DestructorBuilder destructor(script::Class& c)
 {
-  return c.newDestructor(destructor_binder<T>::destructor);
+  return script::DestructorBuilder(c).setCallback(destructor_binder<T>::destructor);
 }
 
 } // namespace bind

@@ -252,7 +252,7 @@ void fill_instance(script::Class& c, script::Type t)
   c.newConstructor(callbacks::copy_ctor)
     .params(script::Type::cref(c.id())).create();
   // ~std::vector();
-  c.newDestructor(callbacks::dtor).create();
+  script::DestructorBuilder(c).setCallback(callbacks::dtor).create();
 
   // std::vector(int count);
   c.newConstructor(callbacks::ctor_int)
