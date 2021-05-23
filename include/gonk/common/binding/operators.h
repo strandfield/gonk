@@ -25,7 +25,7 @@ namespace bind
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_add(script::Namespace & ns)
 {
-  return ns.newOperator(script::AdditionOperator).setCallback(wrapper::add_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::AdditionOperator).setCallback(wrapper::add_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -34,7 +34,7 @@ script::Function op_add(script::Namespace & ns)
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_sub(script::Namespace & ns)
 {
-  return ns.newOperator(script::SubstractionOperator).setCallback(wrapper::sub_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::SubstractionOperator).setCallback(wrapper::sub_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -43,7 +43,7 @@ script::Function op_sub(script::Namespace & ns)
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_mul(script::Namespace & ns)
 {
-  return ns.newOperator(script::MultiplicationOperator).setCallback(wrapper::mul_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::MultiplicationOperator).setCallback(wrapper::mul_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -52,7 +52,7 @@ script::Function op_mul(script::Namespace & ns)
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_div(script::Namespace & ns)
 {
-  return ns.newOperator(script::DivisionOperator).setCallback(wrapper::div_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::DivisionOperator).setCallback(wrapper::div_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -61,7 +61,7 @@ script::Function op_div(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_eq(script::Namespace & ns)
 {
-  return ns.newOperator(script::EqualOperator).setCallback(wrapper::eq_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::EqualOperator).setCallback(wrapper::eq_wrapper<LHS, RHS>)
     .returns(script::Type::Boolean)
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -70,7 +70,7 @@ script::Function op_eq(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_neq(script::Namespace & ns)
 {
-  return ns.newOperator(script::InequalOperator).setCallback(wrapper::neq_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::InequalOperator).setCallback(wrapper::neq_wrapper<LHS, RHS>)
     .returns(script::Type::Boolean)
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -79,7 +79,7 @@ script::Function op_neq(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_less(script::Namespace & ns)
 {
-  return ns.newOperator(script::LessOperator).setCallback(wrapper::less_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::LessOperator).setCallback(wrapper::less_wrapper<LHS, RHS>)
     .returns(script::Type::Boolean)
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -88,7 +88,7 @@ script::Function op_less(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_leq(script::Namespace & ns)
 {
-  return ns.newOperator(script::LessEqualOperator).setCallback(wrapper::leq_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::LessEqualOperator).setCallback(wrapper::leq_wrapper<LHS, RHS>)
     .returns(script::Type::Boolean)
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -97,7 +97,7 @@ script::Function op_leq(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_greater(script::Namespace & ns)
 {
-  return ns.newOperator(script::GreaterOperator).setCallback(wrapper::greater_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::GreaterOperator).setCallback(wrapper::greater_wrapper<LHS, RHS>)
     .returns(script::Type::Boolean)
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -106,7 +106,7 @@ script::Function op_greater(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_geq(script::Namespace & ns)
 {
-  return ns.newOperator(script::GreaterEqualOperator).setCallback(wrapper::geq_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::GreaterEqualOperator).setCallback(wrapper::geq_wrapper<LHS, RHS>)
     .returns(script::Type::Boolean)
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -115,7 +115,7 @@ script::Function op_geq(script::Namespace & ns)
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_lshift(script::Namespace & ns)
 {
-  return ns.newOperator(script::LeftShiftOperator).setCallback(wrapper::left_shift_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::LeftShiftOperator).setCallback(wrapper::left_shift_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -124,7 +124,7 @@ script::Function op_lshift(script::Namespace & ns)
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_rshift(script::Namespace & ns)
 {
-  return ns.newOperator(script::RightShiftOperator).setCallback(wrapper::right_shift_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::RightShiftOperator).setCallback(wrapper::right_shift_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -133,7 +133,7 @@ script::Function op_rshift(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_put_to(script::Namespace & ns)
 {
-  return ns.newOperator(script::LeftShiftOperator).setCallback(wrapper::put_to_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::LeftShiftOperator).setCallback(wrapper::put_to_wrapper<LHS, RHS>)
     .returns(make_type<LHS>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -142,7 +142,7 @@ script::Function op_put_to(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_read_from(script::Namespace & ns)
 {
-  return ns.newOperator(script::RightShiftOperator).setCallback(wrapper::read_from_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::RightShiftOperator).setCallback(wrapper::read_from_wrapper<LHS, RHS>)
     .returns(make_type<LHS>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -151,7 +151,7 @@ script::Function op_read_from(script::Namespace & ns)
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_bitor(script::Namespace & ns)
 {
-  return ns.newOperator(script::BitwiseOrOperator).setCallback(wrapper::or_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::BitwiseOrOperator).setCallback(wrapper::or_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -160,7 +160,7 @@ script::Function op_bitor(script::Namespace & ns)
 template<typename ReturnType, typename LHS, typename RHS>
 script::Function op_bitand(script::Namespace & ns)
 {
-  return ns.newOperator(script::BitwiseAndOperator).setCallback(wrapper::and_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::BitwiseAndOperator).setCallback(wrapper::and_wrapper<LHS, RHS>)
     .returns(make_type<ReturnType>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -169,7 +169,7 @@ script::Function op_bitand(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_or_assign(script::Namespace & ns)
 {
-  return ns.newOperator(script::BitwiseOrAssignmentOperator).setCallback(wrapper::or_assign_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::BitwiseOrAssignmentOperator).setCallback(wrapper::or_assign_wrapper<LHS, RHS>)
     .returns(make_type<LHS&>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -178,7 +178,7 @@ script::Function op_or_assign(script::Namespace & ns)
 template<typename LHS, typename RHS>
 script::Function op_and_assign(script::Namespace & ns)
 {
-  return ns.newOperator(script::BitwiseAndAssignmentOperator).setCallback(wrapper::and_assign_wrapper<LHS, RHS>)
+  return script::OperatorBuilder(script::Symbol(ns), script::BitwiseAndAssignmentOperator).setCallback(wrapper::and_assign_wrapper<LHS, RHS>)
     .returns(make_type<LHS&>())
     .params(make_type<LHS>(), make_type<RHS>())
     .get();
@@ -187,7 +187,7 @@ script::Function op_and_assign(script::Namespace & ns)
 template<typename ReturnType, typename Arg>
 script::Function op_unary_plus(script::Namespace & ns)
 {
-  return ns.newOperator(script::UnaryPlusOperator).setCallback(wrapper::unary_plus_wrapper<Arg>)
+  return script::OperatorBuilder(script::Symbol(ns), script::UnaryPlusOperator).setCallback(wrapper::unary_plus_wrapper<Arg>)
     .returns(make_type<ReturnType>())
     .params(make_type<Arg>())
     .get();
@@ -196,7 +196,7 @@ script::Function op_unary_plus(script::Namespace & ns)
 template<typename ReturnType, typename Arg>
 script::Function op_unary_minus(script::Namespace & ns)
 {
-  return ns.newOperator(script::UnaryMinusOperator).setCallback(wrapper::unary_minus_wrapper<Arg>)
+  return script::OperatorBuilder(script::Symbol(ns), script::UnaryMinusOperator).setCallback(wrapper::unary_minus_wrapper<Arg>)
     .returns(make_type<ReturnType>())
     .params(make_type<Arg>())
     .get();
