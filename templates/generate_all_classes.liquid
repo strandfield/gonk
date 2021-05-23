@@ -1,4 +1,0 @@
-{% for c in include.classes %}
-{% assign current_class = project | get_symbol: c %}
-{% include generate_class with class = current_class and recursive = true %}
-{% endfor %}
