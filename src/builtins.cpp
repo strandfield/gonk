@@ -65,22 +65,22 @@ script::Value raise(script::FunctionCall* c)
 
 void register_builtins(script::Namespace& ns)
 {
-  ns.newFunction("print", callbacks::print_int)
+  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_int)
     .params(script::Type::Int).create();
 
-  ns.newFunction("print", callbacks::print_bool)
+  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_bool)
     .params(script::Type::Boolean).create();
 
-  ns.newFunction("print", callbacks::print_double)
+  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_double)
     .params(script::Type::Double).create();
 
-  ns.newFunction("print", callbacks::print_string)
+  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_string)
     .params(script::Type::cref(script::Type::String)).create();
 
-  ns.newFunction("assert", callbacks::gnk_assert)
+  script::FunctionBuilder(ns, "assert").setCallback(callbacks::gnk_assert)
     .params(script::Type::Boolean).create();
 
-  ns.newFunction("raise", callbacks::raise)
+  script::FunctionBuilder(ns, "raise").setCallback(callbacks::raise)
     .params(script::Type::cref(script::Type::String)).create();
 
   gonk::register_pointer_template(ns);
