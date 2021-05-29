@@ -7,9 +7,9 @@
 
 #include <QPlainTextEdit>
 
-#include <QPixmap>
-
 #include <debugger/message.h>
+
+#include <QPixmap>
 
 class Controller;
 class SyntaxHighlighter;
@@ -51,13 +51,14 @@ protected:
   friend class LineNumberArea;
   void lineNumberAreaPaintEvent(QPaintEvent* ev);
   void lineNumberAreaMousePress(QMouseEvent* ev);
+  int columnWidth() const;
   int lineNumberAreaWidth();
 
   void updateLineNumberAreaWidth(int newBlockCount);
   void updateLineNumberArea(const QRect& rect, int dy);
 
   bool find_marker(int line, std::vector<Marker>::const_iterator& it) const;
-  void drawMarkers(QPainter& painter, QPoint pt, int markers);
+  void drawMarkers(QPainter& painter, QRect rect, int markers);
 
 private:
   Controller& m_controller;
@@ -67,8 +68,8 @@ private:
   std::vector<Marker> m_markers;
   int m_charwidth = -1;
   int m_lineheight = -1;
-  QPixmap m_breakpoint_icon;
-  QPixmap m_breakpos_icon;
+  QPixmap m_breakpoint_pixmap;
+  QPixmap m_cursor_pixmap;
 };
 
 class LineNumberArea : public QWidget

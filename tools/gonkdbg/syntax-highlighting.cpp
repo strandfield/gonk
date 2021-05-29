@@ -711,7 +711,7 @@ SyntaxHighlighter::SyntaxHighlighter(QTextDocument* doc)
   m_formats.resize(Comment + 1);
 
   QTextCharFormat fmt;
-  fmt.setFont(document()->defaultFont());
+  //fmt.setFont(document()->defaultFont());
 
   fmt.setForeground(QColor("#808000"));
   initFormat(Format::Keyword, fmt);

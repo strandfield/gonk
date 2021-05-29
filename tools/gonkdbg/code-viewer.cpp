@@ -7,9 +7,9 @@
 #include "syntax-highlighting.h"
 
 #include <QPainter>
+#include <QPainterPath>
 
 #include <QDebug>
-
 
 CodeViewer::CodeViewer(Controller& con, QWidget* parent)
   : QPlainTextEdit(parent),
@@ -25,9 +25,6 @@ CodeViewer::CodeViewer(Controller& con, QWidget* parent)
   m_charwidth = metrics.width('M');
   m_lineheight = metrics.height();
 
-  m_breakpoint_icon = QPixmap(":/debug-breakpoint.png");
-  m_breakpos_icon = QPixmap(":/debug-position.png");
-
   m_highlighter = new SyntaxHighlighter(document());
 
   {
@@ -38,6 +35,9 @@ CodeViewer::CodeViewer(Controller& con, QWidget* parent)
 
     updateLineNumberAreaWidth(0);
   }
+
+  m_breakpoint_pixmap = QPixmap(":/breakpoint.png");
+  m_cursor_pixmap = QPixmap(":/cursor.png");
 }
 
 void CodeViewer::setSource(std::shared_ptr<gonk::debugger::SourceCode> src)
@@ -132,10 +132,10 @@ void CodeViewer::lineNumberAreaPaintEvent(QPaintEvent* ev)
     if (block.isVisible() && bottom >= ev->rect().top()) 
     {
       if (find_marker(blockNumber, marker_it))
-        drawMarkers(painter, QPoint(0, top), marker_it->markers);
+        drawMarkers(painter, QRect(QPoint(3, top), QSize(bottom-top, bottom-top)), marker_it->markers);
 
       QString number = QString::number(blockNumber + 1);
-      painter.drawText(0, top, m_linenumberarea->width(), metrics.height(),Qt::AlignRight, number);
+      painter.drawText(0, top, m_linenumberarea->width(), metrics.height(), Qt::AlignRight, number);
     }
 
     block = block.next();
@@ -166,6 +166,11 @@ void CodeViewer::lineNumberAreaMousePress(QMouseEvent* ev)
   }
 }
 
+int CodeViewer::columnWidth() const
+{
+  return QFontMetrics(document()->defaultFont()).horizontalAdvance(QLatin1Char('9'));
+}
+
 int CodeViewer::lineNumberAreaWidth()
 {
   int digits = 1;
@@ -177,7 +182,7 @@ int CodeViewer::lineNumberAreaWidth()
     ++digits;
   }
 
-  int space = 3 + QFontMetrics(document()->defaultFont()).horizontalAdvance(QLatin1Char('9')) * (digits + 1);
+  int space = 3 + QFontMetrics(document()->defaultFont()).height() + columnWidth() * digits;
   return space;
 }
 
@@ -208,18 +213,20 @@ bool CodeViewer::find_marker(int line, std::vector<Marker>::const_iterator& it) 
   return it != m_markers.end() && it->line == line;
 }
 
-void CodeViewer::drawMarkers(QPainter& painter, QPoint pt, int markers)
+void CodeViewer::drawMarkers(QPainter& painter, QRect rect, int markers)
 {
+  painter.setRenderHint(QPainter::Antialiasing);
+
+  rect = QRect(rect.topLeft() + QPoint(0, rect.height() - rect.width()) / 2, QSize(rect.width(), rect.width()));
+
   if (markers & static_cast<int>(MarkerType::BreakpointMarker))
   {
-    painter.setBrush(QBrush(Qt::red));
-    painter.drawEllipse(QRect(pt, QSize(m_charwidth, m_lineheight)));
+    painter.drawPixmap(rect, m_breakpoint_pixmap.scaled(rect.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
   }
 
   if (markers & static_cast<int>(MarkerType::BreakpositionMarker))
   {
-    painter.setBrush(QBrush(Qt::yellow));
-    painter.drawEllipse(QRect(pt, QSize(m_charwidth, m_lineheight)));
+    painter.drawPixmap(rect, m_cursor_pixmap.scaled(rect.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
   }
 }
 
