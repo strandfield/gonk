@@ -9,12 +9,11 @@
 
 #include <debugger/client.h>
 
-#include <typewriter/../../widget/codeeditor.h>
-
 #include <QSettings>
 
 class BreakpointsView;
 class CallstackView;
+class CodeViewer;
 class Controller;
 class VariablesView;
 
@@ -50,7 +49,7 @@ protected:
 private:
   QSettings *m_settings = nullptr;
   Controller* m_controller = nullptr;
-  typewriter::QTypewriter* m_editor = nullptr;
+  CodeViewer* m_editor = nullptr;
   std::string m_source_path;
   CallstackView* m_callstack = nullptr;
   BreakpointsView* m_breakpoints = nullptr;

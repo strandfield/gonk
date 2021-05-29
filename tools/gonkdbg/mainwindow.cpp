@@ -6,8 +6,8 @@
 
 #include "breakpointsview.h"
 #include "callstackview.h"
+#include "code-viewer.h"
 #include "controller.h"
-#include "syntaxhighlighter.h"
 #include "variablesview.h"
 
 #include <QAction>
@@ -31,25 +31,16 @@ MainWindow::MainWindow(int& argc, char** argv)
 {
   m_settings = new QSettings("settings.ini", QSettings::IniFormat, this);
 
+  m_controller = new Controller(argc, argv, this);
+
   const char* source =
     "/* source code will appear here once the debugger has been reached */";
 
-  m_editor = new typewriter::QTypewriter(new typewriter::TextDocument(source));
+  m_editor = new CodeViewer(*m_controller);
 
-  // @TODO: rework these formats & GonkSyntaxHighlighter
-  typewriter::TextFormat fmt = m_editor->defaultFormat();
-  fmt.text_color = QColor(Qt::darkYellow);
-  m_editor->setTextFormat(GonkSyntaxHighlighter::Keyword, fmt);
-  fmt.text_color = QColor(Qt::blue);
-  m_editor->setTextFormat(GonkSyntaxHighlighter::Literal, fmt);
-  fmt.text_color = QColor(Qt::darkGreen);
-  m_editor->setTextFormat(GonkSyntaxHighlighter::Identifier, fmt);
-
-  connect(m_editor->gutter(), &typewriter::QTypewriterGutter::clicked, this, &MainWindow::onGutterLineClicked);
+  connect(m_editor, &CodeViewer::gutterLineClicked, this, &MainWindow::onGutterLineClicked);
 
   setCentralWidget(m_editor);
-
-  m_controller = new Controller(argc, argv, this);
 
   connect(&(m_controller->client()), &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
   connect(&(m_controller->client()), &gonk::debugger::Client::stateChanged, this, &MainWindow::onDebuggerStateChanged);
@@ -212,13 +203,7 @@ void MainWindow::setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src)
   if (m_source_path == src->path)
     return;
 
-  typewriter::TextCursor cursor{ m_editor->document() };
-  cursor.setPosition(typewriter::Position{ m_editor->document()->lineCount() + 1, 0 }, typewriter::TextCursor::KeepAnchor);
-  cursor.removeSelectedText();
-  cursor.insertText(src->source);
-
-  GonkSyntaxHighlighter highlighter{ m_editor->view() };
-  highlighter.highlight(src);
+  m_editor->setSource(src);
 
   m_source_path = src->path;
 
@@ -267,7 +252,7 @@ void MainWindow::onReadyReadStandardError()
 
 void MainWindow::updateMarkers()
 {
-  m_editor->gutter()->clearMarkers();
+  m_editor->clearMarkers();
 
   auto callstack = m_controller->lastCallstackMessage();
 
@@ -279,7 +264,7 @@ void MainWindow::updateMarkers()
 
     std::shared_ptr<gonk::debugger::SourceCode> src = m_controller->getSource(callstack_top.path);
 
-    m_editor->gutter()->addMarker(callstack_top.line, typewriter::MarkerType::Breakposition);
+    m_editor->addMarker(callstack_top.line, CodeViewer::BreakpositionMarker);
   }
 
   auto breakpoints = m_controller->lastBreakpointListMessage();
@@ -290,7 +275,7 @@ void MainWindow::updateMarkers()
     {
       if (bp.script_path == m_source_path)
       {
-        m_editor->gutter()->addMarker(bp.line, typewriter::MarkerType::Breakpoint);
+        m_editor->addMarker(bp.line, CodeViewer::BreakpointMarker);
       }
     }
   }
