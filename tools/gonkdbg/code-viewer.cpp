@@ -4,6 +4,7 @@
 
 #include "code-viewer.h"
 
+#include "controller.h"
 #include "syntax-highlighting.h"
 
 #include <QPainter>
@@ -11,9 +12,10 @@
 
 #include <QDebug>
 
-CodeViewer::CodeViewer(Controller& con, QWidget* parent)
+CodeViewer::CodeViewer(Controller& con, std::shared_ptr<gonk::debugger::SourceCode> src, QWidget* parent)
   : QPlainTextEdit(parent),
-    m_controller(con)
+    m_controller(con),
+    m_source(src)
 {
   setReadOnly(true);
 
@@ -38,34 +40,18 @@ CodeViewer::CodeViewer(Controller& con, QWidget* parent)
 
   m_breakpoint_pixmap = QPixmap(":/breakpoint.png");
   m_cursor_pixmap = QPixmap(":/cursor.png");
-}
-
-void CodeViewer::setSource(std::shared_ptr<gonk::debugger::SourceCode> src)
-{
-  m_source = src;
 
   QTextCursor cursor{ document() };
-  cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
-  cursor.removeSelectedText();
   cursor.insertText(QString::fromStdString(src->source));
-}
 
-void CodeViewer::loadDocument(const QString& path)
-{
-  if (documentPath() != path)
-  {
-    QFile file{ path };
+  document()->setMetaInformation(QTextDocument::MetaInformation::DocumentUrl, QString::fromStdString(src->path));
 
-    if (file.open(QIODevice::ReadOnly))
-    {
-      QByteArray data = file.readAll();
+  connect(&m_controller, &Controller::currentFrameChanged, this, &CodeViewer::updateMarkers);
+  connect(&m_controller, &Controller::callstackUpdated, this, &CodeViewer::updateMarkers);
+  connect(&m_controller, &Controller::breakpointsUpdated, this, &CodeViewer::updateMarkers);
+  connect(&(m_controller.client()), &gonk::debugger::Client::stateChanged, this, &CodeViewer::updateMarkers);
 
-      QTextCursor cursor{ document() };
-      cursor.insertText(QString::fromUtf8(data));
-
-      document()->setMetaInformation(QTextDocument::MetaInformation::DocumentUrl, path);
-    }
-  }
+  updateMarkers();
 }
 
 QString CodeViewer::documentPath() const
@@ -101,6 +87,56 @@ void CodeViewer::addMarker(int line, MarkerType m)
     it->markers |= static_cast<int>(m);
     m_linenumberarea->update();
   }
+}
+
+void CodeViewer::updateMarkers()
+{
+  clearMarkers();
+
+  auto callstack = m_controller.lastCallstackMessage();
+
+  if (callstack != nullptr)
+  {
+    const auto& callstack_top = [&]() -> const gonk::debugger::CallstackEntry& {
+      return m_controller.currentFrame() == -1 ? callstack->entries.back() : callstack->entries.at(m_controller.currentFrame());
+    }();
+
+    std::shared_ptr<gonk::debugger::SourceCode> src = m_controller.getSource(callstack_top.path);
+
+    if (src == m_source)
+    {
+      addMarker(callstack_top.line, CodeViewer::BreakpositionMarker);
+    }
+  }
+
+  auto breakpoints = m_controller.lastBreakpointListMessage();
+
+  if (breakpoints)
+  {
+    std::string my_path = documentPath().toStdString();
+
+    for (const gonk::debugger::BreakpointData& bp : breakpoints->list)
+    {
+      if (bp.script_path == my_path)
+      {
+        addMarker(bp.line, CodeViewer::BreakpointMarker);
+      }
+    }
+  }
+}
+
+void CodeViewer::toggleBreakpoint(int line)
+{
+  if (m_controller.hasBreakpoint(documentPath().toStdString(), line))
+  {
+    m_controller.client().removeBreakpoint(documentPath().toStdString(), line);
+  }
+  else
+  {
+    m_controller.client().addBreakpoint(documentPath().toStdString(), line);
+  }
+
+  m_controller.client().getBreakpoints();
 }
 
 void CodeViewer::resizeEvent(QResizeEvent* ev)
@@ -162,7 +198,7 @@ void CodeViewer::lineNumberAreaMousePress(QMouseEvent* ev)
 
   if (block.isValid())
   {
-    Q_EMIT gutterLineClicked(blockNumber);
+    toggleBreakpoint(blockNumber);
   }
 }
 

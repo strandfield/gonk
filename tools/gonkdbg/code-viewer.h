@@ -19,7 +19,7 @@ class CodeViewer : public QPlainTextEdit
 {
   Q_OBJECT
 public:
-  explicit CodeViewer(Controller& con, QWidget* parent = nullptr);
+  explicit CodeViewer(Controller& con, std::shared_ptr<gonk::debugger::SourceCode> src, QWidget* parent = nullptr);
 
   enum MarkerType
   {
@@ -33,16 +33,13 @@ public:
     int markers = 0;
   };
 
-  void setSource(std::shared_ptr<gonk::debugger::SourceCode> src);
-
-  void loadDocument(const QString& path);
   QString documentPath() const;
 
   void clearMarkers();
   void addMarker(int line, MarkerType m);
+  void updateMarkers();
 
-Q_SIGNALS:
-  void gutterLineClicked(int line);
+  void toggleBreakpoint(int line);
 
 protected:
   void resizeEvent(QResizeEvent* ev) override;

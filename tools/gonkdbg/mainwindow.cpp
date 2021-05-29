@@ -21,8 +21,10 @@
 #include <QProcess>
 #include <QSettings>
 #include <QStatusBar>
+#include <QTabWidget>
 
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 
 #include <QDebug>
@@ -33,19 +35,15 @@ MainWindow::MainWindow(int& argc, char** argv)
 
   m_controller = new Controller(argc, argv, this);
 
-  const char* source =
-    "/* source code will appear here once the debugger has been reached */";
+  m_tabs = new QTabWidget;
+  m_tabs->setTabsClosable(false);
+  m_tabs->setMovable(true);
 
-  m_editor = new CodeViewer(*m_controller);
-
-  connect(m_editor, &CodeViewer::gutterLineClicked, this, &MainWindow::onGutterLineClicked);
-
-  setCentralWidget(m_editor);
+  setCentralWidget(m_tabs);
 
   connect(&(m_controller->client()), &gonk::debugger::Client::connectionEstablished, this, &MainWindow::onSocketConnected);
   connect(&(m_controller->client()), &gonk::debugger::Client::stateChanged, this, &MainWindow::onDebuggerStateChanged);
   connect(m_controller, &Controller::callstackUpdated, this, &MainWindow::onCallstackUpdated);
-  connect(m_controller, &Controller::breakpointsUpdated, this, &MainWindow::onBreakpointsUpdated);
 
   {
     m_variables = new VariablesView(*m_controller);
@@ -163,8 +161,6 @@ void MainWindow::onDebuggerStateChanged()
   // @TODO: Not the best place to do that, but that will do... for now!
   m_callstack->setEnabled(s == gonk::debugger::Client::DebuggerPaused);
   m_variables->setEnabled(s == gonk::debugger::Client::DebuggerPaused);
-
-  updateMarkers();
 }
 
 void MainWindow::onCallstackUpdated()
@@ -179,56 +175,48 @@ void MainWindow::onCallstackUpdated()
 
   if (src)
   {
-    setSourceCode(src);
-
-    updateMarkers();
+    setCurrentSourceCode(src);
   }
   else
   {
-    connect(m_controller, &Controller::sourceCodeReceived, this, &MainWindow::setSourceCode);
+    connect(m_controller, &Controller::sourceCodeReceived, this, &MainWindow::setCurrentSourceCode);
     m_controller->client().getSource(callstack_top.path);
   }
 }
 
-void MainWindow::onBreakpointsUpdated()
-{
-  updateMarkers();
-}
-
-void MainWindow::setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src)
+void MainWindow::setCurrentSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src)
 {
   if (sender() != nullptr)
-    disconnect(m_controller, &Controller::sourceCodeReceived, this, &MainWindow::setSourceCode);
+    disconnect(m_controller, &Controller::sourceCodeReceived, this, &MainWindow::setCurrentSourceCode);
 
-  if (m_source_path == src->path)
+  int index = [&, this]() -> int {
+
+    for (int i(0); i < m_tabs->count(); ++i)
+    {
+      CodeViewer* viewer = qobject_cast<CodeViewer*>(m_tabs->widget(i));
+      
+      if (viewer && viewer->documentPath() == QString::fromStdString(src->path))
+        return i;
+    }
+
+    return -1;
+  }();
+
+  if (index != -1)
+  {
+    m_tabs->setCurrentIndex(index);
     return;
-
-  m_editor->setSource(src);
-
-  m_source_path = src->path;
-
-  updateMarkers();
-}
-
-void MainWindow::onGutterLineClicked(int line)
-{
-  if (m_controller->hasBreakpoint(m_source_path, line))
-  {
-    m_controller->client().removeBreakpoint(m_source_path, line);
-  }
-  else
-  {
-    m_controller->client().addBreakpoint(m_source_path, line);
   }
 
-  m_controller->client().getBreakpoints();
+  QFileInfo info{ QString::fromStdString(src->path) };
+
+  CodeViewer* codeview = new CodeViewer(*m_controller, src);
+  m_tabs->addTab(codeview, info.fileName());
 }
 
 void MainWindow::onFrameSelected(int n)
 {
   m_controller->setCurrentFrame(n);
-
-  updateMarkers();
 }
 
 void MainWindow::onReadyReadStandardOutput()
@@ -248,37 +236,6 @@ void MainWindow::onReadyReadStandardError()
   cursor.insertText(text);
   cursor.setCharFormat(QTextCharFormat());
   cursor.insertText("\n");
-}
-
-void MainWindow::updateMarkers()
-{
-  m_editor->clearMarkers();
-
-  auto callstack = m_controller->lastCallstackMessage();
-
-  if (callstack != nullptr)
-  {
-    const auto& callstack_top = [&]() -> const gonk::debugger::CallstackEntry& {
-      return m_controller->currentFrame() == -1 ? callstack->entries.back() : callstack->entries.at(m_controller->currentFrame());
-    }();
-
-    std::shared_ptr<gonk::debugger::SourceCode> src = m_controller->getSource(callstack_top.path);
-
-    m_editor->addMarker(callstack_top.line, CodeViewer::BreakpositionMarker);
-  }
-
-  auto breakpoints = m_controller->lastBreakpointListMessage();
-
-  if (breakpoints)
-  {
-    for (const gonk::debugger::BreakpointData& bp : breakpoints->list)
-    {
-      if (bp.script_path == m_source_path)
-      {
-        m_editor->addMarker(bp.line, CodeViewer::BreakpointMarker);
-      }
-    }
-  }
 }
 
 void MainWindow::showEvent(QShowEvent *e)
