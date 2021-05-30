@@ -9,8 +9,6 @@
 
 #include <debugger/client.h>
 
-#include <typewriter/../../widget/codeeditor.h>
-
 #include <QSettings>
 
 class BreakpointsView;
@@ -20,6 +18,7 @@ class VariablesView;
 
 class QAction;
 class QPlainTextEdit;
+class QTabWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -33,9 +32,7 @@ protected Q_SLOTS:
   void onSocketConnected();
   void onDebuggerStateChanged();
   void onCallstackUpdated();
-  void onBreakpointsUpdated();
-  void setSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src);
-  void onGutterLineClicked(int line);
+  void setCurrentSourceCode(std::shared_ptr<gonk::debugger::SourceCode> src);
   void onFrameSelected(int n);
   void onReadyReadStandardOutput();
   void onReadyReadStandardError();
@@ -44,14 +41,10 @@ protected:
   void showEvent(QShowEvent *e);
   void closeEvent(QCloseEvent *e);
 
-protected:
-  void updateMarkers();
-
 private:
   QSettings *m_settings = nullptr;
   Controller* m_controller = nullptr;
-  typewriter::QTypewriter* m_editor = nullptr;
-  std::string m_source_path;
+  QTabWidget* m_tabs = nullptr;
   CallstackView* m_callstack = nullptr;
   BreakpointsView* m_breakpoints = nullptr;
   VariablesView* m_variables = nullptr;
