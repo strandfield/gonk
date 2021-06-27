@@ -4,7 +4,7 @@
 ##################################################################
 
 # Copy icon
-file(COPY ${CMAKE_SOURCE_DIR}/icon.ico ${CMAKE_SOURCE_DIR}/icon.svg DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/icon.ico ${CMAKE_SOURCE_DIR}/icon.png DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 
 file(GLOB_RECURSE GONKDBG_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE GONKDBG_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)

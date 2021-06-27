@@ -2,4 +2,5 @@ ignore/*
 build/*
 *.db
 tools/gonkdbg/icon.ico
-tools/gonkdbg/icon.svg
+tools/gonkdbg/icon.png
+src/icon.ico

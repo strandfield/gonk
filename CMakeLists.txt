@@ -39,8 +39,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     target_link_libraries(libgonk stdc++fs)
 endif()
 
+file(COPY ${CMAKE_SOURCE_DIR}/icon.ico DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 add_executable(gonk 
-               "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
+			   "${CMAKE_CURRENT_SOURCE_DIR}/src/windows_res.rc")
 target_link_libraries(gonk libgonk)
 
 foreach(_source IN ITEMS ${GONK_SRC_FILES} ${GONK_HDR_FILES})
