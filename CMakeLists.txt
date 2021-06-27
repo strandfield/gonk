@@ -81,3 +81,11 @@ add_subdirectory(tools)
 # Copy examples to build directory
 file(GLOB_RECURSE GONK_EXAMPLES_FILES "examples/*.gnk")
 file(COPY ${GONK_EXAMPLES_FILES} DESTINATION ${CMAKE_BINARY_DIR})
+
+##################################################################
+###### install
+##################################################################
+
+if (WIN32)
+  configure_file("scripts/make-release.bat.in" "${CMAKE_BINARY_DIR}/make-release.bat")
+endif()
