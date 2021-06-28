@@ -105,6 +105,10 @@ int Gonk::exec()
     std::cout << gonk::versionstr() << std::endl;
     return 0;
   }
+  else if (cli().help)
+  {
+    return displayHelp();
+  }
   else if (cli().interactive)
   {
     return interactiveSession();
@@ -149,6 +153,12 @@ void Gonk::setupEngine()
 
   script::Namespace ns = m_engine.rootNamespace();
   gonk::register_builtins(ns);
+}
+
+int Gonk::displayHelp()
+{
+  m_cli.displayHelp();
+  return 0;
 }
 
 int Gonk::interactiveSession()

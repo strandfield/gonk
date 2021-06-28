@@ -27,9 +27,11 @@ public:
   std::string argvAt(size_t index) const;
 
   bool empty() const;
+  void displayHelp();
 
 public:
   bool version = false;
+  bool help = false;
   bool interactive = false;
   bool list_modules = false;
   bool debug = false;

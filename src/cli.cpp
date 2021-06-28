@@ -6,6 +6,7 @@
 
 #include "gonk/cli-parser.h"
 
+#include <iostream>
 #include <stdexcept>
 
 namespace gonk
@@ -41,6 +42,10 @@ public:
       if (arg == "--version" || arg == "-v")
       {
         cli.version = true;
+      }
+      else if (arg == "--help" || arg == "-h")
+      {
+        cli.help = true;
       }
       else if (arg == "--interactive")
       {
@@ -94,7 +99,23 @@ std::string CLI::argvAt(size_t index) const
 
 bool CLI::empty() const
 {
-  return !version && !interactive && !list_modules && !script.has_value();
+  return !version && !help && !interactive && !list_modules && !script.has_value();
+}
+
+void CLI::displayHelp()
+{
+  std::cout << "gonk" << std::endl;
+  std::cout << "----" << std::endl;
+  std::cout << "Start interactive session:" << std::endl;
+  std::cout << "  gonk --interactive" << std::endl;
+  std::cout << "Execute program:" << std::endl;
+  std::cout << "  gonk [--debug] file [options]" << std::endl;
+  std::cout << "Print version:" << std::endl;
+  std::cout << "  gonk -v" << std::endl;
+  std::cout << "  gonk --version" << std::endl;
+  std::cout << "Show help:" << std::endl;
+  std::cout << "  gonk -h" << std::endl;
+  std::cout << "  gonk --help" << std::endl;
 }
 
 } // namespace gonk

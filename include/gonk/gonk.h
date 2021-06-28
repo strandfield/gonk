@@ -45,6 +45,7 @@ protected:
   void setupEngine();
 
 protected:
+  int displayHelp();
   int interactiveSession();
   void listModules();
   void eval(std::string cmd);
