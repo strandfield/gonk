@@ -38,7 +38,11 @@ public:
     {
       std::string arg = read();
       
-      if (arg == "--interactive")
+      if (arg == "--version" || arg == "-v")
+      {
+        cli.version = true;
+      }
+      else if (arg == "--interactive")
       {
         cli.interactive = true;
       }
@@ -90,7 +94,7 @@ std::string CLI::argvAt(size_t index) const
 
 bool CLI::empty() const
 {
-  return !interactive && !list_modules && !script.has_value();
+  return !version && !interactive && !list_modules && !script.has_value();
 }
 
 } // namespace gonk

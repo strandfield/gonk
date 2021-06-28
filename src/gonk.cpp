@@ -8,6 +8,7 @@
 #include "gonk/modules.h"
 #include "gonk/pretty-print.h"
 #include "gonk/script-runner.h"
+#include "gonk/version.h"
 
 #include <script/context.h>
 #include <script/function.h>
@@ -99,7 +100,12 @@ int Gonk::exec()
   m_module_manager->addImportPath(executable_dir() + "/modules");
   m_module_manager->fetchModules();
 
-  if (cli().interactive)
+  if (cli().version)
+  {
+    std::cout << gonk::versionstr() << std::endl;
+    return 0;
+  }
+  else if (cli().interactive)
   {
     return interactiveSession();
   }

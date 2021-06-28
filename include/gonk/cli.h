@@ -29,6 +29,7 @@ public:
   bool empty() const;
 
 public:
+  bool version = false;
   bool interactive = false;
   bool list_modules = false;
   bool debug = false;

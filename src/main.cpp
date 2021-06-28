@@ -4,8 +4,18 @@
 
 #include "gonk/gonk.h"
 
+#include <iostream>
+
 int main(int argc, char *argv[])
 {
-  Gonk app{ argc, argv };
-  return app.exec();
+  try 
+  {
+    Gonk app{ argc, argv };
+    return app.exec();
+  }
+  catch (const std::exception& ex)
+  {
+    std::cerr << ex.what() << std::endl;
+    return 1;
+  }
 }
