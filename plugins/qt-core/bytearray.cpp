@@ -24,12 +24,6 @@ script::Value bytearray_string_ctor(script::FunctionCall* c)
 }
 }
 
-#if METAGONK_SOURCE
-{% assign bytearray_class = project | get_symbol: 'QByteArray'%}
-{% include generate_class with class = bytearray_class and recursive = true %}
-{% assign current_class = project | get_symbol: 'QByteRef'%}
-{% include generate_class with class = current_class and recursive = true %}
-#else
 static void register_byte_array__base64_option(script::Class& parent)
 {
   using namespace script;
@@ -482,7 +476,6 @@ static void register_byte_ref(script::Namespace& parent)
   // bool operator<=(char c) const;
   gonk::bind::memop_leq<QByteRef, char>(c);
 }
-#endif // METAGONK_SOURCE
 
 namespace {
 int bytearray_qstrcmp(const QByteArray& a1, const QByteArray& a2)

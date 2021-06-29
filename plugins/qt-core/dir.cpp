@@ -15,10 +15,7 @@
 #include "qt-core/char_.h"
 #include "qt-core/string.h"
 
-#if METAGONK_SOURCE
-{% assign current_class = project | get_symbol: 'QDir' %}
-{% include generate_class with class = current_class and recursive = true %}
-#else
+
 static void register_dir__filter(script::Class& parent)
 {
   using namespace script;
@@ -223,7 +220,6 @@ static void register_dir(script::Namespace& parent)
   // void refresh() const;
   gonk::bind::const_void_member_function<QDir, &QDir::refresh>(c, "refresh").create();
 }
-#endif // METAGONK_SOURCE
 
 
 void register_dir_file(script::Namespace ns)
@@ -232,13 +228,7 @@ void register_dir_file(script::Namespace ns)
 
   register_dir(ns);
 
-#if METAGONK_SOURCE
-  {% assign functions = project | get_symbols_by_location: 'QDir'%}
-  {% for f in functions %}
-  {% include generate_function with function = f %}
-  {% endfor %}
-#else
-    // void swap(QDir& value1, QDir& value2);
+  // void swap(QDir& value1, QDir& value2);
   gonk::bind::void_function<QDir&, QDir&, &swap>(ns, "swap").create();
   // QFlags<QDir::Filters::enum_type> operator|(QDir::Filters::enum_type f1, QDir::Filters::enum_type f2);
   /// TODO: QFlags<QDir::Filters::enum_type> operator|(QDir::Filters::enum_type f1, QDir::Filters::enum_type f2);
@@ -256,5 +246,4 @@ void register_dir_file(script::Namespace ns)
   /// TODO: QDebug operator<<(QDebug debug, QDir::Filters filters);
   // QDebug operator<<(QDebug debug, const QDir& dir);
   /// TODO: QDebug operator<<(QDebug debug, const QDir& dir);
-#endif // METAGONK_SOURCE
 }

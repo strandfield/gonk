@@ -15,12 +15,6 @@
 #include "qt-core/char_.h"
 #include "qt-core/string.h"
 
-#if METAGONK_SOURCE
-{% assign current_class = project | get_symbol: 'QLatin1Char' %}
-{% include generate_class with class = current_class and recursive = true %}
-{% assign current_class = project | get_symbol: 'QChar' %}
-{% include generate_class with class = current_class and recursive = true %}
-#else
 
 static void register_latin1_char(script::Namespace& parent)
 {
@@ -610,7 +604,6 @@ static void register_char_(script::Namespace& parent)
   // static bool isLetterOrNumber_helper(uint ucs4);
   /// TODO: static bool isLetterOrNumber_helper(uint ucs4);
 }
-#endif // METAGONK_SOURCE
 
 void register_char__file(script::Namespace ns)
 {

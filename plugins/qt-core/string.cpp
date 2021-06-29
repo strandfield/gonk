@@ -16,10 +16,6 @@
 #include "qt-core/char_.h"
 #include "qt-core/string.h"
 
-#if METAGONK_SOURCE
-{% assign classes = ['QLatin1String', 'QString', 'QCharRef', 'QStringRef'] %}
-{% include generate_all_classes with classes = classes %}
-#else
 
 static void register_latin1_string(script::Namespace& parent)
 {
@@ -1219,7 +1215,6 @@ static void register_string_ref(script::Namespace& parent)
   // double toDouble(bool* ok) const;
   /// TODO: double toDouble(bool* ok) const;
 }
-#endif // METAGONK_SOURCE
 
 void register_string_file(script::Namespace ns)
 {

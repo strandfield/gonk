@@ -23,9 +23,6 @@ namespace gonk
 namespace qt_core
 {
 
-#if METAGONK_SOURCE
-{% include generate_typeid_list with types = project.types %}{% newline %}
-#else
 enum class EnumTypeIds
 {
   FirstTypeId,
@@ -65,7 +62,6 @@ enum class ClassTypeIds
   QDir,
   LastTypeId,
 };
-#endif // METAGONK_SOURCE
 
 GONK_QT_CORE_API int enum_type_id_offset();
 GONK_QT_CORE_API int class_type_id_offset();
