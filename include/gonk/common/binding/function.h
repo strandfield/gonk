@@ -127,8 +127,9 @@ template<typename T, typename...Args>
 script::Function function(script::Class& cla, std::string name, T(*fun)(Args...))
 {
   auto impl = std::make_shared<gonk::wrapper::FunctionWrapper<T, Args...>>(script::Symbol{ cla }, std::move(name), fun);
+  impl->setMember(true);
   script::Function ret{ impl };
-  ns.addFunction(ret);
+  cla.addFunction(ret);
   return ret;
 }
 

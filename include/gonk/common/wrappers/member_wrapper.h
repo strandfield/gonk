@@ -328,7 +328,7 @@ public:
   {
     using Tuple = std::tuple<Args...>;
     T& ref = value_cast<T&>(c->arg(0));
-    return make_value<R>(((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...));
+    return make_value<R>(((ref).*(method))(value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...), c->engine());
   }
 
   template<std::size_t... Is>
@@ -342,7 +342,7 @@ public:
 
   script::Value invoke(script::FunctionCall* c) override
   {
-    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<T>::value>());
+    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<R>::value>());
   }
 };
 
@@ -405,7 +405,7 @@ public:
 
   script::Value invoke(script::FunctionCall* c) override
   {
-    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<T>::value>());
+    return do_invoke(c, std::index_sequence_for<Args...>{}, std::integral_constant<bool, std::is_void<R>::value>());
   }
 };
 

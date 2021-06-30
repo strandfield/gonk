@@ -163,6 +163,14 @@ public:
     proto.set({ make_type<Args>()... });
   }
 
+  void setMember(bool is_static)
+  {
+    if (is_static)
+      this->flags.set(script::FunctionSpecifier::Static);
+    else
+      proto[0] = proto[0].withFlag(script::Type::ThisFlag);
+  }
+
   const std::string& name() const override
   {
     return m_name;

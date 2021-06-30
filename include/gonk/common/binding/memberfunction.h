@@ -341,6 +341,26 @@ script::Function method(script::Class& cla, std::string name, R(T::*memfun)(Args
   return ret;
 }
 
+template<typename R, typename T, typename...Args>
+script::Function method(script::Class& cla, std::string name, R(*fn)(T&, Args...))
+{
+  auto impl = std::make_shared<gonk::wrapper::FunctionWrapper<R, T&, Args...>>(script::Symbol(cla), std::move(name), fn);
+  impl->setMember(false);
+  script::Function ret{ impl };
+  cla.addMethod(ret);
+  return ret;
+}
+
+template<typename R, typename T, typename...Args>
+script::Function method(script::Class& cla, std::string name, R(*fn)(const T&, Args...))
+{
+  auto impl = std::make_shared<gonk::wrapper::FunctionWrapper<R, const T&, Args...>>(script::Symbol(cla), std::move(name), fn);
+  impl->setMember(false);
+  script::Function ret{ impl };
+  cla.addMethod(ret);
+  return ret;
+}
+
 } // namespace bind
 
 } // namespace gonk
