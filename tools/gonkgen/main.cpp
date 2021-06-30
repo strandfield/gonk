@@ -18,15 +18,10 @@ class Function;
 class Namespace;
 class Scope;
 
-CXFile get_cursor_file(libclang::Cursor cursor)
+libclang::File get_cursor_file(libclang::Cursor cursor)
 {
-  CXSourceLocation location = cursor.api->clang_getCursorLocation(cursor);
-
-  CXFile file;
-  unsigned int line, col, offset;
-  cursor.api->clang_getSpellingLocation(location, &file, &line, &col, &offset);
-
-  return file;
+  libclang::SourceLocation location = cursor.getLocation();
+  return location.getSpellingLocation().file;
 }
 
 class Entity : public std::enable_shared_from_this<Entity>
@@ -92,7 +87,7 @@ public:
 
   bool isEnumClass() const
   {
-    return cursor.api->clang_EnumDecl_isScoped(cursor);
+    return cursor.EnumDecl_isScoped();
   }
 };
 
@@ -243,12 +238,12 @@ public:
   { 
     {
       CXCursorKind kind = c.kind();
-      CXType function_type = c.getType();
+      libclang::Type function_type = c.getType();
 
       if (kind != CXCursor_Constructor && kind != CXCursor_Destructor)
       {
-        CXType rt = c.api->clang_getResultType(function_type);
-        return_type = c.api->toStdString(c.api->clang_getTypeSpelling(rt));
+        libclang::Type rt = function_type.getResultType();
+        return_type = rt.getSpelling();
       }
       else
       {
@@ -265,8 +260,8 @@ public:
       {
         libclang::Cursor arg_cursor = c.getArgument(i);
 
-        CXType arg_type = arg_cursor.getType();
-        params.push_back(c.api->toStdString(c.api->clang_getTypeSpelling(arg_type)));
+        libclang::Type arg_type = arg_cursor.getType();
+        params.push_back(arg_type.getSpelling());
       }
     }
   }
@@ -278,22 +273,22 @@ public:
 
   bool isConstructor() const
   {
-    return cursor.kind() == CXCursor_Constructor;
+    return cursor.isConstructor();
   }
 
   bool isDestructor() const
   {
-    return cursor.kind() == CXCursor_Destructor;
+    return cursor.isDestructor();
   }
 
   bool isConst() const
   {
-    return cursor.api->clang_CXXMethod_isConst(cursor);
+    return cursor.CXXMethod_isConst();
   }
 
   bool isStatic() const
   {
-    return cursor.api->clang_CXXMethod_isStatic(cursor);
+    return cursor.CXXMethod_isStatic();
   }
 
   bool isOverloaded() const;
@@ -845,13 +840,13 @@ int main(int argc, char *argv[])
   libclang::Index index = clang.createIndex();
 
   libclang::TranslationUnit tu = index.parseTranslationUnit(file, includedirs, CXTranslationUnit_SkipFunctionBodies);
-  CXFile tu_file = tu.api->clang_getFile(tu, file.data());
+  libclang::File tu_file = tu.getFile(file);
 
   libclang::Cursor c = tu.getCursor();
 
   std::shared_ptr<Namespace> global_namespace = Namespace::make(c, nullptr, [&](libclang::Cursor child) -> bool {
-    CXFile child_file = get_cursor_file(child);
-    return child.api->clang_File_isEqual(tu_file, child_file);
+    libclang::File child_file = get_cursor_file(child);
+    return child_file == tu_file;
     });
   global_namespace->name.clear();
 
