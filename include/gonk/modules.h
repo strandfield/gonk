@@ -20,6 +20,7 @@ struct ModuleInfo
 {
   std::string fullname;
   std::string path;
+  std::string sourcefile;
   std::string entry_point;
   std::vector<std::string> dependencies;
 };

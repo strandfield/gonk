@@ -92,6 +92,7 @@ protected:
 
       ModuleInfo module_info;
       module_info.fullname = settings.value("name", QString()).toString().toStdString();
+      module_info.sourcefile = settings.value("sourcefile", QString()).toString().toStdString();
       module_info.entry_point = settings.value("entry_point", QString()).toString().toStdString();
 
       QStringList dependencies = settings.value("dependencies", QString()).toString().split(',', QString::SkipEmptyParts);
@@ -167,7 +168,10 @@ GonkModuleInterface::GonkModuleInterface(script::Engine* e, std::string name, Mo
   : script::ModuleInterface(e, std::move(name)),
     info(minfo)
 {
-  script = e->newScript(script::SourceFile::fromString(""));
+  if(minfo.sourcefile.empty())
+    script = e->newScript(script::SourceFile::fromString(""));
+  else
+    script = e->newScript(script::SourceFile(info.path + "/" + info.sourcefile));
 }
 
 
@@ -217,11 +221,19 @@ void GonkModuleInterface::add_child(script::Module m)
 
 void GonkModuleInterface::loadScript()
 {
-  if (script.isCompiled() || script.source().content().empty())
+  if (script.isCompiled())
     return;
 
-  script.compile();
-  script.run();
+  if (!script.source().isLoaded())
+  {
+    script::SourceFile file = script.source();
+    file.load();
+  }
+
+  if (script.source().content().empty())
+    return;
+
+  compile(script);
 }
 
 void GonkModuleInterface::loadChildren()
@@ -241,6 +253,8 @@ void GonkModuleInterface::loadDependencies()
 void GonkModuleInterface::loadPlugin()
 {
   ModuleManager& manager = Gonk::Instance().moduleManager();
+
+  // @TODO: why should the fullname constrain the dll name ?
 
   std::string lib_name = info.fullname;
   for (char& c : lib_name)

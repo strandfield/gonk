@@ -1,4 +1,6 @@
 
+add_subdirectory(gonk-test-hybrid-module)
+
 add_subdirectory(gonk-debugger)
 
 add_subdirectory(std-inttypes)
