@@ -47,7 +47,7 @@ public:
 private:
   script::Engine* m_script_engine;
   std::vector<std::string> m_import_paths;
-  std::unordered_map<script::NamespaceImpl*, ModuleInfo> m_module_infos;
+  std::unordered_map<script::ModuleInterface*, ModuleInfo> m_module_infos;
 };
 
 } // namespace gonk

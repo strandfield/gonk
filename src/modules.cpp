@@ -109,11 +109,11 @@ class ModuleImporter
 {
   script::Engine* m_engine;
   std::vector<std::string>& m_import_paths;
-  std::unordered_map<script::NamespaceImpl*, ModuleInfo>& m_output;
+  std::unordered_map<script::ModuleInterface*, ModuleInfo>& m_output;
   std::vector<ModuleInfo> m_modules;
 public:
 
-  ModuleImporter(script::Engine* e, std::vector<std::string>& import_paths, std::unordered_map<script::NamespaceImpl*, ModuleInfo>& out)
+  ModuleImporter(script::Engine* e, std::vector<std::string>& import_paths, std::unordered_map<script::ModuleInterface*, ModuleInfo>& out)
     : m_engine(e), m_import_paths(import_paths), m_output(out)
   {
 
