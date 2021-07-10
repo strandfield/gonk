@@ -57,12 +57,11 @@ class ModuleImporter
 {
   script::Engine* m_engine;
   std::vector<std::string>& m_import_paths;
-  std::unordered_map<script::ModuleInterface*, ModuleInfo>& m_output;
   std::vector<ModuleInfo> m_modules;
 public:
 
-  ModuleImporter(script::Engine* e, std::vector<std::string>& import_paths, std::unordered_map<script::ModuleInterface*, ModuleInfo>& out)
-    : m_engine(e), m_import_paths(import_paths), m_output(out)
+  ModuleImporter(script::Engine* e, std::vector<std::string>& import_paths)
+    : m_engine(e), m_import_paths(import_paths)
   {
 
   }
@@ -92,7 +91,7 @@ protected:
       QSettings settings{ gonkmodule.absoluteFilePath(), QSettings::IniFormat };
 
       ModuleInfo module_info;
-      module_info.name = settings.value("name", QString()).toString().toStdString();
+      module_info.fullname = settings.value("name", QString()).toString().toStdString();
       module_info.entry_point = settings.value("entry_point", QString()).toString().toStdString();
 
       QStringList dependencies = settings.value("dependencies", QString()).toString().split(',', QString::SkipEmptyParts);
@@ -117,20 +116,16 @@ protected:
   {
     if (tree.children.empty())
     {
-      std::string name = split_module_name(tree.module_info.name).back();
-
-      script::Script thescript = m_engine->newScript(script::SourceFile::fromString(""));
+      std::string name = split_module_name(tree.module_info.fullname).back();
 
       if (parent_module.isNull())
       {
-        script::Module m = m_engine->newModule<GonkModuleInterface>(m_engine, name, thescript);
-        m_output[m.impl()] = tree.module_info;
+        m_engine->newModule<GonkModuleInterface>(m_engine, std::move(name), tree.module_info);
       }
       else
       {
        
-        script::Module m = parent_module.newSubModule<GonkModuleInterface>(m_engine, name, thescript);
-        m_output[m.impl()] = tree.module_info;
+        parent_module.newSubModule<GonkModuleInterface>(m_engine, std::move(name), tree.module_info);
       }
     }
     else
@@ -153,7 +148,7 @@ protected:
 
     for (const auto& m : m_modules)
     {
-      std::vector<std::string> names = split_module_name(m.name);
+      std::vector<std::string> names = split_module_name(m.fullname);
       createModule(tree, names.cbegin(), names.cend(), m);
     }
 
@@ -168,11 +163,11 @@ protected:
 };
 
 
-GonkModuleInterface::GonkModuleInterface(script::Engine* e, std::string name, script::Script s)
+GonkModuleInterface::GonkModuleInterface(script::Engine* e, std::string name, ModuleInfo minfo)
   : script::ModuleInterface(e, std::move(name)),
-    script(s)
+    info(minfo)
 {
-
+  script = e->newScript(script::SourceFile::fromString(""));
 }
 
 
@@ -238,7 +233,6 @@ void GonkModuleInterface::loadChildren()
 void GonkModuleInterface::loadDependencies()
 {
   ModuleManager& manager = Gonk::Instance().moduleManager();
-  ModuleInfo info = manager.getModuleInfo(script::Module(shared_from_this()));
 
   for (std::string dep : info.dependencies)
     manager.loadModule(dep);
@@ -247,9 +241,8 @@ void GonkModuleInterface::loadDependencies()
 void GonkModuleInterface::loadPlugin()
 {
   ModuleManager& manager = Gonk::Instance().moduleManager();
-  ModuleInfo info = manager.getModuleInfo(script::Module(shared_from_this()));
 
-  std::string lib_name = info.name;
+  std::string lib_name = info.fullname;
   for (char& c : lib_name)
   {
     if (c == '.')
@@ -280,8 +273,6 @@ void GonkModuleInterface::loadPlugin()
   }
 
   plugin.reset(p);
-
-  manager.attachPlugin(script::Module(shared_from_this()), plugin);
 }
 
 
@@ -307,16 +298,6 @@ void ModuleManager::addImportPath(std::string dir)
 const std::vector<std::string>& ModuleManager::importPaths() const
 {
   return m_import_paths;
-}
-
-ModuleInfo ModuleManager::getModuleInfo(const script::Module& m) const
-{
-  auto it = m_module_infos.find(m.impl());
-
-  if (it == m_module_infos.end())
-    return {};
-
-  return it->second;
 }
 
 script::Module ModuleManager::getModule(const std::string& name) const
@@ -347,7 +328,7 @@ script::Module ModuleManager::getModule(const std::string& name) const
 
 void ModuleManager::fetchModules()
 {
-  ModuleImporter importer{ m_script_engine, m_import_paths, m_module_infos };
+  ModuleImporter importer{ m_script_engine, m_import_paths };
   importer.load();
 }
 
@@ -371,11 +352,6 @@ void ModuleManager::loadModule(const std::string& name)
 {
   auto names = split_module_name(name);
   load_module(*m_script_engine, names.cbegin(), names.cend(), script::Module());
-}
-
-void ModuleManager::attachPlugin(script::Module m, std::shared_ptr<Plugin> plugin)
-{
-  m_module_infos[m.impl()].plugin = plugin;
 }
 
 } // namespace gonk

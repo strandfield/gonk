@@ -11,8 +11,6 @@
 #include <script/module-interface.h>
 #include <script/script.h>
 
-#include <unordered_map>
-
 namespace gonk
 {
 
@@ -20,23 +18,23 @@ class Plugin;
 
 struct ModuleInfo
 {
-  std::string name;
+  std::string fullname;
   std::string path;
   std::string entry_point;
   std::vector<std::string> dependencies;
-  std::shared_ptr<Plugin> plugin;
 };
 
 class GONK_API GonkModuleInterface : public script::ModuleInterface
 {
 public:
+  ModuleInfo info;
   std::shared_ptr<Plugin> plugin;
   script::Script script;
   std::vector<script::Module> modules;
   bool loaded = false;
   
 public:
-  GonkModuleInterface(script::Engine* e, std::string name, script::Script s);
+  GonkModuleInterface(script::Engine* e, std::string name, ModuleInfo minfo);
 
   bool is_loaded() const override;
   void load() override;
@@ -64,20 +62,15 @@ public:
   void addImportPath(std::string dir);
   const std::vector<std::string>& importPaths() const;
 
-  ModuleInfo getModuleInfo(const script::Module& m) const;
-
   script::Module getModule(const std::string& name) const;
 
   void fetchModules();
 
   void loadModule(const std::string& name);
 
-  void attachPlugin(script::Module m, std::shared_ptr<Plugin> plugin);
-
 private:
   script::Engine* m_script_engine;
   std::vector<std::string> m_import_paths;
-  std::unordered_map<script::ModuleInterface*, ModuleInfo> m_module_infos;
 };
 
 } // namespace gonk
