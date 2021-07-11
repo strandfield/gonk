@@ -12,7 +12,7 @@
 #  define GONK_STD_MAP_API __declspec(dllimport)
 #endif
 #else
-#define GONK_STD_VECTOR_API
+#define GONK_STD_MAP_API
 #endif
 
 #endif // GONK_STD_MAP_DEFS_H

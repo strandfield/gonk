@@ -9,7 +9,7 @@
 
 #include <QJsonObject>
 
-#include <variant>
+#include <memory>
 #include <vector>
 
 namespace gonk
