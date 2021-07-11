@@ -14,6 +14,15 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network)
 
 ##################################################################
+###### C++17 clang (Travis CI)
+##################################################################
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  message("Building with clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
+
+##################################################################
 ###### dependencies
 ##################################################################
 
