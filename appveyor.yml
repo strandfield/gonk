@@ -28,4 +28,5 @@ build_script:
 
 test_script:
   - cd tests
-  - ctest . -C Release
+  - set PATH=C:\Qt\5.15.2\msvc2019_64\bin;%PATH%
+  - ctest --output-on-failure -C Release .
