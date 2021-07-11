@@ -20,7 +20,7 @@ before_script:
   - set -e
 
 matrix:
-  include:
+  exclude:
   - os: linux
     dist: bionic
     name: Clang 7.0
@@ -38,6 +38,7 @@ matrix:
       - make
       - cd tests
       - ctest
+  include:
   - os: linux
     dist: bionic
     name: GCC 8
