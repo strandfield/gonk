@@ -21,7 +21,12 @@ else()
     foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
       file(COPY "gonkmodule" DESTINATION "${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/modules/qt-core")
     endforeach()
+  elseif(UNIX)
+    set_target_properties(qt-core PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/modules/qt-core")
+    set_target_properties(qt-core PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/modules/qt-core")
+    file(COPY "gonkmodule" DESTINATION "${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/modules/qt-core")
   endif()
+
 
 endif()
 
