@@ -30,6 +30,9 @@ struct GONK_API TypeInfo : public script::UserData
   inline bool hasLess() const { return !less.isNull(); }
   inline bool supportsHashing() const { return !hash.isNull(); }
 
+  static script::Function get_eq(script::Engine* e, const script::Type& t);
+  static script::Function get_less(script::Engine* e, const script::Type& t);
+  static script::Function get_assign(script::Engine* e, const script::Type& t);
   static std::shared_ptr<TypeInfo> get(script::Engine *e, const script::Type & t);
 };
 

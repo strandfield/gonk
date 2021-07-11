@@ -71,6 +71,52 @@ static void get_hash(TypeInfo & info)
   info.hash = resol.function;
 }
 
+script::Function TypeInfo::get_eq(script::Engine* e, const script::Type& t)
+{
+  auto creftype = script::Type::cref(t);
+
+  std::vector<script::Function> ops = script::NameLookup::resolve(script::EqualOperator, creftype, creftype, script::Scope{ e->rootNamespace() });
+  auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ creftype, creftype });
+  if (!resol)
+    throw std::runtime_error{ "TypeInfo::get(): type must be equality-comparable" };
+
+  if (!check_op_eq(t.baseType(), resol.function))
+    throw std::runtime_error{ "TypeInfo::get(): invalid operator==" };
+
+  return resol.function;
+}
+
+script::Function TypeInfo::get_assign(script::Engine* e, const script::Type& t)
+{
+  auto creftype = script::Type::cref(t);
+  auto reftype = script::Type::ref(t);
+
+  std::vector<script::Function> ops = script::NameLookup::resolve(script::AssignmentOperator, reftype, creftype, script::Scope{ e->rootNamespace() });
+  auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ reftype, creftype });
+  if (!resol)
+    throw std::runtime_error{ "TypeInfo::get(): type must be assignable" };
+
+  if (!check_op_assign(t.baseType(), resol.function))
+    throw std::runtime_error{ "TypeInfo::get(): invalid operator=" };
+
+  return resol.function;
+}
+
+script::Function TypeInfo::get_less(script::Engine* e, const script::Type& t)
+{
+  auto creftype = script::Type::cref(t);
+
+  std::vector<script::Function> ops = script::NameLookup::resolve(script::LessOperator, creftype, creftype, script::Scope{ e->rootNamespace() });
+  auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ creftype, creftype });
+  if (!resol)
+    throw std::runtime_error{ "TypeInfo::get(): type must have operator<" };
+
+  if (!check_op_less(t.baseType(), resol.function))
+    throw std::runtime_error{ "TypeInfo::get(): invalid operator<" };
+
+  return resol.function;
+}
+
 std::shared_ptr<TypeInfo> TypeInfo::get(script::Engine *e, const script::Type & t)
 {
   auto & typeinfomap = get_typeinfo_map();
@@ -85,41 +131,9 @@ std::shared_ptr<TypeInfo> TypeInfo::get(script::Engine *e, const script::Type & 
 
   if (t.isObjectType() || t.isFundamentalType())
   {
-    auto creftype = script::Type::cref(t);
-    auto reftype = script::Type::ref(t);
-
-    {
-      std::vector<script::Function> ops = script::NameLookup::resolve(script::EqualOperator, creftype, creftype, script::Scope{ e->rootNamespace() });
-      auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ creftype, creftype });
-      if (!resol)
-        throw std::runtime_error{ "TypeInfo::get(): type must be equality-comparable" };
-
-      ret->eq = resol.function;
-      if (!check_op_eq(t.baseType(), ret->eq))
-        throw std::runtime_error{ "TypeInfo::get(): invalid operator==" };
-    }
-
-    {
-      std::vector<script::Function> ops = script::NameLookup::resolve(script::AssignmentOperator, reftype, creftype, script::Scope{ e->rootNamespace() });
-      auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ reftype, creftype });
-      if (!resol)
-        throw std::runtime_error{ "TypeInfo::get(): type must be assignable" };
-
-      ret->assign = resol.function;
-      if (!check_op_assign(t.baseType(), ret->assign))
-        throw std::runtime_error{ "TypeInfo::get(): invalid operator=" };
-    }
-
-    {
-      std::vector<script::Function> ops = script::NameLookup::resolve(script::LessOperator, creftype, creftype, script::Scope{ e->rootNamespace() });
-      auto resol = script::resolve_overloads(ops, std::vector<script::Type>{ creftype, creftype });
-      if (!resol)
-        throw std::runtime_error{ "TypeInfo::get(): type must have operator<" };
-
-      ret->less = resol.function;
-      if (!check_op_less(t.baseType(), ret->less))
-        throw std::runtime_error{ "TypeInfo::get(): invalid operator<" };
-    }
+    ret->eq = get_eq(e, t);
+    ret->assign = get_assign(e, t);
+    ret->less = get_less(e, t);
 
     get_hash(*ret);
   }
