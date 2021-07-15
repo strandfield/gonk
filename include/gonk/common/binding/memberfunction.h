@@ -7,6 +7,7 @@
 
 #include "gonk/common/values.h"
 
+#include "gonk/common/wrappers/function_wrapper.h"
 #include "gonk/common/wrappers/member_wrapper.h"
 
 #include <script/class.h>

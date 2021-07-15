@@ -9,6 +9,7 @@
 
 #include <script/interpreter/executioncontext.h>
 #include <script/function-impl.h>
+#include <script/symbol.h>
 
 #include <tuple>
 #include <type_traits>

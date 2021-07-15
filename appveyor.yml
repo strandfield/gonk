@@ -1,0 +1,32 @@
+
+image: Visual Studio 2019
+
+clone_depth: 3
+
+platform:
+  - x64
+
+configuration:
+  - Release
+  
+matrix:
+  fast_finish: false
+
+init:
+  - cmd: cmake --version
+
+install:
+  - git submodule update --init --recursive
+
+before_build:
+  - mkdir build
+  - cd build
+  - cmake -D Qt5_DIR=C:\Qt\5.15.2\msvc2019_64\lib\cmake\Qt5 ..
+
+build_script:
+  - cmake --build . --config Release -- %MSBUILD_ARGS%
+
+test_script:
+  - cd tests
+  - set PATH=C:\Qt\5.15.2\msvc2019_64\bin;%PATH%
+  - ctest --output-on-failure -C Release .

@@ -1,0 +1,60 @@
+
+language: cpp
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install qt5-default qttools5-dev-tools
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
+  - travis_retry wget --no-check-certificate https://cmake.org/files/v3.13/cmake-3.13.0-Linux-x86_64.tar.gz
+  - tar -xvf cmake-3.13.0-Linux-x86_64.tar.gz > /dev/null
+  - mv cmake-3.13.0-Linux-x86_64 cmake-install
+  - PATH=${DEPS_DIR}/cmake-install:${DEPS_DIR}/cmake-install/bin:$PATH
+  - cd ${TRAVIS_BUILD_DIR}
+
+before_script:
+  - cmake --version
+  - qmake -v
+  - mkdir build
+  - cd build
+  - set -e
+
+matrix:
+  exclude:
+  - os: linux
+    dist: bionic
+    name: Clang 7.0
+    compiler: clang
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-bionic-7
+        packages:
+          - libc++-7-dev
+          - libc++abi-7-dev
+    script:
+      - cmake ..
+      - make
+      - cd tests
+      - ctest
+  include:
+  - os: linux
+    dist: bionic
+    name: GCC 8
+    env:
+      - CC=gcc-8
+      - CXX=g++-8
+    compiler: gcc-8
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - gcc-8
+          - g++-8
+    script:
+      - cmake ..
+      - make
+      - cd tests
+      - ctest

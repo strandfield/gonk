@@ -1,0 +1,15 @@
+
+import std.map;
+
+void main()
+{
+  std::map<String, int> dict;
+  dict["one"] = 1;
+  
+  assert(dict.size() == 1);
+  
+  assert(dict.count("one") == 1);
+  assert(dict.count("two") == 0);
+
+  assert(dict["one"] == 1);
+}

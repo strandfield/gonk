@@ -1,0 +1,11 @@
+
+import std.math;
+
+void main()
+{
+    float a = 0.5f;
+    float b = std::cos(a);
+    float c = std::sin(a);
+    float d = std::pow(b, 2) + std::pow(c, 2);
+    print(d);
+}

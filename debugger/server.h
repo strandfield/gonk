@@ -66,7 +66,7 @@ struct RemoveBreakpoint
 
 struct Request
 {
-  std::variant<
+  using Data = std::variant<
     EmptyData<RequestType::Run>,
     EmptyData<RequestType::Pause>,
     EmptyData<RequestType::StepInto>,
@@ -78,11 +78,15 @@ struct Request
     GetVariables,
     AddBreakpoint,
     RemoveBreakpoint
-  > data_;
+  >;
+  
+  Data data_;
 
-  template<typename T>
-  Request(T d)
-    : data_(d)
+  Request(const Request&) = default;
+  Request(Request&&) = default;
+
+  Request(Data d)
+    : data_(std::move(d))
   {
 
   }
