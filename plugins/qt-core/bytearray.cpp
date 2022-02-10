@@ -53,13 +53,15 @@ static void register_byte_array__from_base64_result(script::Class& parent)
 {
   using namespace script;
   
-  Class from_base64_result = parent.newNestedClass("FromBase64Result").setId(script::Type::make<QByteArray::FromBase64Result>().data())
+  Engine* e = parent.engine();
+  Class from_base64_result = parent.newNestedClass("FromBase64Result").setId(e->makeType<QByteArray::FromBase64Result>().data())
     .get();
 
   Class& c = from_base64_result;
   
 
 }
+
 namespace 
 {
 QByteArray QByteArray_toLower(const QByteArray& self)
@@ -84,7 +86,9 @@ static void register_byte_array(script::Namespace& parent)
 {
   using namespace script;
   
-  Class byte_array = parent.newClass("QByteArray").setId(script::Type::make<QByteArray>().data())
+  Engine* e = parent.engine();
+
+  Class byte_array = parent.newClass("QByteArray").setId(e->makeType<QByteArray>().data())
     .get();
 
   Class& c = byte_array;
@@ -452,8 +456,10 @@ static void register_byte_array(script::Namespace& parent)
 static void register_byte_ref(script::Namespace& parent)
 {
   using namespace script;
+
+  Engine* e = parent.engine();
   
-  Class byte_ref = parent.newClass("QByteRef").setId(script::Type::make<QByteRef>().data())
+  Class byte_ref = parent.newClass("QByteRef").setId(e->makeType<QByteRef>().data())
     .get();
 
   Class& c = byte_ref;

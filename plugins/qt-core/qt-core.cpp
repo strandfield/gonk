@@ -10,33 +10,15 @@
 #include <script/namespace.h>
 #include <script/typesystem.h>
 
+#include <QByteArray>
+#include <QChar>
+#include <QDir>
+#include <QString>
+
 extern void register_bytearray_file(script::Namespace ns); // defined in bytearray.cpp
 extern void register_string_file(script::Namespace ns); // defined in string.cpp
 extern void register_char__file(script::Namespace ns); // defined in char_.cpp
 extern void register_dir_file(script::Namespace ns); // defined in dir.cpp
-
-namespace gonk
-{
-
-namespace qt_core
-{
-
-int class_type_id_offset_value = 0;
-int enum_type_id_offset_value = 0;
-
-int class_type_id_offset()
-{
-  return class_type_id_offset_value;
-}
-
-int enum_type_id_offset()
-{
-  return enum_type_id_offset_value;
-}
-
-} // namespace qt_core
-
-} // namespace gonk
 
 class QtCorePlugin : public gonk::Plugin
 {
@@ -44,15 +26,37 @@ public:
 
   void load(script::Module m) override
   {
-    script::Engine* e = m.engine();
-
-    int nb_enum_types = static_cast<int>(gonk::qt_core::EnumTypeIds::LastTypeId) - static_cast<int>(gonk::qt_core::EnumTypeIds::FirstTypeId);
-    int nb_class_types = static_cast<int>(gonk::qt_core::ClassTypeIds::LastTypeId) - static_cast<int>(gonk::qt_core::ClassTypeIds::FirstTypeId);
-
-    gonk::qt_core::enum_type_id_offset_value = static_cast<int>(e->typeSystem()->reserve(script::Type::EnumFlag, nb_enum_types));
-    gonk::qt_core::class_type_id_offset_value = static_cast<int>(e->typeSystem()->reserve(script::Type::ObjectFlag, nb_class_types));
-
     script::Namespace ns = m.root();
+    script::Engine* e = ns.engine();
+
+    e->registerType<QByteArray>();
+    e->registerType<QByteArray::FromBase64Result>();
+    e->registerType<QByteRef>();
+    e->registerType<QChar>();
+    e->registerType<QLatin1Char>();
+    e->registerType<QDir>();
+    e->registerType<QCharRef>();
+    e->registerType<QLatin1String>();
+    e->registerType<QString::Null>();
+    e->registerType<QString>();
+    e->registerType<QStringRef>();
+
+    e->registerType<QByteArray::Base64Option>();
+    e->registerType<QByteArray::Base64DecodingStatus>();
+    e->registerType<QChar::Category>();
+    e->registerType<QChar::CombiningClass>();
+    e->registerType<QChar::Decomposition>();
+    e->registerType<QChar::Direction>();
+    e->registerType<QChar::Joining>();
+    e->registerType<QChar::JoiningType>();
+    e->registerType<QChar::Script>();
+    e->registerType<QChar::SpecialCharacter>();
+    e->registerType<QChar::UnicodeVersion>();
+    e->registerType<QDir::Filter>();
+    e->registerType<QDir::SortFlag>();
+    e->registerType<QString::NormalizationForm>();
+    e->registerType<QString::SectionFlag>();
+    e->registerType<QString::SplitBehavior>();
 
     register_bytearray_file(ns);
     register_string_file(ns);

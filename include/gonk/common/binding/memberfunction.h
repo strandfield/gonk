@@ -145,8 +145,9 @@ script::FunctionBuilder member_function(script::Class& cla, std::string name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, R(T:: * F)(A1, A2, A3, A4, A5, A6)const>
-script::FunctionBuilder member_function(script::Class& cla, std::string&& name)
+script::FunctionBuilder member_function(script::Class& cla, std::string name)
 {
+  script::Engine* e = cla.engine();
   return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
     .returns(make_type<R>(e))
@@ -154,30 +155,33 @@ script::FunctionBuilder member_function(script::Class& cla, std::string&& name)
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, R(T:: * F)(A1, A2, A3, A4, A5, A6, A7)const>
-script::FunctionBuilder member_function(script::Class& cla, std::string&& name)
+script::FunctionBuilder member_function(script::Class& cla, std::string name)
 {
+  script::Engine* e = cla.engine();
   return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
     .returns(make_type<R>(e))
-    .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e), make_type<A6>(e), make_type<A7>());
+    .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e), make_type<A6>(e), make_type<A7>(e));
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, R(T::* F)(A1, A2, A3, A4, A5, A6, A7, A8)const>
-script::FunctionBuilder member_function(script::Class& cla, std::string&& name)
+script::FunctionBuilder member_function(script::Class& cla, std::string name)
 {
+  script::Engine* e = cla.engine();
   return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
     .returns(make_type<R>(e))
-    .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e), make_type<A6>(e), make_type<A7>(), make_type<A8>());
+    .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e), make_type<A6>(e), make_type<A7>(e), make_type<A8>(e));
 }
 
 template<typename T, typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, R(T::* F)(A1, A2, A3, A4, A5, A6, A7, A8, A9)const>
-script::FunctionBuilder member_function(script::Class& cla, std::string&& name)
+script::FunctionBuilder member_function(script::Class& cla, std::string name)
 {
+  script::Engine* e = cla.engine();
   return script::FunctionBuilder(cla, std::move(name)).setCallback(wrapper::member_wrapper_t<decltype(F), F>::wrap)
     .setConst()
     .returns(make_type<R>(e))
-    .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e), make_type<A6>(e), make_type<A7>(), make_type<A8>(), make_type<A9>());
+    .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e), make_type<A6>(e), make_type<A7>(e), make_type<A8>(e), make_type<A9>(e));
 }
 
 

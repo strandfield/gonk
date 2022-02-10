@@ -66,8 +66,10 @@ static void register_dir__sort_flag(script::Class& parent)
 static void register_dir(script::Namespace& parent)
 {
   using namespace script;
+
+  Engine* e = parent.engine();
   
-  Class dir = parent.newClass("QDir").setId(script::Type::make<QDir>().data())
+  Class dir = parent.newClass("QDir").setId(e->makeType<QDir>().data())
     .get();
 
   Class& c = dir;

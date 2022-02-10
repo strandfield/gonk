@@ -297,9 +297,10 @@ public:
       method(mem),
       m_name(std::move(name))
   {
+    script::Engine* e = cla.engine();
     enclosing_symbol = script::Symbol(cla).impl();
-    proto.setReturnType(make_type<T>());
-    proto.set({ make_type<T&>().withFlag(script::Type::ThisFlag), make_type<Args>()... });
+    proto.setReturnType(make_type<T>(e));
+    proto.set({ make_type<T&>(e).withFlag(script::Type::ThisFlag), make_type<Args>(e)... });
   }
 
 
@@ -360,9 +361,10 @@ public:
       method(mem),
       m_name(std::move(name))
   {
+    script::Engine* e = cla.engine();
     enclosing_symbol = script::Symbol(cla).impl();
-    proto.setReturnType(make_type<T>());
-    proto.set({ make_type<const T&>().withFlag(script::Type::ThisFlag), make_type<Args>()... });
+    proto.setReturnType(make_type<T>(e));
+    proto.set({ make_type<const T&>(e).withFlag(script::Type::ThisFlag), make_type<Args>(e)... });
   }
 
 

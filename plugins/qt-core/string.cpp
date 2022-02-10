@@ -20,8 +20,10 @@
 static void register_latin1_string(script::Namespace& parent)
 {
   using namespace script;
+
+  Engine* e = parent.engine();
   
-  Class latin1_string = parent.newClass("QLatin1String").setId(script::Type::make<QLatin1String>().data())
+  Class latin1_string = parent.newClass("QLatin1String").setId(e->makeType<QLatin1String>().data())
     .get();
 
   Class& c = latin1_string;
@@ -202,8 +204,10 @@ static void register_string__normalization_form(script::Class& parent)
 static void register_string__null(script::Class& parent)
 {
   using namespace script;
+
+  Engine* e = parent.engine();
   
-  Class null = parent.newNestedClass("Null").setId(script::Type::make<QString::Null>().data())
+  Class null = parent.newNestedClass("Null").setId(e->makeType<QString::Null>().data())
     .get();
 
   Class& c = null;
@@ -249,8 +253,10 @@ QByteArray QString_toLocal8Bit(const QString& self)
 static void register_string(script::Namespace& parent)
 {
   using namespace script;
+
+  Engine* e = parent.engine();
   
-  Class string = parent.newClass("QString").setId(script::Type::make<QString>().data())
+  Class string = parent.newClass("QString").setId(e->makeType<QString>().data())
     .get();
 
   Class& c = string;
@@ -895,8 +901,10 @@ static void register_string(script::Namespace& parent)
 static void register_char_ref(script::Namespace& parent)
 {
   using namespace script;
+
+  Engine* e = parent.engine();
   
-  Class char_ref = parent.newClass("QCharRef").setId(script::Type::make<QCharRef>().data())
+  Class char_ref = parent.newClass("QCharRef").setId(e->makeType<QCharRef>().data())
     .get();
 
   Class& c = char_ref;
@@ -991,8 +999,10 @@ static void register_char_ref(script::Namespace& parent)
 static void register_string_ref(script::Namespace& parent)
 {
   using namespace script;
+
+  Engine* e = parent.engine();
   
-  Class string_ref = parent.newClass("QStringRef").setId(script::Type::make<QStringRef>().data())
+  Class string_ref = parent.newClass("QStringRef").setId(e->makeType<QStringRef>().data())
     .get();
 
   Class& c = string_ref;
