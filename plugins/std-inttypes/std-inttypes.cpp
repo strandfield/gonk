@@ -16,30 +16,6 @@
 #include <script/typedefs.h>
 #include <script/interpreter/executioncontext.h>
 
-namespace gonk
-{
-
-namespace std_inttypes
-{
-
-int class_type_id_offset_value = 0;
-int enum_type_id_offset_value = 0;
-
-int class_type_id_offset()
-{
-  return class_type_id_offset_value;
-}
-
-int enum_type_id_offset()
-{
-  return enum_type_id_offset_value;
-}
-
-} // namespace std_inttypes
-
-} // namespace gonk
-
-
 namespace callbacks
 {
 
@@ -525,8 +501,6 @@ public:
   void load(script::Module m) override
   {
     script::Engine* e = m.engine();
-
-    gonk::std_inttypes::class_type_id_offset_value = static_cast<int>(e->typeSystem()->reserve(script::Type::ObjectFlag, 1));
 
     script::Namespace ns = m.root().getNamespace("std");
 
