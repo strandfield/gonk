@@ -396,12 +396,14 @@ void register_vector_file(script::Namespace ns)
 {
   using namespace script;
 
+  script::Engine* e = ns.engine();
+
   script::ClassTemplate vector_template = script::Symbol{ ns }.newClassTemplate("vector")
     .params(script::TemplateParameter(script::TemplateParameter::TypeParameter{}, "T"))
     .setScope(script::Scope(ns))
     .withBackend<gonk::VectorTemplate>()
     .get();
     
-  gonk::std_vector::register_specialization<int>(vector_template, script::make_type<std::vector<int>>());
-  gonk::std_vector::register_specialization<std::string>(vector_template, script::make_type<std::vector<std::string>>());
+  gonk::std_vector::register_specialization<int>(vector_template, e->registerType<std::vector<int>>());
+  gonk::std_vector::register_specialization<std::string>(vector_template, e->registerType<std::vector<std::string>>());
 }
