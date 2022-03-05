@@ -20,7 +20,9 @@ static void register_latin1_char(script::Namespace& parent)
 {
   using namespace script;
   
-  Class latin1_char = parent.newClass("QLatin1Char").setId(script::Type::make<QLatin1Char>().data())
+  Engine* e = parent.engine();
+
+  Class latin1_char = parent.newClass("QLatin1Char").setId(e->makeType<QLatin1Char>().data())
     .get();
 
   Class& c = latin1_char;
@@ -397,8 +399,10 @@ static void register_char__unicode_version(script::Class& parent)
 static void register_char_(script::Namespace& parent)
 {
   using namespace script;
-  
-  Class char_ = parent.newClass("QChar").setId(script::Type::make<QChar>().data())
+
+  Engine* e = parent.engine();
+
+  Class char_ = parent.newClass("QChar").setId(e->makeType<QChar>().data())
     .get();
 
   Class& c = char_;

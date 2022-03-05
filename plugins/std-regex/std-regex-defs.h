@@ -21,14 +21,6 @@ namespace gonk
 namespace std_regex
 {
 
-enum ClassTypeIds
-{
-  Regex,
-};
-
-GONK_STD_REGEX_API int class_type_id_offset();
-GONK_STD_REGEX_API int enum_type_id_offset();
-
 } // namespace std_regex
 
 } // namespace gonk

@@ -53,4 +53,8 @@ public:
 
 } // namespace gonk
 
+namespace script {
+template<typename T> struct maketype_helper<T*> { inline static script::Type get(const Engine& e) { return e.getType<gonk::Pointer<T>>(); } };
+} // namespace script
+
 #endif // GONK_COMMONS_POINTER_H

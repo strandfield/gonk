@@ -159,9 +159,10 @@ public:
       function(fun),
       m_name(std::move(name))
   {
+    script::Engine* e = sym.engine();
     enclosing_symbol = sym.impl();
-    proto.setReturnType(make_type<T>());
-    proto.set({ make_type<Args>()... });
+    proto.setReturnType(make_type<T>(e));
+    proto.set({ make_type<Args>(e)... });
   }
 
   void setMember(bool is_static)

@@ -15,7 +15,8 @@ static void register_regex_class(script::Namespace ns)
 {
   using namespace script;
 
-  Class regex = ns.newClass("regex").setId(script::Type::make<std::regex>().data()).get();
+  Type t = ns.engine()->registerType<std::regex>();
+  Class regex = ns.newClass("regex").setId(t.data()).get();
 
   // regex()
   gonk::bind::default_constructor<std::regex>(regex).create();

@@ -23,49 +23,6 @@ namespace gonk
 namespace qt_core
 {
 
-enum class EnumTypeIds
-{
-  FirstTypeId,
-  QByteArrayBase64Option,
-  QByteArrayBase64DecodingStatus,
-  QCharSpecialCharacter,
-  QCharCategory,
-  QCharScript,
-  QCharDirection,
-  QCharDecomposition,
-  QCharJoiningType,
-  QCharJoining,
-  QCharCombiningClass,
-  QCharUnicodeVersion,
-  QStringSectionFlag,
-  QStringSplitBehavior,
-  QStringNormalizationForm,
-  QDirFilter,
-  QDirSortFlag,
-  LastTypeId,
-};
-
-enum class ClassTypeIds
-{
-  FirstTypeId,
-  QByteArrayFromBase64Result,
-  QByteArray,
-  QByteRef,
-  FromBase64Result,
-  QLatin1Char,
-  QChar,
-  QLatin1String,
-  QStringNull,
-  QString,
-  QCharRef,
-  QStringRef,
-  QDir,
-  LastTypeId,
-};
-
-GONK_QT_CORE_API int enum_type_id_offset();
-GONK_QT_CORE_API int class_type_id_offset();
-
 } // namespace qt_core
 
 } // namespace gonk

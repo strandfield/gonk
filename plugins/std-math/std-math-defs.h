@@ -21,14 +21,6 @@ namespace gonk
 namespace std_math
 {
 
-enum ClassTypeIds
-{
-  VectorInt,
-};
-
-GONK_STD_MATH_API int class_type_id_offset();
-GONK_STD_MATH_API int enum_type_id_offset();
-
 } // namespace std_math
 
 } // namespace gonk

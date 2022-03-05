@@ -22,7 +22,16 @@ template<typename T>
 script::EnumBuilder enumeration(script::Namespace& ns, std::string name)
 {
   auto result = ns.newEnum(std::move(name));
-  result.id = script::Type::make<T>().data();
+
+  try
+  {
+    result.id = ns.engine()->getType<T>().data();
+  }
+  catch (const script::UnknownTypeError&)
+  {
+    result.id = ns.engine()->registerType<T>().data();
+  }
+
   result.assignment_callback = gonk::wrapper::enum_assignment<T>;
   result.copy_callback = gonk::wrapper::enum_copy<T>;
   result.from_int_callback = gonk::wrapper::enum_from_int<T>;
@@ -33,7 +42,16 @@ template<typename T>
 script::EnumBuilder enumeration(script::Class& cla, std::string name)
 {
   auto result = cla.newEnum(std::move(name));
-  result.id = script::Type::make<T>().data();
+
+  try
+  {
+    result.id = cla.engine()->getType<T>().data();
+  }
+  catch (const script::UnknownTypeError&)
+  {
+    result.id = cla.engine()->registerType<T>().data();
+  }
+
   result.assignment_callback = gonk::wrapper::enum_assignment<T>;
   result.copy_callback = gonk::wrapper::enum_copy<T>;
   result.from_int_callback = gonk::wrapper::enum_from_int<T>;
