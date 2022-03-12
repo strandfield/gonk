@@ -1,0 +1,4 @@
+[general]
+name=gonk.test.hybrid.module
+sourcefile=test-hybrid-module.gnk
+entry_point=gonk_test_hybrid_module
