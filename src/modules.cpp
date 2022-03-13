@@ -7,11 +7,10 @@
 #include "gonk/gonk.h"
 #include "gonk/plugin.h"
 
-#include <QFileInfo>
-#include <QDir>
-#include <QDirIterator>
 #include <QLibrary>
 #include <QSettings>
+
+#include <filesystem>
 
 namespace gonk
 {
@@ -78,17 +77,19 @@ protected:
 
   void load(std::string dirpath)
   {
-    QDirIterator iterator{ QString::fromStdString(dirpath), QDir::NoDotAndDotDot | QDir::Dirs, QDirIterator ::NoIteratorFlags };
+    std::filesystem::directory_iterator iterator{ dirpath };
 
-    while (iterator.hasNext())
+    for(const std::filesystem::directory_entry& entry : iterator)
     {
-      QString path = iterator.next();
-      QFileInfo gonkmodule = path + "/gonkmodule";
-
-      if (!gonkmodule.exists())
+      if (!entry.is_directory())
         continue;
 
-      QSettings settings{ gonkmodule.absoluteFilePath(), QSettings::IniFormat };
+      std::filesystem::path gonkmodule = entry.path() / "gonkmodule";
+
+      if (!std::filesystem::exists(gonkmodule))
+        continue;
+
+      QSettings settings{ gonkmodule.string().c_str(), QSettings::IniFormat };
 
       ModuleInfo module_info;
       module_info.fullname = settings.value("name", QString()).toString().toStdString();
@@ -99,7 +100,7 @@ protected:
       for (auto d : dependencies)
         module_info.dependencies.push_back(d.toStdString());
 
-      module_info.path = gonkmodule.absoluteFilePath().remove("/gonkmodule").toStdString();
+      module_info.path = gonkmodule.parent_path().string();
 
       m_modules.push_back(module_info);
     }
@@ -303,7 +304,7 @@ ModuleManager::~ModuleManager()
 
 void ModuleManager::addImportPath(std::string dir)
 {
-  if (!QFileInfo(QString::fromStdString(dir)).isDir())
+  if (!std::filesystem::is_directory(dir))
     return;
 
   m_import_paths.push_back(dir);
