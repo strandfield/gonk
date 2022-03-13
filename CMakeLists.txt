@@ -14,12 +14,18 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network)
 
 ##################################################################
-###### C++17 clang (Travis CI)
+###### C++17 clang
 ##################################################################
 
+#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+#  message("Building with clang")
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+#endif()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  message("Building with clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  EXECUTE_PROCESS( COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
+  string (REGEX REPLACE ".*clang version ([0-9]+\\.[0-9]+).*" "\\1" CLANG_VERSION_STRING ${clang_full_version_string})
+  message("Clang version: ${CLANG_VERSION_STRING}")
 endif()
 
 ##################################################################
@@ -46,6 +52,19 @@ target_compile_definitions(libgonk PRIVATE -DGONK_COMPILE_LIBRARY)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     message("GCC compiler: linking to stdc++fs")
     target_link_libraries(libgonk stdc++fs)
+endif()
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
+  if (CLANG_VERSION_STRING VERSION_GREATER_EQUAL 9.0)
+    message("Clang version greater than 9.0, no need to link to c++fs")
+  else()
+    message("Clang compiler: linking to c++fs")
+    target_link_libraries(libgonk c++fs)
+  endif()
+    
+  message("See https://releases.llvm.org/10.0.0/projects/libcxx/docs/UsingLibcxx.html#using-filesystem for information about using #include<filesystem> with clang")
+
 endif()
 
 file(COPY ${CMAKE_SOURCE_DIR}/icon.ico DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/src)
