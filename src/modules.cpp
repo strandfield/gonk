@@ -5,10 +5,10 @@
 #include "gonk/modules.h"
 
 #include "gonk/gonk.h"
+#include "gonk/gonkmodule.h"
 #include "gonk/plugin.h"
 
 #include <QLibrary>
-#include <QSettings>
 
 #include <filesystem>
 
@@ -89,18 +89,14 @@ protected:
       if (!std::filesystem::exists(gonkmodule))
         continue;
 
-      QSettings settings{ gonkmodule.string().c_str(), QSettings::IniFormat };
+      GonkModuleFile gonkmodulefile = GonkModuleFile::read(gonkmodule);
 
       ModuleInfo module_info;
-      module_info.fullname = settings.value("name", QString()).toString().toStdString();
-      module_info.sourcefile = settings.value("sourcefile", QString()).toString().toStdString();
-      module_info.entry_point = settings.value("entry_point", QString()).toString().toStdString();
-
-      QStringList dependencies = settings.value("dependencies", QString()).toString().split(',', QString::SkipEmptyParts);
-      for (auto d : dependencies)
-        module_info.dependencies.push_back(d.toStdString());
-
       module_info.path = gonkmodule.parent_path().string();
+      module_info.fullname = gonkmodulefile.name;
+      module_info.sourcefile = gonkmodulefile.sourcefile.value_or(std::string());
+      module_info.entry_point = gonkmodulefile.entry_point.value_or(std::string());
+      module_info.dependencies = gonkmodulefile.dependencies.value_or(std::vector<std::string>());
 
       m_modules.push_back(module_info);
     }
