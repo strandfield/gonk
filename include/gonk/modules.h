@@ -11,6 +11,8 @@
 #include <script/module-interface.h>
 #include <script/script.h>
 
+#include <dynlib/dynlib.h>
+
 namespace gonk
 {
 
@@ -29,6 +31,7 @@ class GONK_API GonkModuleInterface : public script::ModuleInterface
 {
 public:
   ModuleInfo info;
+  std::shared_ptr<dynlib::Library> library;
   std::shared_ptr<Plugin> plugin;
   script::Script script;
   std::vector<script::Module> modules;

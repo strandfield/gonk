@@ -9,11 +9,20 @@
 
 #include <script/module.h>
 
+#include <dynlib/dynlib.h>
+
+#include <memory>
+
 namespace gonk
 {
 
 class GONK_API Plugin
 {
+public:
+  // @TODO: having the plugin and in GOnkModuleInterface cause a crash with the hybrid module example
+  // as the library is unloaded before all the associated elements are
+  std::shared_ptr<dynlib::Library> library;
+
 public:
   Plugin();
   virtual ~Plugin();

@@ -47,6 +47,7 @@ add_library(libgonk SHARED ${GONK_SRC_FILES} ${GONK_HDR_FILES})
 target_include_directories(libgonk PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(libgonk Qt5::Core)
 target_link_libraries(libgonk libscript)
+target_link_libraries(libgonk dynlib)
 target_compile_definitions(libgonk PRIVATE -DGONK_COMPILE_LIBRARY)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
