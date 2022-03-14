@@ -260,14 +260,14 @@ void GonkModuleInterface::loadPlugin()
       c = '-';
   }
 
-  library = std::make_shared<dynlib::Library>(info.path + "/" + lib_name);
+  dynlib::Library library{ info.path + "/" + lib_name };
 
-  if (!library->load())
+  if (!library.load())
   {
     throw script::ModuleLoadingError{ "Could not load module library" };
   }
 
-  void (*funpointer)() = library->resolve(info.entry_point.c_str());
+  void (*funpointer)() = library.resolve(info.entry_point.c_str());
 
   if (!funpointer)
   {
@@ -277,7 +277,6 @@ void GonkModuleInterface::loadPlugin()
   gonk::Plugin* (*plugin_getter)() = reinterpret_cast<gonk::Plugin * (*)()>(funpointer);
 
   gonk::Plugin* p = plugin_getter();
-  p->library = library;
 
   if (!p)
   {
