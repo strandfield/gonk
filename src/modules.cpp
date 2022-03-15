@@ -10,6 +10,7 @@
 
 #include <dynlib/dynlib.h>
 
+#include <algorithm>
 #include <filesystem>
 
 namespace gonk
