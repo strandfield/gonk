@@ -265,7 +265,7 @@ void GonkModuleInterface::loadPlugin()
 
   if (!library.load())
   {
-    throw script::ModuleLoadingError{ "Could not load module library" };
+    throw script::ModuleLoadingError("Could not load module library: " + info.path + "/" + lib_name + "\n" + library.errorString());
   }
 
   void (*funpointer)() = library.resolve(info.entry_point.c_str());
