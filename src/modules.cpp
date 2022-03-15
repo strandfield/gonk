@@ -8,8 +8,9 @@
 #include "gonk/gonkmodule.h"
 #include "gonk/plugin.h"
 
-#include <QLibrary>
+#include <dynlib/dynlib.h>
 
+#include <algorithm>
 #include <filesystem>
 
 namespace gonk
@@ -260,11 +261,11 @@ void GonkModuleInterface::loadPlugin()
       c = '-';
   }
 
-  QLibrary library{ QString::fromStdString(info.path + "/" + lib_name) };
+  dynlib::Library library{ info.path + "/" + lib_name };
 
   if (!library.load())
   {
-    throw script::ModuleLoadingError{ "Could not load module library" };
+    throw script::ModuleLoadingError("Could not load module library: " + info.path + "/" + lib_name + "\n" + library.errorString());
   }
 
   void (*funpointer)() = library.resolve(info.entry_point.c_str());

@@ -9,6 +9,8 @@
 
 #include <script/module.h>
 
+#include <memory>
+
 namespace gonk
 {
 

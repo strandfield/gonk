@@ -4,6 +4,7 @@
 
 #include "gonk/gonkmodule.h"
 
+#include <cstring>
 #include <fstream>
 #include <stdexcept>
 
