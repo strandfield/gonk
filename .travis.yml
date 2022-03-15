@@ -6,9 +6,9 @@ before_install:
   - sudo apt-get install qt5-default qttools5-dev-tools
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
-  - travis_retry wget --no-check-certificate https://cmake.org/files/v3.13/cmake-3.13.0-Linux-x86_64.tar.gz
-  - tar -xvf cmake-3.13.0-Linux-x86_64.tar.gz > /dev/null
-  - mv cmake-3.13.0-Linux-x86_64 cmake-install
+  - travis_retry wget --no-check-certificate https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz
+  - tar -xvf cmake-3.17.0-Linux-x86_64.tar.gz > /dev/null
+  - mv cmake-3.17.0-Linux-x86_64 cmake-install
   - PATH=${DEPS_DIR}/cmake-install:${DEPS_DIR}/cmake-install/bin:$PATH
   - cd ${TRAVIS_BUILD_DIR}
 
@@ -20,25 +20,20 @@ before_script:
   - set -e
 
 matrix:
-  exclude:
+  include:
   - os: linux
-    dist: bionic
-    name: Clang 7.0
+    dist: focal
+    name: Clang 9.0
     compiler: clang
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-bionic-7
-        packages:
-          - libc++-7-dev
-          - libc++abi-7-dev
+    env:
+      - CC=clang-9
+      - CXX=clang++-9
     script:
+      - sudo apt-get -y install clang-9 libc++-9-dev libc++abi-9-dev 
       - cmake ..
       - make
       - cd tests
       - ctest
-  include:
   - os: linux
     dist: bionic
     name: GCC 8
