@@ -14,7 +14,7 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network)
 
 cmake_policy(SET CMP0074 NEW)
-find_package(Boost 1.69.0 REQUIRED COMPONENTS system)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS system)
 
 ##################################################################
 ###### C++17 clang

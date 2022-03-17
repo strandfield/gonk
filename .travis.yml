@@ -41,19 +41,9 @@ matrix:
       - ctest
   include:
   - os: linux
-    dist: bionic
-    name: GCC 8
-    env:
-      - CC=gcc-8
-      - CXX=g++-8
-    compiler: gcc-8
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-        packages:
-          - gcc-8
-          - g++-8
+    dist: focal
+    name: GCC 9
+    compiler: gcc
     script:
       - cmake ..
       - make
