@@ -19,7 +19,7 @@ namespace debugger
 class DebuggerMessage
 {
 public:
-  virtual ~DebuggerMessage();
+  virtual ~DebuggerMessage() = default;
 };
 
 struct SourceCode : DebuggerMessage

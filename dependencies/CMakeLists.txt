@@ -49,18 +49,6 @@ foreach(_source IN ITEMS ${DYNLIB_HDR_FILES} ${DYNLIB_SRC_FILES})
     source_group("${_group_path}" FILES "${_source}")
 endforeach()
 
-
-##################################################################
-###### libclang-utils
-##################################################################
-
-add_subdirectory(libclang-utils)
-
-if (WIN32)
-  set_target_properties(libclang-utils PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-  set_target_properties(libclang-utils PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-endif()
-
 ##################################################################
 ###### json-toolkit
 ##################################################################

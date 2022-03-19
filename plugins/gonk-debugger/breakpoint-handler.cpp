@@ -5,9 +5,8 @@
 #include "breakpoint-handler.h"
 
 #include "ast-producer.h"
+#include "server.h"
 #include "value-serializer.h"
-
-#include <debugger/server.h>
 
 #include <script/interpreter/executioncontext.h>
 #include <script/interpreter/workspace.h>

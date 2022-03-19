@@ -4,8 +4,9 @@
 
 #include "gonk-debugger-defs.h"
 
+#include "message.h"
+
 #include "gonk/pretty-print.h"
-#include "debugger/message.h"
 
 #include <memory>
 

@@ -43,16 +43,16 @@ file(GLOB_RECURSE GONK_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/gonk/*.h)
 
 list(REMOVE_ITEM GONK_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-add_library(libgonk SHARED ${GONK_SRC_FILES} ${GONK_HDR_FILES})
-target_include_directories(libgonk PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(libgonk PUBLIC "${JSONTOOLKIT_INCLUDE_DIRS}")
-target_link_libraries(libgonk libscript)
-target_link_libraries(libgonk dynlib)
-target_compile_definitions(libgonk PRIVATE -DGONK_COMPILE_LIBRARY)
+add_library(gonkbase SHARED ${GONK_SRC_FILES} ${GONK_HDR_FILES})
+target_include_directories(gonkbase PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(gonkbase PUBLIC "${JSONTOOLKIT_INCLUDE_DIRS}")
+target_link_libraries(gonkbase libscript)
+target_link_libraries(gonkbase dynlib)
+target_compile_definitions(gonkbase PRIVATE -DGONK_COMPILE_LIBRARY)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     message("GCC compiler: linking to stdc++fs")
-    target_link_libraries(libgonk stdc++fs)
+    target_link_libraries(gonkbase stdc++fs)
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -61,7 +61,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     message("Clang version greater than 9.0, no need to link to c++fs")
   else()
     message("Clang compiler: linking to c++fs")
-    target_link_libraries(libgonk c++fs)
+    target_link_libraries(gonkbase c++fs)
   endif()
     
   message("See https://releases.llvm.org/10.0.0/projects/libcxx/docs/UsingLibcxx.html#using-filesystem for information about using #include<filesystem> with clang")
@@ -73,7 +73,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/icon.ico DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/s
 add_executable(gonk 
                "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
 			   "${CMAKE_CURRENT_SOURCE_DIR}/src/windows_res.rc")
-target_link_libraries(gonk libgonk)
+target_link_libraries(gonk gonkbase)
 
 foreach(_source IN ITEMS ${GONK_SRC_FILES} ${GONK_HDR_FILES})
     get_filename_component(_source_path "${_source}" PATH)
@@ -85,14 +85,7 @@ endforeach()
 if (WIN32)
   set_target_properties(gonk PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
   set_target_properties(gonk PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-  set_target_properties(gonk PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${Qt5_DIR}/../../../bin;%PATH%")
 endif()
-
-##################################################################
-###### debugger
-##################################################################
-
-add_subdirectory(debugger)
 
 ##################################################################
 ###### plugins
