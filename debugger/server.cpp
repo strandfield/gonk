@@ -4,10 +4,9 @@
 
 #include "server.h"
 
-#include <QEventLoop>
+#include <json-toolkit/stringify.h>
 
-#include <QJsonArray>
-#include <QJsonDocument>
+#include <QEventLoop>
 
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -45,21 +44,21 @@ void Server::waitForConnection()
 
 void Server::notifyRun()
 {
-  QJsonObject resp;
+  json::Object resp;
   resp["type"] = "run";
   send(resp);
 }
 
 void Server::notifyBreak()
 {
-  QJsonObject resp;
+  json::Object resp;
   resp["type"] = "break";
   send(resp);
 }
 
 void Server::notifyGoodbye()
 {
-  QJsonObject resp;
+  json::Object resp;
   resp["type"] = "goodbye";
   send(resp);
   m_socket->waitForBytesWritten(10);
@@ -110,22 +109,20 @@ void Server::onNewConnection()
 
 void Server::read()
 {
-  while (m_reader(m_socket))
+  QByteArray bytes = m_socket->readAll();
+  m_json_stream.write(bytes.constData());
+
+  for (json::Object obj : m_json_stream.objects)
   {
-    QByteArray data = m_reader.read();
-    parseRequest(data);
+    m_requests.push_back(parseRequest(obj));
   }
+
+  m_json_stream.objects.clear();
 }
 
-void Server::parseRequest(QByteArray reqdata)
+Request Server::parseRequest(json::Object reqjson)
 {
-  QJsonObject reqjson = QJsonDocument::fromJson(reqdata).object();
-  m_requests.push_back(parseRequest(reqjson));
-}
-
-Request Server::parseRequest(QJsonObject reqjson)
-{
-  QString reqtype = reqjson.value("type").toString();
+  std::string reqtype = reqjson["type"].toString();
 
   if (reqtype == "pause")
   {
@@ -150,7 +147,7 @@ Request Server::parseRequest(QJsonObject reqjson)
   else if (reqtype == "getsource")
   {
     GetSourceCode data;
-    data.path = reqjson["path"].toString().toStdString();
+    data.path = reqjson["path"].toString();
     return Request(data);
   }
   else if (reqtype == "getbreakpoints")
@@ -170,7 +167,7 @@ Request Server::parseRequest(QJsonObject reqjson)
   else if (reqtype == "addbreakpoint")
   {
     AddBreakpoint data;
-    data.script_path = reqjson["path"].toString().toStdString();
+    data.script_path = reqjson["path"].toString();
     data.line = reqjson["line"].toInt();
     return Request(data);
   }
@@ -181,7 +178,7 @@ Request Server::parseRequest(QJsonObject reqjson)
 
     if (data.id == -1)
     {
-      data.script_path = reqjson["path"].toString().toStdString();
+      data.script_path = reqjson["path"].toString();
       data.line = reqjson["line"].toInt();
     }
 
@@ -191,32 +188,32 @@ Request Server::parseRequest(QJsonObject reqjson)
   return Request::make<RequestType::Run>();
 }
 
-QJsonObject Server::serialize(const SourceCode& src)
+json::Object Server::serialize(const SourceCode& src)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "sourcecode";
-  obj["path"] = QString::fromStdString(src.path);
-  obj["text"] = QString::fromStdString(src.source);
+  obj["path"] = src.path;
+  obj["text"] = src.source;
   obj["ast"] = src.syntaxtree;
   return obj;
 }
 
-QJsonObject Server::serialize(const BreakpointList& list)
+json::Object Server::serialize(const BreakpointList& list)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "breakpoints";
   
   {
-    QJsonArray jsonlist;
+    json::Array jsonlist;
 
     for (const BreakpointData& bpd : list.list)
     {
-      QJsonObject jsonbp;
+      json::Object jsonbp;
       jsonbp["id"] = bpd.id;
       jsonbp["line"] = bpd.line;
-      jsonbp["function"] = QString::fromStdString(bpd.function);
-      jsonbp["path"] = QString::fromStdString(bpd.script_path);
-      jsonlist.push_back(jsonbp);
+      jsonbp["function"] = bpd.function;
+      jsonbp["path"] = bpd.script_path;
+      jsonlist.push(jsonbp);
     }
 
     obj["list"] = jsonlist;
@@ -225,22 +222,22 @@ QJsonObject Server::serialize(const BreakpointList& list)
   return obj;
 }
 
-QJsonObject Server::serialize(const Callstack& cs)
+json::Object Server::serialize(const Callstack& cs)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "callstack";
 
   {
-    QJsonArray stack;
+    json::Array stack;
 
     for (const auto& e : cs.entries)
     {
-      QJsonObject entry;
-      entry["function"] = QString::fromStdString(e.function);
-      entry["path"] = QString::fromStdString(e.path);
+      json::Object entry;
+      entry["function"] = e.function;
+      entry["path"] = e.path;
       entry["line"] = e.line;
 
-      stack.append(entry);
+      stack.push(entry);
     }
 
     obj["stack"] = stack;
@@ -249,38 +246,38 @@ QJsonObject Server::serialize(const Callstack& cs)
   return obj;
 }
 
-QJsonObject Server::serialize(const Variable& v)
+json::Object Server::serialize(const Variable& v)
 {
-  QJsonObject ret;
+  json::Object ret;
   ret["offset"] = v.offset;
-  ret["type"] = QString::fromStdString(v.type);
-  ret["name"] = QString::fromStdString(v.name);
-  ret["value"] = QString::fromStdString(v.value);
+  ret["type"] = v.type;
+  ret["name"] = v.name;
+  ret["value"] = v.value;
 
   if (!v.members.empty())
   {
-    QJsonArray members;
+    json::Array members;
     for (std::shared_ptr<Variable> memvar : v.members)
-      members.append(serialize(*memvar));
+      members.push(serialize(*memvar));
     ret["members"] = members;
   }
 
   return ret;
 }
 
-QJsonObject Server::serialize(const VariableList& vlist)
+json::Object Server::serialize(const VariableList& vlist)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "variables";
   obj["depth"] = vlist.callstack_depth;
 
   {
-    QJsonArray vars;
+    json::Array vars;
 
     for (const auto& v : vlist.variables)
     {
-      QJsonObject e = serialize(*v);
-      vars.push_back(e);
+      json::Object e = serialize(*v);
+      vars.push(e);
     }
 
     obj["variables"] = vars;
@@ -289,14 +286,13 @@ QJsonObject Server::serialize(const VariableList& vlist)
   return obj;
 }
 
-void Server::send(QJsonObject response)
+void Server::send(json::Object response)
 {
   if (m_socket)
   {
-    QByteArray bytes = QJsonDocument(response).toJson(QJsonDocument::Compact);
+    std::string bytes = json::stringify(response);
     size_t s = bytes.size();
-    m_socket->write(reinterpret_cast<const char*>(&s), sizeof(size_t));
-    m_socket->write(bytes);
+    m_socket->write(bytes.c_str(), s);
   }
 }
 

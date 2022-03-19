@@ -7,8 +7,7 @@
 #include <script/ast/visitor.h>
 #include <script/ast.h>
 
-#include <QJsonArray>
-#include <QJsonObject>
+#include <json-toolkit/json.h>
 
 namespace gonk
 {
@@ -18,22 +17,22 @@ class GonkAstProducer : public script::ast::AstVisitor
 public:
 
   script::Ast ast;
-  QJsonObject result;
-  QJsonArray children;
+  json::Object result;
+  json::Array children;
 
-  QJsonObject produce(script::Ast a)
+  json::Object produce(script::Ast a)
   {
     ast = a;
 
-    QJsonObject ret;
+    json::Object ret;
     
-    QJsonArray nodes;
+    json::Array nodes;
 
     auto root = std::static_pointer_cast<script::ast::ScriptRootNode>(a.root());
 
     for (auto s : root->statements)
     {
-      nodes.push_back(prod(s));
+      nodes.push(prod(s));
     }
 
     ret["nodes"] = nodes;
@@ -41,7 +40,7 @@ public:
     return ret;
   }
 
-  static QString to_str(script::ast::NodeType nt)
+  static std::string to_str(script::ast::NodeType nt)
   {
     switch (nt)
     {
@@ -99,10 +98,10 @@ public:
     }
   }
 
-  QJsonObject prod(std::shared_ptr<script::ast::Node> n)
+  json::Object prod(std::shared_ptr<script::ast::Node> n)
   {
-    QJsonObject ret;
-    QJsonArray childs;
+    json::Object ret;
+    json::Array childs;
 
     ret["type"] = to_str(n->type());
     ret["offset"] = static_cast<int>(ast.offset(*n));
@@ -116,7 +115,7 @@ public:
     std::swap(ret, result);
     std::swap(childs, children);
 
-    if (childs.size() > 0)
+    if (childs.length() > 0)
       ret["children"] = childs;
 
     return ret;
@@ -126,13 +125,13 @@ public:
   {
     if (n)
     {
-      children.append(prod(n));
+      children.push(prod(n));
     }
   }
 
-  QJsonObject prodtok(const script::parser::Token& tok)
+  json::Object prodtok(const script::parser::Token& tok)
   {
-    QJsonObject ret;
+    json::Object ret;
     
     if ((tok.flags & script::parser::Token::Keyword) == script::parser::Token::Keyword)
       ret["type"] = "kw";
@@ -149,14 +148,14 @@ public:
 
     ret["offset"] = static_cast<int>(ast.offset(tok));
     ret["length"] = static_cast<int>(tok.text().size());
-    ret["text"] = QString::fromStdString(tok.text().toString());
+    ret["text"] = tok.text().toString();
 
     return ret;
   }
 
   void visit(What w, script::parser::Token tok) override
   {
-    children.append(prodtok(tok));
+    children.push(prodtok(tok));
   }
 };
 

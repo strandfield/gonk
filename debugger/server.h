@@ -5,9 +5,7 @@
 #include <QObject>
 
 #include "message.h"
-#include "message-reader.h"
-
-#include <QJsonObject>
+#include "json-stream-parser.h"
 
 #include <variant>
 #include <vector>
@@ -137,27 +135,26 @@ protected Q_SLOTS:
 
 protected:
   void read();
-  void parseRequest(QByteArray reqdata);
-  Request parseRequest(QJsonObject reqjson);
+  Request parseRequest(json::Object reqjson);
 
-  QJsonObject serialize(const SourceCode& src);
-  QJsonObject serialize(const BreakpointList& list);
-  QJsonObject serialize(const Callstack& cs);
-  QJsonObject serialize(const Variable& v);
-  QJsonObject serialize(const VariableList& vlist);
-  void send(QJsonObject response);
+  json::Object serialize(const SourceCode& src);
+  json::Object serialize(const BreakpointList& list);
+  json::Object serialize(const Callstack& cs);
+  json::Object serialize(const Variable& v);
+  json::Object serialize(const VariableList& vlist);
+  void send(json::Object response);
 
 private:
   QTcpServer* m_server = nullptr;
   QTcpSocket* m_socket = nullptr;
   std::vector<Request> m_requests;
-  priv::MessageReader m_reader;
+  JsonStreamParser m_json_stream;
 };
 
 template<typename T>
 inline void Server::reply(T response_data)
 {
-  QJsonObject obj = serialize(response_data);
+  json::Object obj = serialize(response_data);
   send(obj);
 }
 

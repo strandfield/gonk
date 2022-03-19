@@ -7,7 +7,7 @@
 
 #include <QObject>
 
-#include <QJsonObject>
+#include <json-toolkit/json.h>
 
 #include <memory>
 #include <vector>
@@ -28,7 +28,7 @@ struct SourceCode : DebuggerMessage
 {
   std::string path;
   std::string source;
-  QJsonObject syntaxtree;
+  json::Object syntaxtree;
 };
 
 struct CallstackEntry

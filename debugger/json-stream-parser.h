@@ -2,7 +2,8 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include "gonk-debugger-defs.h"
+#ifndef GONK_DEBUGGER_JSSTREAMPARSER_H
+#define GONK_DEBUGGER_JSSTREAMPARSER_H
 
 #include <json-toolkit/parsing.h>
 
@@ -47,3 +48,5 @@ inline void JsonStreamParser::write(const std::string& data)
 }
 
 } // namespace gonk
+
+#endif // GONK_DEBUGGER_JSSTREAMPARSER_H
