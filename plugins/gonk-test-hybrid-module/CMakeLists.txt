@@ -3,7 +3,7 @@ file(GLOB GONK_PLUGIN_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB GONK_PLUGIN_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(gonk-test-hybrid-module SHARED ${GONK_PLUGIN_SRC_FILES} ${GONK_PLUGIN_HDR_FILES})
-target_link_libraries(gonk-test-hybrid-module libgonk)
+target_link_libraries(gonk-test-hybrid-module gonkbase)
 target_compile_definitions(gonk-test-hybrid-module PRIVATE -DGONK_GONKTESTHYBRIDMODULE_COMPILE_LIBRARY)
 
 if (WIN32)

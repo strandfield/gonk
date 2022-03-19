@@ -3,7 +3,7 @@ file(GLOB GONK_STD_INTTYPES_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB GONK_STD_INTTYPES_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(std-inttypes SHARED ${GONK_STD_INTTYPES_SRC_FILES} ${GONK_STD_INTTYPES_HDR_FILES})
-target_link_libraries(std-inttypes libgonk)
+target_link_libraries(std-inttypes gonkbase)
 target_compile_definitions(std-inttypes PRIVATE -DGONK_STD_INTTYPES_COMPILE_LIBRARY)
 
 if (WIN32)

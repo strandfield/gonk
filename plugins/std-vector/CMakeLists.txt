@@ -3,7 +3,7 @@ file(GLOB GONK_STD_VECTOR_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB GONK_STD_VECTOR_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(std-vector SHARED ${GONK_STD_VECTOR_SRC_FILES} ${GONK_STD_VECTOR_HDR_FILES})
-target_link_libraries(std-vector libgonk)
+target_link_libraries(std-vector gonkbase)
 target_compile_definitions(std-vector PRIVATE -DGONK_STD_VECTOR_COMPILE_LIBRARY)
 
 if (WIN32)

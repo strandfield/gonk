@@ -3,7 +3,7 @@ file(GLOB GONK_STD_MATH_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB GONK_STD_MATH_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(std-math SHARED ${GONK_STD_MATH_SRC_FILES} ${GONK_STD_MATH_HDR_FILES})
-target_link_libraries(std-math libgonk)
+target_link_libraries(std-math gonkbase)
 target_compile_definitions(std-math PRIVATE -DGONK_STD_MATH_COMPILE_LIBRARY)
 
 if (WIN32)

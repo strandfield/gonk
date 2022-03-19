@@ -30,7 +30,7 @@ target_include_directories(gonkdbg PRIVATE ".")
 target_include_directories(gonkdbg PRIVATE "${CMAKE_SOURCE_DIR}")
 target_include_directories(gonkdbg PUBLIC "${JSONTOOLKIT_INCLUDE_DIRS}")
 
-target_link_libraries(gonkdbg libgonk)
+target_link_libraries(gonkdbg gonkbase)
 target_link_libraries(gonkdbg Qt5::Core Qt5::Widgets Qt5::Network)
 
 set_target_properties(gonkdbg PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
