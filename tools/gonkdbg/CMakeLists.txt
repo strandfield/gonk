@@ -3,6 +3,14 @@
 ###### gonkdbg
 ##################################################################
 
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5 COMPONENTS Core Gui Widgets Network)
+
+if (NOT Qt5_FOUND)
+  message("Could not find Qt5, gonkdbg won't be built")
+  return()
+endif()
+
 # Copy icon
 file(COPY ${CMAKE_SOURCE_DIR}/icon.ico ${CMAKE_SOURCE_DIR}/icon.png DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 
