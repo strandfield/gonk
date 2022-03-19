@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2022 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -15,11 +15,6 @@ namespace gonk
 
 namespace debugger
 {
-
-DebuggerMessage::~DebuggerMessage()
-{
-
-}
 
 Client::Client(QObject* parent)
   : QObject(parent)
