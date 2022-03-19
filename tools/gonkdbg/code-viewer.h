@@ -7,7 +7,7 @@
 
 #include <QPlainTextEdit>
 
-#include <debugger/message.h>
+#include <plugins/gonk-debugger/message.h>
 
 #include <QPixmap>
 

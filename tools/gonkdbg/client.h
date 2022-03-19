@@ -7,8 +7,8 @@
 
 #include <QObject>
 
-#include <debugger/json-stream-parser.h>
-#include <debugger/message.h>
+#include <plugins/gonk-debugger/json-stream-parser.h>
+#include <plugins/gonk-debugger/message.h>
 
 #include <json-toolkit/json.h>
 
