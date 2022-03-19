@@ -5,8 +5,6 @@
 #ifndef GONK_DEBUGGER_MESSAGE_H
 #define GONK_DEBUGGER_MESSAGE_H
 
-#include <QObject>
-
 #include <json-toolkit/json.h>
 
 #include <memory>

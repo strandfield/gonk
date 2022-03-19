@@ -6,10 +6,7 @@
 
 #include <json-toolkit/stringify.h>
 
-#include <QEventLoop>
-
-#include <QTcpServer>
-#include <QTcpSocket>
+#include <iostream>
 
 namespace gonk
 {
@@ -18,11 +15,9 @@ namespace debugger
 {
 
 Server::Server()
+  : m_acceptor(m_io_context, tcp::endpoint(tcp::v4(), 24242))
 {
-  m_server = new QTcpServer(this);
-  m_server->listen(QHostAddress::LocalHost, 24242);
-
-  connect(m_server, &QTcpServer::newConnection, this, &Server::onNewConnection);
+  start_accept();
 }
 
 Server::~Server()
@@ -32,14 +27,9 @@ Server::~Server()
 
 void Server::waitForConnection()
 {
-  qDebug() << "waiting for connection";
-
-  if (m_socket)
-    return;
-
-  QEventLoop ev;
-  QObject::connect(this, &Server::connectionEstablished, &ev, &QEventLoop::quit);
-  ev.exec();
+  std::cout << "waiting for connection" << std::endl;
+  m_io_context.run();
+  m_io_context.restart();
 }
 
 void Server::notifyRun()
@@ -61,7 +51,6 @@ void Server::notifyGoodbye()
   json::Object resp;
   resp["type"] = "goodbye";
   send(resp);
-  m_socket->waitForBytesWritten(10);
 }
 
 bool Server::hasPendingRequests() const
@@ -76,48 +65,18 @@ std::vector<Request>& Server::pendingRequests()
 
 bool Server::receiveRequest()
 {
-  size_t reqcount = m_requests.size();
-  read();
-  return m_requests.size() != reqcount;
+  m_io_context.poll_one();
+  return hasPendingRequests();
 }
 
 bool Server::waitForRequest(int msecs)
 {
-  if (!m_socket)
+  if (!m_connection)
     return false;
 
-  if (!m_socket->waitForReadyRead(msecs))
-    return false;
+  m_io_context.run_for(std::chrono::milliseconds(msecs));
 
-  return receiveRequest();
-}
-
-void Server::onNewConnection()
-{
-  m_socket = m_server->nextPendingConnection();
-
-  if (m_socket)
-  {
-    m_server->deleteLater();
-    m_server = nullptr;
-
-    qDebug() << "connection established";
-
-    Q_EMIT connectionEstablished();
-  }
-}
-
-void Server::read()
-{
-  QByteArray bytes = m_socket->readAll();
-  m_json_stream.write(bytes.constData());
-
-  for (json::Object obj : m_json_stream.objects)
-  {
-    m_requests.push_back(parseRequest(obj));
-  }
-
-  m_json_stream.objects.clear();
+  return hasPendingRequests();
 }
 
 Request Server::parseRequest(json::Object reqjson)
@@ -288,12 +247,60 @@ json::Object Server::serialize(const VariableList& vlist)
 
 void Server::send(json::Object response)
 {
-  if (m_socket)
+  if (m_connection)
   {
     std::string bytes = json::stringify(response);
-    size_t s = bytes.size();
-    m_socket->write(bytes.c_str(), s);
+    boost::asio::write(m_connection->socket(), boost::asio::buffer(bytes));
   }
+}
+
+void Server::start_accept()
+{
+  m_connection = TcpConnection::create(m_io_context);
+
+  m_acceptor.async_accept(m_connection->socket(),
+    [this](const boost::system::error_code& error) {
+      handle_accept(error);
+    });
+}
+
+void Server::handle_accept(const boost::system::error_code& error)
+{
+  if (!error)
+  {
+    m_io_context.stop();
+    start_read();
+  }
+
+  //start_accept();
+}
+
+void Server::start_read()
+{
+  m_connection->buffer().clear();
+  m_connection->buffer().resize(2048);
+
+  boost::asio::async_read(m_connection->socket(), boost::asio::buffer(m_connection->buffer()),
+    boost::asio::transfer_at_least(1),
+    [this](const boost::system::error_code& error, size_t bytes_transferred) {
+      handle_read(error, bytes_transferred);
+    });
+}
+
+void Server::handle_read(const boost::system::error_code& error, size_t bytes_transferred)
+{
+  std::string& buffer = m_connection->buffer();
+  buffer.resize(bytes_transferred);
+  m_json_stream.write(buffer);
+
+  for (json::Object obj : m_json_stream.objects)
+  {
+    m_requests.push_back(parseRequest(obj));
+  }
+
+  m_json_stream.objects.clear();
+
+  start_read();
 }
 
 } // namespace debugger

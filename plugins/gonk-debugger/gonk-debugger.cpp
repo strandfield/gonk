@@ -15,7 +15,7 @@
 #include <script/namespace.h>
 #include <script/typesystem.h>
 
-#include <QDebug>
+#include <iostream>
 
 namespace gonk
 {
@@ -33,7 +33,7 @@ public:
   {
     script::Engine* e = m.engine();
 
-    qDebug() << "loading debugger";
+    std::cout << "loading debugger" << std::endl;
 
     // creates the QCoreApplication if it doesn't exist
     Gonk::Instance().qCoreApplication();
@@ -44,13 +44,13 @@ public:
     debug_handler = std::make_shared<gonk::GonkDebugHandler>(*comm, gonk::GonkDebugHandler::StepInto);
     e->interpreter()->setDebugHandler(debug_handler);
 
-    qDebug() << "debugger ready";
+    std::cout << "debugger ready" << std::endl;
   }
 
   void unload(script::Module m) override
   {
     comm->notifyGoodbye();
-    qDebug() << "unloading debugger";
+    std::cout << "unloading debugger" << std::endl;
   }
 };
 

@@ -2,8 +2,6 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include <QObject>
-
 #include "message.h"
 #include "json-stream-parser.h"
 
@@ -12,9 +10,6 @@
 #include <memory>
 #include <variant>
 #include <vector>
-
-class QTcpSocket;
-class QTcpServer;
 
 namespace gonk
 {
@@ -126,78 +121,29 @@ public:
     return socket_;
   }
 
-  void start()
+  std::string& buffer()
   {
-    //message_ = make_daytime_string();
-
-    boost::asio::async_write(socket_, boost::asio::buffer(message_),
-      [this](const boost::system::error_code& error, size_t bytes_transferred) {
-        handle_write(error, bytes_transferred);
-      });
+    return buffer_;
   }
 
 private:
   TcpConnection(boost::asio::io_context& io_context)
     : socket_(io_context)
   {
-  }
-
-  void handle_write(const boost::system::error_code& /*error*/,
-    size_t /*bytes_transferred*/)
-  {
+    buffer_.resize(2048);
   }
 
   tcp::socket socket_;
-  std::string message_;
+  std::string buffer_;
 };
 
-class tcp_server
+class Server
 {
-public:
-
-  using tcp = boost::asio::ip::tcp;
-
-  tcp_server(boost::asio::io_context& io_context)
-    : io_context_(io_context),
-    acceptor_(io_context, tcp::endpoint(tcp::v4(), 24242))
-  {
-    start_accept();
-  }
-
-private:
-  void start_accept()
-  {
-    TcpConnection::pointer new_connection =
-      TcpConnection::create(io_context_);
-
-    acceptor_.async_accept(new_connection->socket(),
-      [this, new_connection](const boost::system::error_code& error) {
-        handle_accept(new_connection, error);
-      });
-  }
-
-  void handle_accept(TcpConnection::pointer new_connection,
-    const boost::system::error_code& error)
-  {
-    if (!error)
-    {
-      new_connection->start();
-    }
-
-    start_accept();
-  }
-
-  boost::asio::io_context& io_context_;
-  tcp::acceptor acceptor_;
-};
-
-
-class Server : public QObject
-{
-  Q_OBJECT
 public:
   Server();
   ~Server();
+
+  using tcp = boost::asio::ip::tcp;
 
   void waitForConnection();
 
@@ -213,14 +159,7 @@ public:
   template<typename T>
   void reply(T response_data);
 
-Q_SIGNALS:
-  void connectionEstablished();
-
-protected Q_SLOTS:
-  void onNewConnection();
-
 protected:
-  void read();
   Request parseRequest(json::Object reqjson);
 
   json::Object serialize(const SourceCode& src);
@@ -231,9 +170,15 @@ protected:
   void send(json::Object response);
 
 private:
+  void start_accept();
+  void handle_accept(const boost::system::error_code& error);
+  void start_read();
+  void handle_read(const boost::system::error_code& error, size_t bytes_transferred);
+
+private:
   boost::asio::io_context m_io_context;
-  QTcpServer* m_server = nullptr;
-  QTcpSocket* m_socket = nullptr;
+  tcp::acceptor m_acceptor;
+  TcpConnection::pointer m_connection;
   std::vector<Request> m_requests;
   JsonStreamParser m_json_stream;
 };
