@@ -17,8 +17,6 @@
 
 #include <QDebug>
 
-#include <boost/asio/io_context.hpp>
-
 namespace gonk
 {
 
@@ -30,8 +28,6 @@ public:
 
   std::unique_ptr<gonk::debugger::Server> comm;
   std::shared_ptr<gonk::GonkDebugHandler> debug_handler;
-
-  boost::asio::io_context io_context;
 
   void load(script::Module m) override
   {

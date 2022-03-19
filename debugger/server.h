@@ -7,6 +7,9 @@
 #include "message.h"
 #include "json-stream-parser.h"
 
+#include <boost/asio.hpp>
+
+#include <memory>
 #include <variant>
 #include <vector>
 
@@ -106,6 +109,89 @@ struct Request
 
 /* Server */
 
+class TcpConnection : public std::enable_shared_from_this<TcpConnection>
+{
+public:
+  typedef std::shared_ptr<TcpConnection> pointer;
+
+  using tcp = boost::asio::ip::tcp;
+
+  static pointer create(boost::asio::io_context& io_context)
+  {
+    return pointer(new TcpConnection(io_context));
+  }
+
+  tcp::socket& socket()
+  {
+    return socket_;
+  }
+
+  void start()
+  {
+    //message_ = make_daytime_string();
+
+    boost::asio::async_write(socket_, boost::asio::buffer(message_),
+      [this](const boost::system::error_code& error, size_t bytes_transferred) {
+        handle_write(error, bytes_transferred);
+      });
+  }
+
+private:
+  TcpConnection(boost::asio::io_context& io_context)
+    : socket_(io_context)
+  {
+  }
+
+  void handle_write(const boost::system::error_code& /*error*/,
+    size_t /*bytes_transferred*/)
+  {
+  }
+
+  tcp::socket socket_;
+  std::string message_;
+};
+
+class tcp_server
+{
+public:
+
+  using tcp = boost::asio::ip::tcp;
+
+  tcp_server(boost::asio::io_context& io_context)
+    : io_context_(io_context),
+    acceptor_(io_context, tcp::endpoint(tcp::v4(), 24242))
+  {
+    start_accept();
+  }
+
+private:
+  void start_accept()
+  {
+    TcpConnection::pointer new_connection =
+      TcpConnection::create(io_context_);
+
+    acceptor_.async_accept(new_connection->socket(),
+      [this, new_connection](const boost::system::error_code& error) {
+        handle_accept(new_connection, error);
+      });
+  }
+
+  void handle_accept(TcpConnection::pointer new_connection,
+    const boost::system::error_code& error)
+  {
+    if (!error)
+    {
+      new_connection->start();
+    }
+
+    start_accept();
+  }
+
+  boost::asio::io_context& io_context_;
+  tcp::acceptor acceptor_;
+};
+
+
 class Server : public QObject
 {
   Q_OBJECT
@@ -145,6 +231,7 @@ protected:
   void send(json::Object response);
 
 private:
+  boost::asio::io_context m_io_context;
   QTcpServer* m_server = nullptr;
   QTcpSocket* m_socket = nullptr;
   std::vector<Request> m_requests;
