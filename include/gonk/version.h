@@ -6,9 +6,9 @@
 #define GONK_VERSION_H
 
 #define GONK_VERSION_MAJOR 0
-#define GONK_VERSION_MINOR 2
+#define GONK_VERSION_MINOR 3
 #define GONK_VERSION_PATCH 0
-#define GONK_VERSION_SUFFIX ""
+#define GONK_VERSION_SUFFIX "-dev"
 
 #include "gonk/gonk-defs.h"
 
