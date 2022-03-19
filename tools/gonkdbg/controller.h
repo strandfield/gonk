@@ -7,7 +7,7 @@
 
 #include <QObject>
 
-#include <debugger/client.h>
+#include "client.h"
 
 #include <QProcess>
 

@@ -3,7 +3,7 @@ file(GLOB GONK_DEBUGGER_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB GONK_DEBUGGER_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(gonk-debugger-api STATIC ${GONK_DEBUGGER_SRC_FILES} ${GONK_DEBUGGER_HDR_FILES})
+set_target_properties(gonk-debugger-api PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(gonk-debugger-api PUBLIC "${CMAKE_SOURCE_DIR}")
 target_link_libraries(gonk-debugger-api libgonk libscript)
-target_link_libraries(gonk-debugger-api Qt5::Core Qt5::Network)
 target_link_libraries(gonk-debugger-api Boost::system)

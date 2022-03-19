@@ -6,7 +6,6 @@
 file(GLOB_RECURSE GONKGEN_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE GONKGEN_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
-set(CMAKE_AUTORCC TRUE)
 add_executable(gonkgen ${GONKGEN_HDR_FILES} ${GONKGEN_SRC_FILES})
 
 target_link_libraries(gonkgen libclang-utils)
