@@ -35,9 +35,6 @@ public:
 
     std::cout << "loading debugger" << std::endl;
 
-    // creates the QCoreApplication if it doesn't exist
-    Gonk::Instance().qCoreApplication();
-
     comm.reset(new gonk::debugger::Server);
     comm->waitForConnection();
 
