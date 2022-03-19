@@ -2,18 +2,14 @@
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
-#include <QObject>
-
 #include "message.h"
-#include "message-reader.h"
+#include "json-stream-parser.h"
 
-#include <QJsonObject>
+#include <boost/asio.hpp>
 
+#include <memory>
 #include <variant>
 #include <vector>
-
-class QTcpSocket;
-class QTcpServer;
 
 namespace gonk
 {
@@ -108,12 +104,46 @@ struct Request
 
 /* Server */
 
-class Server : public QObject
+class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {
-  Q_OBJECT
+public:
+  typedef std::shared_ptr<TcpConnection> pointer;
+
+  using tcp = boost::asio::ip::tcp;
+
+  static pointer create(boost::asio::io_context& io_context)
+  {
+    return pointer(new TcpConnection(io_context));
+  }
+
+  tcp::socket& socket()
+  {
+    return socket_;
+  }
+
+  std::string& buffer()
+  {
+    return buffer_;
+  }
+
+private:
+  TcpConnection(boost::asio::io_context& io_context)
+    : socket_(io_context)
+  {
+    buffer_.resize(2048);
+  }
+
+  tcp::socket socket_;
+  std::string buffer_;
+};
+
+class Server
+{
 public:
   Server();
   ~Server();
+
+  using tcp = boost::asio::ip::tcp;
 
   void waitForConnection();
 
@@ -129,35 +159,34 @@ public:
   template<typename T>
   void reply(T response_data);
 
-Q_SIGNALS:
-  void connectionEstablished();
-
-protected Q_SLOTS:
-  void onNewConnection();
-
 protected:
-  void read();
-  void parseRequest(QByteArray reqdata);
-  Request parseRequest(QJsonObject reqjson);
+  Request parseRequest(json::Object reqjson);
 
-  QJsonObject serialize(const SourceCode& src);
-  QJsonObject serialize(const BreakpointList& list);
-  QJsonObject serialize(const Callstack& cs);
-  QJsonObject serialize(const Variable& v);
-  QJsonObject serialize(const VariableList& vlist);
-  void send(QJsonObject response);
+  json::Object serialize(const SourceCode& src);
+  json::Object serialize(const BreakpointList& list);
+  json::Object serialize(const Callstack& cs);
+  json::Object serialize(const Variable& v);
+  json::Object serialize(const VariableList& vlist);
+  void send(json::Object response);
 
 private:
-  QTcpServer* m_server = nullptr;
-  QTcpSocket* m_socket = nullptr;
+  void start_accept();
+  void handle_accept(const boost::system::error_code& error);
+  void start_read();
+  void handle_read(const boost::system::error_code& error, size_t bytes_transferred);
+
+private:
+  boost::asio::io_context m_io_context;
+  tcp::acceptor m_acceptor;
+  TcpConnection::pointer m_connection;
   std::vector<Request> m_requests;
-  priv::MessageReader m_reader;
+  JsonStreamParser m_json_stream;
 };
 
 template<typename T>
 inline void Server::reply(T response_data)
 {
-  QJsonObject obj = serialize(response_data);
+  json::Object obj = serialize(response_data);
   send(obj);
 }
 

@@ -7,3 +7,6 @@
 [submodule "dependencies/dynlib"]
 	path = dependencies/dynlib
 	url = https://github.com/strandfield/dynlib.git
+[submodule "dependencies/json-toolkit"]
+	path = dependencies/json-toolkit
+	url = https://github.com/strandfield/json-toolkit.git

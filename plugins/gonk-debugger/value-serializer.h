@@ -7,9 +7,6 @@
 #include "gonk/pretty-print.h"
 #include "debugger/message.h"
 
-#include <QJsonArray>
-#include <QJsonObject>
-
 #include <memory>
 
 namespace script

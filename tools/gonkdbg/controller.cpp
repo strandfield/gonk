@@ -6,12 +6,13 @@
 
 #include "gonk/cli-parser.h"
 
+#include <json-toolkit/stringify.h>
+
 #include <QApplication>
-#include <QFile>
-#include <QJsonDocument>
 
 #include <QDebug>
 
+#include <fstream>
 #include <stdexcept>
 
 class GonkdbgCliParser : public gonk::GenericCliParser<GonkdbgCLI>
@@ -275,10 +276,9 @@ void Controller::onMessageReceived(std::shared_ptr<gonk::debugger::DebuggerMessa
     m_source_codes[src->path] = src;
 
     {
-      QFile stfile{ "syntax.json" };
-      stfile.open(QIODevice::WriteOnly | QIODevice::Truncate);
-      stfile.write(QJsonDocument(src->syntaxtree).toJson());
-      stfile.close();
+      std::string content = json::stringify(src->syntaxtree);
+      std::ofstream stfile{ "syntax.json" };
+      stfile.write(content.c_str(), content.size());
     }
 
     Q_EMIT sourceCodeReceived(src);

@@ -5,6 +5,7 @@ file(GLOB GONK_GONK_DEBUGGER_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 add_library(gonk-debugger SHARED ${GONK_GONK_DEBUGGER_SRC_FILES} ${GONK_GONK_DEBUGGER_HDR_FILES})
 target_link_libraries(gonk-debugger libgonk libscript gonk-debugger-api)
 target_link_libraries(gonk-debugger Qt5::Core Qt5::Network)
+#target_include_directories(gonk-debugger PUBLIC "${JSONTOOLKIT_INCLUDE_DIRS}")
 target_compile_definitions(gonk-debugger PRIVATE -DGONK_GONK_DEBUGGER_COMPILE_LIBRARY)
 
 if (WIN32)

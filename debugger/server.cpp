@@ -4,13 +4,9 @@
 
 #include "server.h"
 
-#include <QEventLoop>
+#include <json-toolkit/stringify.h>
 
-#include <QJsonArray>
-#include <QJsonDocument>
-
-#include <QTcpServer>
-#include <QTcpSocket>
+#include <iostream>
 
 namespace gonk
 {
@@ -19,11 +15,9 @@ namespace debugger
 {
 
 Server::Server()
+  : m_acceptor(m_io_context, tcp::endpoint(tcp::v4(), 24242))
 {
-  m_server = new QTcpServer(this);
-  m_server->listen(QHostAddress::LocalHost, 24242);
-
-  connect(m_server, &QTcpServer::newConnection, this, &Server::onNewConnection);
+  start_accept();
 }
 
 Server::~Server()
@@ -33,36 +27,30 @@ Server::~Server()
 
 void Server::waitForConnection()
 {
-  qDebug() << "waiting for connection";
-
-  if (m_socket)
-    return;
-
-  QEventLoop ev;
-  QObject::connect(this, &Server::connectionEstablished, &ev, &QEventLoop::quit);
-  ev.exec();
+  std::cout << "waiting for connection" << std::endl;
+  m_io_context.run();
+  m_io_context.restart();
 }
 
 void Server::notifyRun()
 {
-  QJsonObject resp;
+  json::Object resp;
   resp["type"] = "run";
   send(resp);
 }
 
 void Server::notifyBreak()
 {
-  QJsonObject resp;
+  json::Object resp;
   resp["type"] = "break";
   send(resp);
 }
 
 void Server::notifyGoodbye()
 {
-  QJsonObject resp;
+  json::Object resp;
   resp["type"] = "goodbye";
   send(resp);
-  m_socket->waitForBytesWritten(10);
 }
 
 bool Server::hasPendingRequests() const
@@ -77,55 +65,23 @@ std::vector<Request>& Server::pendingRequests()
 
 bool Server::receiveRequest()
 {
-  size_t reqcount = m_requests.size();
-  read();
-  return m_requests.size() != reqcount;
+  m_io_context.poll_one();
+  return hasPendingRequests();
 }
 
 bool Server::waitForRequest(int msecs)
 {
-  if (!m_socket)
+  if (!m_connection)
     return false;
 
-  if (!m_socket->waitForReadyRead(msecs))
-    return false;
+  m_io_context.run_for(std::chrono::milliseconds(msecs));
 
-  return receiveRequest();
+  return hasPendingRequests();
 }
 
-void Server::onNewConnection()
+Request Server::parseRequest(json::Object reqjson)
 {
-  m_socket = m_server->nextPendingConnection();
-
-  if (m_socket)
-  {
-    m_server->deleteLater();
-    m_server = nullptr;
-
-    qDebug() << "connection established";
-
-    Q_EMIT connectionEstablished();
-  }
-}
-
-void Server::read()
-{
-  while (m_reader(m_socket))
-  {
-    QByteArray data = m_reader.read();
-    parseRequest(data);
-  }
-}
-
-void Server::parseRequest(QByteArray reqdata)
-{
-  QJsonObject reqjson = QJsonDocument::fromJson(reqdata).object();
-  m_requests.push_back(parseRequest(reqjson));
-}
-
-Request Server::parseRequest(QJsonObject reqjson)
-{
-  QString reqtype = reqjson.value("type").toString();
+  std::string reqtype = reqjson["type"].toString();
 
   if (reqtype == "pause")
   {
@@ -150,7 +106,7 @@ Request Server::parseRequest(QJsonObject reqjson)
   else if (reqtype == "getsource")
   {
     GetSourceCode data;
-    data.path = reqjson["path"].toString().toStdString();
+    data.path = reqjson["path"].toString();
     return Request(data);
   }
   else if (reqtype == "getbreakpoints")
@@ -170,7 +126,7 @@ Request Server::parseRequest(QJsonObject reqjson)
   else if (reqtype == "addbreakpoint")
   {
     AddBreakpoint data;
-    data.script_path = reqjson["path"].toString().toStdString();
+    data.script_path = reqjson["path"].toString();
     data.line = reqjson["line"].toInt();
     return Request(data);
   }
@@ -181,7 +137,7 @@ Request Server::parseRequest(QJsonObject reqjson)
 
     if (data.id == -1)
     {
-      data.script_path = reqjson["path"].toString().toStdString();
+      data.script_path = reqjson["path"].toString();
       data.line = reqjson["line"].toInt();
     }
 
@@ -191,32 +147,32 @@ Request Server::parseRequest(QJsonObject reqjson)
   return Request::make<RequestType::Run>();
 }
 
-QJsonObject Server::serialize(const SourceCode& src)
+json::Object Server::serialize(const SourceCode& src)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "sourcecode";
-  obj["path"] = QString::fromStdString(src.path);
-  obj["text"] = QString::fromStdString(src.source);
+  obj["path"] = src.path;
+  obj["text"] = src.source;
   obj["ast"] = src.syntaxtree;
   return obj;
 }
 
-QJsonObject Server::serialize(const BreakpointList& list)
+json::Object Server::serialize(const BreakpointList& list)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "breakpoints";
   
   {
-    QJsonArray jsonlist;
+    json::Array jsonlist;
 
     for (const BreakpointData& bpd : list.list)
     {
-      QJsonObject jsonbp;
+      json::Object jsonbp;
       jsonbp["id"] = bpd.id;
       jsonbp["line"] = bpd.line;
-      jsonbp["function"] = QString::fromStdString(bpd.function);
-      jsonbp["path"] = QString::fromStdString(bpd.script_path);
-      jsonlist.push_back(jsonbp);
+      jsonbp["function"] = bpd.function;
+      jsonbp["path"] = bpd.script_path;
+      jsonlist.push(jsonbp);
     }
 
     obj["list"] = jsonlist;
@@ -225,22 +181,22 @@ QJsonObject Server::serialize(const BreakpointList& list)
   return obj;
 }
 
-QJsonObject Server::serialize(const Callstack& cs)
+json::Object Server::serialize(const Callstack& cs)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "callstack";
 
   {
-    QJsonArray stack;
+    json::Array stack;
 
     for (const auto& e : cs.entries)
     {
-      QJsonObject entry;
-      entry["function"] = QString::fromStdString(e.function);
-      entry["path"] = QString::fromStdString(e.path);
+      json::Object entry;
+      entry["function"] = e.function;
+      entry["path"] = e.path;
       entry["line"] = e.line;
 
-      stack.append(entry);
+      stack.push(entry);
     }
 
     obj["stack"] = stack;
@@ -249,38 +205,38 @@ QJsonObject Server::serialize(const Callstack& cs)
   return obj;
 }
 
-QJsonObject Server::serialize(const Variable& v)
+json::Object Server::serialize(const Variable& v)
 {
-  QJsonObject ret;
+  json::Object ret;
   ret["offset"] = v.offset;
-  ret["type"] = QString::fromStdString(v.type);
-  ret["name"] = QString::fromStdString(v.name);
-  ret["value"] = QString::fromStdString(v.value);
+  ret["type"] = v.type;
+  ret["name"] = v.name;
+  ret["value"] = v.value;
 
   if (!v.members.empty())
   {
-    QJsonArray members;
+    json::Array members;
     for (std::shared_ptr<Variable> memvar : v.members)
-      members.append(serialize(*memvar));
+      members.push(serialize(*memvar));
     ret["members"] = members;
   }
 
   return ret;
 }
 
-QJsonObject Server::serialize(const VariableList& vlist)
+json::Object Server::serialize(const VariableList& vlist)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "variables";
   obj["depth"] = vlist.callstack_depth;
 
   {
-    QJsonArray vars;
+    json::Array vars;
 
     for (const auto& v : vlist.variables)
     {
-      QJsonObject e = serialize(*v);
-      vars.push_back(e);
+      json::Object e = serialize(*v);
+      vars.push(e);
     }
 
     obj["variables"] = vars;
@@ -289,15 +245,62 @@ QJsonObject Server::serialize(const VariableList& vlist)
   return obj;
 }
 
-void Server::send(QJsonObject response)
+void Server::send(json::Object response)
 {
-  if (m_socket)
+  if (m_connection)
   {
-    QByteArray bytes = QJsonDocument(response).toJson(QJsonDocument::Compact);
-    size_t s = bytes.size();
-    m_socket->write(reinterpret_cast<const char*>(&s), sizeof(size_t));
-    m_socket->write(bytes);
+    std::string bytes = json::stringify(response);
+    boost::asio::write(m_connection->socket(), boost::asio::buffer(bytes));
   }
+}
+
+void Server::start_accept()
+{
+  m_connection = TcpConnection::create(m_io_context);
+
+  m_acceptor.async_accept(m_connection->socket(),
+    [this](const boost::system::error_code& error) {
+      handle_accept(error);
+    });
+}
+
+void Server::handle_accept(const boost::system::error_code& error)
+{
+  if (!error)
+  {
+    m_io_context.stop();
+    start_read();
+  }
+
+  //start_accept();
+}
+
+void Server::start_read()
+{
+  m_connection->buffer().clear();
+  m_connection->buffer().resize(2048);
+
+  boost::asio::async_read(m_connection->socket(), boost::asio::buffer(m_connection->buffer()),
+    boost::asio::transfer_at_least(1),
+    [this](const boost::system::error_code& error, size_t bytes_transferred) {
+      handle_read(error, bytes_transferred);
+    });
+}
+
+void Server::handle_read(const boost::system::error_code& error, size_t bytes_transferred)
+{
+  std::string& buffer = m_connection->buffer();
+  buffer.resize(bytes_transferred);
+  m_json_stream.write(buffer);
+
+  for (json::Object obj : m_json_stream.objects)
+  {
+    m_requests.push_back(parseRequest(obj));
+  }
+
+  m_json_stream.objects.clear();
+
+  start_read();
 }
 
 } // namespace debugger

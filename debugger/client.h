@@ -8,7 +8,9 @@
 #include <QObject>
 
 #include "message.h"
-#include "message-reader.h"
+#include "json-stream-parser.h"
+
+#include <json-toolkit/json.h>
 
 #include <QTcpSocket>
 
@@ -85,14 +87,14 @@ protected Q_SLOTS:
 protected:
   void setState(State s);
 
-  void processMessage(QJsonObject message);
+  void processMessage(json::Object message);
 
-  void send(QJsonObject response);
+  void send(json::Object response);
 
 private:
   QTcpSocket* m_socket = nullptr;
   State m_state = State::Disconnected;
-  priv::MessageReader m_reader;
+  JsonStreamParser m_json_stream;
 };
 
 } // namespace debugger

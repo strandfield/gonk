@@ -13,6 +13,9 @@ endif()
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network)
 
+cmake_policy(SET CMP0074 NEW)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS system)
+
 ##################################################################
 ###### C++17 clang
 ##################################################################
@@ -45,6 +48,7 @@ list(REMOVE_ITEM GONK_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 add_library(libgonk SHARED ${GONK_SRC_FILES} ${GONK_HDR_FILES})
 target_include_directories(libgonk PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(libgonk PUBLIC "${JSONTOOLKIT_INCLUDE_DIRS}")
 target_link_libraries(libgonk Qt5::Core)
 target_link_libraries(libgonk libscript)
 target_link_libraries(libgonk dynlib)
