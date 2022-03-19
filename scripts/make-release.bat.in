@@ -13,10 +13,6 @@ IF EXIST "build\Release\gonkdbg.exe" (
     copy "build\Release\gonkdbg.exe" "release"
 )
 
-IF EXIST "build\Release\gonkgen.exe" (
-    copy "build\Release\gonkgen.exe" "release"
-)
-
 echo Deploying dependencies
 
 copy "%QT_DIR%\bin\Qt5Core.dll" "release"

@@ -15,8 +15,6 @@
 #include <script/module.h>
 #include <script/namespace.h>
 
-#include <QCoreApplication>
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -127,14 +125,6 @@ int Gonk::exec()
 Gonk& Gonk::Instance()
 {
   return *m_instance;
-}
-
-QCoreApplication& Gonk::qCoreApplication()
-{
-  if (!m_qapp)
-    m_qapp.reset(new QCoreApplication(m_cli.argc, m_cli.argv));
-
-  return *m_qapp;
 }
 
 const gonk::CLI& Gonk::cli() const

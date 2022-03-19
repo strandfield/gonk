@@ -1,72 +1,20 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2021 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "gonk/modules.h"
 
 #include "gonk/gonk.h"
+#include "gonk/gonkmodule.h"
 #include "gonk/plugin.h"
 
-#include <QFileInfo>
-#include <QDir>
-#include <QDirIterator>
-#include <QLibrary>
-#include <QSettings>
+#include <dynlib/dynlib.h>
+
+#include <algorithm>
+#include <filesystem>
 
 namespace gonk
 {
-
-void module_load_callback(script::Module m)
-{
-  ModuleManager& manager = Gonk::Instance().moduleManager();
-  ModuleInfo info = manager.getModuleInfo(m);
-
-  for (std::string dep : info.dependencies)
-    manager.loadModule(dep);
-
-  std::string lib_name = info.name;
-  for (char& c : lib_name)
-  {
-    if (c == '.')
-      c = '-';
-  }
-
-  QLibrary library{ QString::fromStdString(info.path + "/" + lib_name) };
-
-  if (!library.load())
-  {
-    throw script::ModuleLoadingError{ "Could not load module library" };
-  }
-
-  void (*funpointer)() = library.resolve(info.entry_point.c_str());
-
-  if(!funpointer)
-  {
-    throw script::ModuleLoadingError{ "Could not find entry point in module" };
-  }
-
-  gonk::Plugin*(*plugin_getter)() = reinterpret_cast<gonk::Plugin*(*)()>(funpointer);
-
-  gonk::Plugin* plugin = plugin_getter();
-
-  if (!plugin)
-  {
-    throw script::ModuleLoadingError{ "Module library returned a null plugin" };
-  }
-
-  manager.attachPlugin(m, std::shared_ptr<gonk::Plugin>(plugin));
-
-  plugin->load(m);
-}
-
-void module_cleanup_callback(script::Module m)
-{
-  ModuleManager& manager = Gonk::Instance().moduleManager();
-  ModuleInfo info = manager.getModuleInfo(m);
-
-  if(info.plugin)
-    info.plugin->unload(m);
-}
 
 std::vector<std::string> split_module_name(std::string s)
 {
@@ -109,12 +57,11 @@ class ModuleImporter
 {
   script::Engine* m_engine;
   std::vector<std::string>& m_import_paths;
-  std::unordered_map<script::NamespaceImpl*, ModuleInfo>& m_output;
   std::vector<ModuleInfo> m_modules;
 public:
 
-  ModuleImporter(script::Engine* e, std::vector<std::string>& import_paths, std::unordered_map<script::NamespaceImpl*, ModuleInfo>& out)
-    : m_engine(e), m_import_paths(import_paths), m_output(out)
+  ModuleImporter(script::Engine* e, std::vector<std::string>& import_paths)
+    : m_engine(e), m_import_paths(import_paths)
   {
 
   }
@@ -131,27 +78,26 @@ protected:
 
   void load(std::string dirpath)
   {
-    QDirIterator iterator{ QString::fromStdString(dirpath), QDir::NoDotAndDotDot | QDir::Dirs, QDirIterator ::NoIteratorFlags };
+    std::filesystem::directory_iterator iterator{ dirpath };
 
-    while (iterator.hasNext())
+    for(const std::filesystem::directory_entry& entry : iterator)
     {
-      QString path = iterator.next();
-      QFileInfo gonkmodule = path + "/gonkmodule";
-
-      if (!gonkmodule.exists())
+      if (!entry.is_directory())
         continue;
 
-      QSettings settings{ gonkmodule.absoluteFilePath(), QSettings::IniFormat };
+      std::filesystem::path gonkmodule = entry.path() / "gonkmodule";
+
+      if (!std::filesystem::exists(gonkmodule))
+        continue;
+
+      GonkModuleFile gonkmodulefile = GonkModuleFile::read(gonkmodule);
 
       ModuleInfo module_info;
-      module_info.name = settings.value("name", QString()).toString().toStdString();
-      module_info.entry_point = settings.value("entry_point", QString()).toString().toStdString();
-
-      QStringList dependencies = settings.value("dependencies", QString()).toString().split(',', QString::SkipEmptyParts);
-      for (auto d : dependencies)
-        module_info.dependencies.push_back(d.toStdString());
-
-      module_info.path = gonkmodule.absoluteFilePath().remove("/gonkmodule").toStdString();
+      module_info.path = gonkmodule.parent_path().string();
+      module_info.fullname = gonkmodulefile.name;
+      module_info.sourcefile = gonkmodulefile.sourcefile.value_or(std::string());
+      module_info.entry_point = gonkmodulefile.entry_point.value_or(std::string());
+      module_info.dependencies = gonkmodulefile.dependencies.value_or(std::vector<std::string>());
 
       m_modules.push_back(module_info);
     }
@@ -169,18 +115,16 @@ protected:
   {
     if (tree.children.empty())
     {
-      std::string name = split_module_name(tree.module_info.name).back();
+      std::string name = split_module_name(tree.module_info.fullname).back();
 
       if (parent_module.isNull())
       {
-        script::Module m = m_engine->newModule(name, module_load_callback, module_cleanup_callback);
-        m_output[m.impl()] = tree.module_info;
+        m_engine->newModule<GonkModuleInterface>(m_engine, std::move(name), tree.module_info);
       }
       else
       {
        
-        script::Module m = parent_module.newSubModule(name, module_load_callback, module_cleanup_callback);
-        m_output[m.impl()] = tree.module_info;
+        parent_module.newSubModule<GonkModuleInterface>(m_engine, std::move(name), tree.module_info);
       }
     }
     else
@@ -203,7 +147,7 @@ protected:
 
     for (const auto& m : m_modules)
     {
-      std::vector<std::string> names = split_module_name(m.name);
+      std::vector<std::string> names = split_module_name(m.fullname);
       createModule(tree, names.cbegin(), names.cend(), m);
     }
 
@@ -216,6 +160,133 @@ protected:
     }
   }
 };
+
+
+GonkModuleInterface::GonkModuleInterface(script::Engine* e, std::string name, ModuleInfo minfo)
+  : script::ModuleInterface(e, std::move(name)),
+    info(minfo)
+{
+  if(minfo.sourcefile.empty())
+    script = e->newScript(script::SourceFile::fromString(""));
+  else
+    script = e->newScript(script::SourceFile(info.path + "/" + info.sourcefile));
+}
+
+
+bool GonkModuleInterface::is_loaded() const
+{
+  return loaded;
+}
+
+void GonkModuleInterface::load()
+{
+  loadDependencies();
+  loadPlugin();
+
+  plugin->load(script::Module(shared_from_this()));
+
+  loadChildren();
+  loadScript();
+
+  loaded = true;
+}
+
+void GonkModuleInterface::unload()
+{
+  plugin->unload(script::Module(shared_from_this()));
+  loaded = false;
+}
+
+script::Script GonkModuleInterface::get_script() const
+{
+  return script;
+}
+
+script::Namespace GonkModuleInterface::get_global_namespace() const
+{
+  return get_script().rootNamespace();
+}
+
+const std::vector<script::Module>& GonkModuleInterface::child_modules() const
+{
+  return modules;
+}
+
+void GonkModuleInterface::add_child(script::Module m)
+{
+  modules.push_back(m);
+}
+
+void GonkModuleInterface::loadScript()
+{
+  if (script.isCompiled())
+    return;
+
+  if (!script.source().isLoaded())
+  {
+    script::SourceFile file = script.source();
+    file.load();
+  }
+
+  if (script.source().content().empty())
+    return;
+
+  compile(script);
+}
+
+void GonkModuleInterface::loadChildren()
+{
+  for (script::Module m : modules)
+    m.load();
+}
+
+void GonkModuleInterface::loadDependencies()
+{
+  ModuleManager& manager = Gonk::Instance().moduleManager();
+
+  for (std::string dep : info.dependencies)
+    manager.loadModule(dep);
+}
+
+void GonkModuleInterface::loadPlugin()
+{
+  ModuleManager& manager = Gonk::Instance().moduleManager();
+
+  // @TODO: why should the fullname constrain the dll name ?
+
+  std::string lib_name = info.fullname;
+  for (char& c : lib_name)
+  {
+    if (c == '.')
+      c = '-';
+  }
+
+  dynlib::Library library{ info.path + "/" + lib_name };
+
+  if (!library.load())
+  {
+    throw script::ModuleLoadingError("Could not load module library: " + info.path + "/" + lib_name + "\n" + library.errorString());
+  }
+
+  void (*funpointer)() = library.resolve(info.entry_point.c_str());
+
+  if (!funpointer)
+  {
+    throw script::ModuleLoadingError{ "Could not find entry point in module" };
+  }
+
+  gonk::Plugin* (*plugin_getter)() = reinterpret_cast<gonk::Plugin * (*)()>(funpointer);
+
+  gonk::Plugin* p = plugin_getter();
+
+  if (!p)
+  {
+    throw script::ModuleLoadingError{ "Module library returned a null plugin" };
+  }
+
+  plugin.reset(p);
+}
+
 
 ModuleManager::ModuleManager(script::Engine* e)
   : m_script_engine(e)
@@ -230,7 +301,7 @@ ModuleManager::~ModuleManager()
 
 void ModuleManager::addImportPath(std::string dir)
 {
-  if (!QFileInfo(QString::fromStdString(dir)).isDir())
+  if (!std::filesystem::is_directory(dir))
     return;
 
   m_import_paths.push_back(dir);
@@ -239,16 +310,6 @@ void ModuleManager::addImportPath(std::string dir)
 const std::vector<std::string>& ModuleManager::importPaths() const
 {
   return m_import_paths;
-}
-
-ModuleInfo ModuleManager::getModuleInfo(const script::Module& m) const
-{
-  auto it = m_module_infos.find(m.impl());
-
-  if (it == m_module_infos.end())
-    return {};
-
-  return it->second;
 }
 
 script::Module ModuleManager::getModule(const std::string& name) const
@@ -279,7 +340,7 @@ script::Module ModuleManager::getModule(const std::string& name) const
 
 void ModuleManager::fetchModules()
 {
-  ModuleImporter importer{ m_script_engine, m_import_paths, m_module_infos };
+  ModuleImporter importer{ m_script_engine, m_import_paths };
   importer.load();
 }
 
@@ -303,11 +364,6 @@ void ModuleManager::loadModule(const std::string& name)
 {
   auto names = split_module_name(name);
   load_module(*m_script_engine, names.cbegin(), names.cend(), script::Module());
-}
-
-void ModuleManager::attachPlugin(script::Module m, std::shared_ptr<Plugin> plugin)
-{
-  m_module_infos[m.impl()].plugin = plugin;
 }
 
 } // namespace gonk

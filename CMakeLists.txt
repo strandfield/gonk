@@ -10,16 +10,22 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   add_compile_options(/wd4251)  
 endif()
 
-set(CMAKE_AUTOMOC ON)
-find_package(Qt5 COMPONENTS Core Gui Widgets Sql Network)
+cmake_policy(SET CMP0074 NEW)
+find_package(Boost 1.66.0 REQUIRED COMPONENTS system)
 
 ##################################################################
-###### C++17 clang (Travis CI)
+###### C++17 clang
 ##################################################################
+
+#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+#  message("Building with clang")
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+#endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  message("Building with clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  EXECUTE_PROCESS( COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
+  string (REGEX REPLACE ".*clang version ([0-9]+\\.[0-9]+).*" "\\1" CLANG_VERSION_STRING ${clang_full_version_string})
+  message("Clang version: ${CLANG_VERSION_STRING}")
 endif()
 
 ##################################################################
@@ -37,15 +43,29 @@ file(GLOB_RECURSE GONK_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/gonk/*.h)
 
 list(REMOVE_ITEM GONK_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-add_library(libgonk SHARED ${GONK_SRC_FILES} ${GONK_HDR_FILES})
-target_include_directories(libgonk PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(libgonk Qt5::Core)
-target_link_libraries(libgonk libscript)
-target_compile_definitions(libgonk PRIVATE -DGONK_COMPILE_LIBRARY)
+add_library(gonkbase SHARED ${GONK_SRC_FILES} ${GONK_HDR_FILES})
+target_include_directories(gonkbase PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(gonkbase PUBLIC "${JSONTOOLKIT_INCLUDE_DIRS}")
+target_link_libraries(gonkbase libscript)
+target_link_libraries(gonkbase dynlib)
+target_compile_definitions(gonkbase PRIVATE -DGONK_COMPILE_LIBRARY)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     message("GCC compiler: linking to stdc++fs")
-    target_link_libraries(libgonk stdc++fs)
+    target_link_libraries(gonkbase stdc++fs)
+endif()
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
+  if (CLANG_VERSION_STRING VERSION_GREATER_EQUAL 9.0)
+    message("Clang version greater than 9.0, no need to link to c++fs")
+  else()
+    message("Clang compiler: linking to c++fs")
+    target_link_libraries(gonkbase c++fs)
+  endif()
+    
+  message("See https://releases.llvm.org/10.0.0/projects/libcxx/docs/UsingLibcxx.html#using-filesystem for information about using #include<filesystem> with clang")
+
 endif()
 
 file(COPY ${CMAKE_SOURCE_DIR}/icon.ico DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -53,7 +73,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/icon.ico DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/s
 add_executable(gonk 
                "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
 			   "${CMAKE_CURRENT_SOURCE_DIR}/src/windows_res.rc")
-target_link_libraries(gonk libgonk)
+target_link_libraries(gonk gonkbase)
 
 foreach(_source IN ITEMS ${GONK_SRC_FILES} ${GONK_HDR_FILES})
     get_filename_component(_source_path "${_source}" PATH)
@@ -65,14 +85,7 @@ endforeach()
 if (WIN32)
   set_target_properties(gonk PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
   set_target_properties(gonk PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-  set_target_properties(gonk PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${Qt5_DIR}/../../../bin;%PATH%")
 endif()
-
-##################################################################
-###### debugger
-##################################################################
-
-add_subdirectory(debugger)
 
 ##################################################################
 ###### plugins

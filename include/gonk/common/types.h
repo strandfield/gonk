@@ -5,16 +5,15 @@
 #ifndef GONK_COMMONS_TYPES_H
 #define GONK_COMMONS_TYPES_H
 
-#include <script/string.h>
-#include <script/types.h>
+#include <script/engine.h>
 
 namespace gonk
 {
 
 template<typename T>
-script::Type make_type()
+script::Type make_type(const script::Engine* e)
 {
-  return script::make_type<T>();
+  return e->makeType<T>();
 }
 
 } // namespace gonk

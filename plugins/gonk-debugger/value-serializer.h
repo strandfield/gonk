@@ -4,11 +4,9 @@
 
 #include "gonk-debugger-defs.h"
 
-#include "gonk/pretty-print.h"
-#include "debugger/message.h"
+#include "message.h"
 
-#include <QJsonArray>
-#include <QJsonObject>
+#include "gonk/pretty-print.h"
 
 #include <memory>
 

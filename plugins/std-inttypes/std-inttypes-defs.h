@@ -21,17 +21,6 @@ namespace gonk
 namespace std_inttypes
 {
 
-enum ClassTypeIds
-{
-  Int32,
-  Int64,
-  UInt32,
-  UInt64,
-};
-
-GONK_STD_INTTYPES_API int class_type_id_offset();
-GONK_STD_INTTYPES_API int enum_type_id_offset();
-
 } // namespace std_inttypes
 
 } // namespace gonk

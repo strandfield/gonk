@@ -5,9 +5,9 @@
 #include "gonk-debugger.h"
 
 #include "breakpoint-handler.h"
+#include "server.h"
 
 #include <gonk/gonk.h>
-#include <debugger/server.h>
 
 #include <script/interpreter/interpreter.h>
 
@@ -15,7 +15,7 @@
 #include <script/namespace.h>
 #include <script/typesystem.h>
 
-#include <QDebug>
+#include <iostream>
 
 namespace gonk
 {
@@ -33,10 +33,7 @@ public:
   {
     script::Engine* e = m.engine();
 
-    qDebug() << "loading debugger";
-
-    // creates the QCoreApplication if it doesn't exist
-    Gonk::Instance().qCoreApplication();
+    std::cout << "loading debugger" << std::endl;
 
     comm.reset(new gonk::debugger::Server);
     comm->waitForConnection();
@@ -44,13 +41,13 @@ public:
     debug_handler = std::make_shared<gonk::GonkDebugHandler>(*comm, gonk::GonkDebugHandler::StepInto);
     e->interpreter()->setDebugHandler(debug_handler);
 
-    qDebug() << "debugger ready";
+    std::cout << "debugger ready" << std::endl;
   }
 
   void unload(script::Module m) override
   {
     comm->notifyGoodbye();
-    qDebug() << "unloading debugger";
+    std::cout << "unloading debugger" << std::endl;
   }
 };
 

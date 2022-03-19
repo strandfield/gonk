@@ -3,6 +3,14 @@
 ###### gonkdbg
 ##################################################################
 
+set(CMAKE_AUTOMOC ON)
+find_package(Qt5 COMPONENTS Core Gui Widgets Network)
+
+if (NOT Qt5_FOUND)
+  message("Could not find Qt5, gonkdbg won't be built")
+  return()
+endif()
+
 # Copy icon
 file(COPY ${CMAKE_SOURCE_DIR}/icon.ico ${CMAKE_SOURCE_DIR}/icon.png DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -19,8 +27,10 @@ set(CMAKE_AUTORCC TRUE)
 add_executable(gonkdbg ${GONKDBG_HDR_FILES} ${GONKDBG_SRC_FILES} ${GONKDBG_RESOURCES})
 
 target_include_directories(gonkdbg PRIVATE ".")
+target_include_directories(gonkdbg PRIVATE "${CMAKE_SOURCE_DIR}")
+target_include_directories(gonkdbg PUBLIC "${JSONTOOLKIT_INCLUDE_DIRS}")
 
-target_link_libraries(gonkdbg gonk-debugger-api)
+target_link_libraries(gonkdbg gonkbase)
 target_link_libraries(gonkdbg Qt5::Core Qt5::Widgets Qt5::Network)
 
 set_target_properties(gonkdbg PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")

@@ -3,7 +3,7 @@ file(GLOB GONK_STD_REGEX_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 file(GLOB GONK_STD_REGEX_HDR_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(std-regex SHARED ${GONK_STD_REGEX_SRC_FILES} ${GONK_STD_REGEX_HDR_FILES})
-target_link_libraries(std-regex libgonk)
+target_link_libraries(std-regex gonkbase)
 target_compile_definitions(std-regex PRIVATE -DGONK_STD_REGEX_COMPILE_LIBRARY)
 
 if (WIN32)

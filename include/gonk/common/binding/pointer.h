@@ -26,7 +26,7 @@ void pointer(script::Engine* e)
 
   using PointerType = gonk::Pointer<T>;
 
-  script::Type type_id = make_type<T*>();
+  script::Type type_id = e->registerType<gonk::Pointer<T>>();
   Class ptr_type = e->typeSystem()->getClass(type_id);
   if (!ptr_type.isNull() && type_id == ptr_type.id())
     return;
@@ -34,7 +34,7 @@ void pointer(script::Engine* e)
   auto ptr_template = script::ClassTemplate::get<PointerTemplate>(e);
 
   std::vector<TemplateArgument> targs{
-    TemplateArgument{ make_type<T>() },
+    TemplateArgument{ make_type<T>(e) },
   };
 
   ptr_type = ptr_template.Specialization(std::move(targs))

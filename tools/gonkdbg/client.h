@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2022 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -7,8 +7,10 @@
 
 #include <QObject>
 
-#include "message.h"
-#include "message-reader.h"
+#include <plugins/gonk-debugger/json-stream-parser.h>
+#include <plugins/gonk-debugger/message.h>
+
+#include <json-toolkit/json.h>
 
 #include <QTcpSocket>
 
@@ -85,14 +87,14 @@ protected Q_SLOTS:
 protected:
   void setState(State s);
 
-  void processMessage(QJsonObject message);
+  void processMessage(json::Object message);
 
-  void send(QJsonObject response);
+  void send(json::Object response);
 
 private:
   QTcpSocket* m_socket = nullptr;
   State m_state = State::Disconnected;
-  priv::MessageReader m_reader;
+  JsonStreamParser m_json_stream;
 };
 
 } // namespace debugger

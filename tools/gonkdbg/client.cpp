@@ -1,14 +1,12 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2022 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include "client.h"
 
-#include <QHostAddress>
+#include <json-toolkit/stringify.h>
 
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
+#include <QHostAddress>
 
 #include <QDebug>
 
@@ -17,11 +15,6 @@ namespace gonk
 
 namespace debugger
 {
-
-DebuggerMessage::~DebuggerMessage()
-{
-
-}
 
 Client::Client(QObject* parent)
   : QObject(parent)
@@ -98,7 +91,7 @@ bool Client::isPaused() const
 
 void Client::action(Action a)
 {
-  QJsonObject obj;
+  json::Object obj;
 
   switch (a)
   {
@@ -124,16 +117,16 @@ void Client::action(Action a)
 
 void Client::addBreakpoint(const std::string& script_path, int line)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "addbreakpoint";
-  obj["path"] = QString::fromStdString(script_path);
+  obj["path"] = script_path;
   obj["line"] = line;
   send(obj);
 }
 
 void Client::removeBreakpoint(int id)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "removebreakpoint";
   obj["id"] = id;
   send(obj);
@@ -141,9 +134,9 @@ void Client::removeBreakpoint(int id)
 
 void Client::removeBreakpoint(const std::string& script_path, int line)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "removebreakpoint";
-  obj["path"] = QString::fromStdString(script_path);
+  obj["path"] = script_path;
   obj["line"] = line;
   obj["id"] = -1;
   send(obj);
@@ -151,29 +144,29 @@ void Client::removeBreakpoint(const std::string& script_path, int line)
 
 void Client::getSource(const std::string& path)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "getsource";
-  obj["path"] = QString::fromStdString(path);
+  obj["path"] = path;
   send(obj);
 }
 
 void Client::getBreakpoints()
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "getbreakpoints";
   send(obj);
 }
 
 void Client::getCallstack()
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "getcallstack";
   send(obj);
 }
 
 void Client::getVariables(int depth)
 {
-  QJsonObject obj;
+  json::Object obj;
   obj["type"] = "getvariables";
   obj["depth"] = depth;
   send(obj);
@@ -198,37 +191,40 @@ void Client::onSocketStateChanged(QAbstractSocket::SocketState socketState)
 
 void Client::onReadyRead()
 {
-  while (m_reader(m_socket))
+  QByteArray bytes = m_socket->readAll();
+  m_json_stream.write(bytes.constData());
+
+  for (json::Object obj : m_json_stream.objects)
   {
-    QByteArray data = m_reader.read();
-    QJsonObject message = QJsonDocument::fromJson(data).object();
-    processMessage(message);
+    processMessage(obj);
   }
+
+  m_json_stream.objects.clear();
 }
 
-static std::shared_ptr<debugger::Variable> deserializeVar(const QJsonObject& json)
+static std::shared_ptr<debugger::Variable> deserializeVar(const json::Object& json)
 {
   auto ret = std::make_shared<debugger::Variable>();
 
-  ret->name = json.value("name").toString().toStdString();
-  ret->offset = json.value("offset").toInt();
-  ret->type = json.value("type").toString().toStdString();
-  ret->value = json.value("value").toString().toStdString();
+  ret->name = json["name"].toString();
+  ret->offset = json["offset"].toInt();
+  ret->type = json["type"].toString();
+  ret->value = json["value"].toString();
 
-  if (json.value("members").toArray().size() > 0)
+  if (json["members"].isArray() && json["members"].toArray().length() > 0)
   {
-    QJsonArray members = json.value("members").toArray();
+    json::Array members = json["members"].toArray();
 
-    for (int i(0); i < members.size(); ++i)
+    for (int i(0); i < members.length(); ++i)
       ret->members.push_back(deserializeVar(members.at(i).toObject()));
   }
 
   return ret;
 }
 
-void Client::processMessage(QJsonObject message)
+void Client::processMessage(json::Object message)
 {
-  QString type = message.value("type").toString();
+  std::string type = message["type"].toString();
 
   if (type == "run")
   {
@@ -246,9 +242,9 @@ void Client::processMessage(QJsonObject message)
   else if (type == "sourcecode")
   {
     auto mssg = std::make_shared<SourceCode>();
-    mssg->source = message.value("text").toString().toStdString();
-    mssg->path = message.value("path").toString().toStdString();
-    mssg->syntaxtree = message.value("ast").toObject();
+    mssg->source = message["text"].toString();
+    mssg->path = message["path"].toString();
+    mssg->syntaxtree = message["ast"].toObject();
 
     Q_EMIT messageReceived(mssg);
   }
@@ -256,17 +252,17 @@ void Client::processMessage(QJsonObject message)
   {
     auto mssg = std::make_shared<BreakpointList>();
   
-    QJsonArray list = message.value("list").toArray();
+    json::Array list = message["list"].toArray();
 
-    for(int i(0); i < list.size(); ++i)
+    for(int i(0); i < list.length(); ++i)
     {
-      QJsonObject js = list.at(i).toObject();
+      json::Object js = list.at(i).toObject();
 
       BreakpointData bp;
-      bp.function = js.value("function").toString().toStdString();
-      bp.id = js.value("id").toInt();
-      bp.line = js.value("line").toInt();
-      bp.script_path = js.value("path").toString().toStdString();
+      bp.function = js["function"].toString();
+      bp.id = js["id"].toInt();
+      bp.line = js["line"].toInt();
+      bp.script_path = js["path"].toString();
 
       mssg->list.push_back(bp);
     }
@@ -277,15 +273,15 @@ void Client::processMessage(QJsonObject message)
   {
     auto mssg = std::make_shared<Callstack>();
 
-    QJsonArray list = message.value("stack").toArray();
+    json::Array list = message["stack"].toArray();
 
-    for (int i(0); i < list.size(); ++i)
+    for (int i(0); i < list.length(); ++i)
     {
-      QJsonObject jsonentry = list.at(i).toObject();
+      json::Object jsonentry = list.at(i).toObject();
       debugger::CallstackEntry entry;
-      entry.function = jsonentry.value("function").toString().toStdString();
-      entry.path = jsonentry.value("path").toString().toStdString();
-      entry.line = jsonentry.value("line").toInt();
+      entry.function = jsonentry["function"].toString();
+      entry.path = jsonentry["path"].toString();
+      entry.line = jsonentry["line"].toInt();
       mssg->entries.push_back(entry);
     }
 
@@ -295,13 +291,13 @@ void Client::processMessage(QJsonObject message)
   {
     auto mssg = std::make_shared<VariableList>();
 
-    mssg->callstack_depth = message.value("depth").toInt();
+    mssg->callstack_depth = message["depth"].toInt();
 
-    QJsonArray list = message.value("variables").toArray();
+    json::Array list = message["variables"].toArray();
 
-    for (int i(0); i < list.size(); ++i)
+    for (int i(0); i < list.length(); ++i)
     {
-      QJsonObject varjson = list.at(i).toObject();
+      json::Object varjson = list.at(i).toObject();
       mssg->variables.push_back(deserializeVar(varjson));
     }
 
@@ -309,12 +305,11 @@ void Client::processMessage(QJsonObject message)
   }
 }
 
-void Client::send(QJsonObject response)
+void Client::send(json::Object response)
 {
-  QByteArray bytes = QJsonDocument(response).toJson(QJsonDocument::Compact);
+  std::string bytes = json::stringify(response);
   size_t s = bytes.size();
-  m_socket->write(reinterpret_cast<const char*>(&s), sizeof(size_t));
-  m_socket->write(bytes);
+  m_socket->write(bytes.c_str(), s);
 }
 
 } // namespace debugger

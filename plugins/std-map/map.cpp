@@ -23,7 +23,7 @@ namespace callbacks
 // std::map();
 static script::Value default_ctor(script::FunctionCall* c)
 {
-  c->thisObject() = script::Value(new script::CppValue<Map>(c->engine(), c->callee().returnType().baseType(), Map()));
+  c->thisObject() = script::Value(new script::CppValue<Map>(c->engine(), c->callee().parameter(0).baseType(), Map()));
   return c->thisObject();
 }
 
@@ -31,7 +31,7 @@ static script::Value default_ctor(script::FunctionCall* c)
 static script::Value copy_ctor(script::FunctionCall* c)
 {
   const Map& other = script::get<Map>(c->arg(1));
-  c->thisObject() = script::Value(new script::CppValue<Map>(c->engine(), c->callee().returnType().baseType(), other));
+  c->thisObject() = script::Value(new script::CppValue<Map>(c->engine(), c->callee().parameter(0).baseType(), other));
   return c->thisObject();
 }
 

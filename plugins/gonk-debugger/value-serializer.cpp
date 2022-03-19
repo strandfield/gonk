@@ -10,9 +10,6 @@
 #include <script/object.h>
 #include <script/typesystem.h>
 
-#include <QJsonArray>
-#include <QJsonObject>
-
 #include <sstream>
 
 namespace gonk

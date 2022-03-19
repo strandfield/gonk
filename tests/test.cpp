@@ -42,24 +42,6 @@ void Assert(const char* expr, bool val, int line)
 #define ASSERT(x) Assert(#x, (x), __LINE__)
 #define ASSERT_EQ(a, b) Assert(#a "=" #b, ((a) == (b)), __LINE__)
 
-int class_type_id_offset = -1;
-int enum_type_id_offset = -1;
-
-enum class ClassTypeIds
-{
-  FirstTypeId,
-  Point,
-  PointPointer,
-  LastTypeId,
-};
-
-enum class EnumTypeIds
-{
-  FirstTypeId,
-  CoordinateSystem,
-  LastTypeId,
-};
-
 int guaranteed_random()
 {
   return 6;
@@ -127,13 +109,6 @@ int point_y(const Point & pt)
   return pt.y();
 }
 
-namespace script {
-template<> struct make_type_helper<CoordinateSystem> { inline static script::Type get() { return (enum_type_id_offset + static_cast<int>(EnumTypeIds::CoordinateSystem)) | script::Type::EnumFlag; } };
-template<> struct make_type_helper<Point> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::Point)) | script::Type::ObjectFlag; } };
-template<> struct make_type_helper<Point*> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::PointPointer)) | script::Type::ObjectFlag; } };
-template<> struct make_type_helper<gonk::Pointer<Point>> { inline static script::Type get() { return (class_type_id_offset + static_cast<int>(ClassTypeIds::PointPointer)) | script::Type::ObjectFlag; } };
-} // namespace script
-
 void test_simple_bindind(script::Engine& e)
 {
   using namespace script;
@@ -173,7 +148,7 @@ void test_simple_bindind(script::Engine& e)
     ASSERT(val.toInt() == 13);
   }
 
-  Class pt = ns.newClass("Point").setId(script::make_type<Point>().data()).get();
+  Class pt = ns.newClass("Point").setId(e.registerType<Point>().data()).get();
   gonk::bind::pointer<Point>(&e);
 
   Function ctor = gonk::bind::default_constructor<Point>(pt).get();
@@ -224,7 +199,7 @@ void test_simple_bindind(script::Engine& e)
   ASSERT(address_if_true.isMemberFunction());
   ASSERT(address_if_true.memberOf() == pt);
   ASSERT(address_if_true.name() == "address_if_true");
-  ASSERT(address_if_true.returnType() == Type::make<Point*>());
+  ASSERT(address_if_true.returnType() == e.makeType<Point*>());
   ASSERT(address_if_true.prototype().size() == 2);
   ASSERT(!address_if_true.isConst());
 
@@ -238,7 +213,7 @@ void test_simple_bindind(script::Engine& e)
 
     script::Value result = address_if_true.invoke(locals.data());
 
-    ASSERT(result.type() == Type::make<Point*>());
+    ASSERT(result.type() == e.makeType<Point*>());
     ASSERT(script::get<gonk::Pointer<Point>>(result) == nullptr);
     e.destroy(result);
 
@@ -281,7 +256,7 @@ void test_simple_bindind(script::Engine& e)
     locals.push(e.newInt(6));
 
     script::Value other_self = incr_x.invoke(locals.data());
-    ASSERT(other_self.type() == script::Type::make<Point>());
+    ASSERT(other_self.type() == e.makeType<Point>());
     ASSERT(std::addressof(pt) == std::addressof(script::get<Point>(other_self)));
   }
 
@@ -361,7 +336,7 @@ void test_enum_binding(script::Engine& e)
 
   script::Value val = gonk::make_value<CoordinateSystem>(Polar, &e);
 
-  ASSERT(val.type() == script::make_type<CoordinateSystem>());
+  ASSERT(val.type() == e.makeType<CoordinateSystem>());
   ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
 
   gonk::value_cast<CoordinateSystem&>(val) = Cartesian;
@@ -379,9 +354,6 @@ int main(int argc, char* argv[])
   engine.setup();
 
   gonk::register_pointer_template(engine.rootNamespace());
-
-  class_type_id_offset = static_cast<int>(engine.typeSystem()->reserve(script::Type::ObjectFlag, 256));
-  enum_type_id_offset = static_cast<int>(engine.typeSystem()->reserve(script::Type::EnumFlag, 256));
 
   test_simple_bindind(engine);
 

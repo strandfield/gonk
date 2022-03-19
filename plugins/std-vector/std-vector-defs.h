@@ -21,15 +21,6 @@ namespace gonk
 namespace std_vector
 {
 
-enum ClassTypeIds
-{
-  VectorInt,
-  VectorString,
-};
-
-GONK_STD_VECTOR_API int class_type_id_offset();
-GONK_STD_VECTOR_API int enum_type_id_offset();
-
 } // namespace std_vector
 
 } // namespace gonk

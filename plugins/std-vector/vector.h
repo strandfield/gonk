@@ -20,11 +20,6 @@
 
 #include <vector>
 
-namespace script {
-template<> struct make_type_helper<std::vector<int>> { inline static script::Type get() { return (gonk::std_vector::class_type_id_offset() + gonk::std_vector::ClassTypeIds::VectorInt) | script::Type::ObjectFlag; } };
-template<> struct make_type_helper<std::vector<std::string>> { inline static script::Type get() { return (gonk::std_vector::class_type_id_offset() + gonk::std_vector::ClassTypeIds::VectorString) | script::Type::ObjectFlag; } };
-} // namespace script
-
 namespace gonk
 {
 
@@ -195,12 +190,14 @@ void register_specialization(script::ClassTemplate vector_template, script::Type
 {
   using namespace script;
 
+  script::Engine* e = vector_template.engine();
+
   Class vector = vector_template.engine()->typeSystem()->getClass(type_id);
   if (!vector.isNull() && vector.id() == type_id.data())
     return;
 
   std::vector<TemplateArgument> targs{
-    TemplateArgument{ script::make_type<T>() }
+    TemplateArgument{ gonk::make_type<T>(e) }
   };
 
   vector = vector_template.Specialization(std::move(targs))
