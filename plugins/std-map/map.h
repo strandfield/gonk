@@ -13,9 +13,8 @@
 #include <script/classtemplate.h>
 #include <script/classtemplatenativebackend.h>
 #include <script/classtemplatespecializationbuilder.h>
-#include <script/constructorbuilder.h>
-#include <script/destructorbuilder.h>
 #include <script/engine.h>
+#include <script/functionbuilder.h>
 #include <script/typesystem.h>
 
 #include <map>

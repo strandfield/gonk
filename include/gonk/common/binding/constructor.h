@@ -10,7 +10,7 @@
 #include "gonk/common/binding/constructor_binder.h"
 
 #include <script/class.h>
-#include <script/constructorbuilder.h>
+#include <script/functionbuilder.h>
 
 namespace gonk
 {
@@ -19,32 +19,32 @@ namespace bind
 {
 
 template<typename T>
-script::ConstructorBuilder default_constructor(script::Class& c)
+script::FunctionBuilder default_constructor(script::Class& c)
 {
-  return script::ConstructorBuilder(c).setCallback(constructor_binder<T>::default_ctor);
+  return script::FunctionBuilder::Constructor(c).setCallback(constructor_binder<T>::default_ctor);
 }
 
 template<typename T>
-script::ConstructorBuilder copy_constructor(script::Class& c)
+script::FunctionBuilder copy_constructor(script::Class& c)
 {
   script::Engine* e = c.engine();
-  return script::ConstructorBuilder(c).setCallback(constructor_binder<T>::copy_ctor)
+  return script::FunctionBuilder::Constructor(c).setCallback(constructor_binder<T>::copy_ctor)
     .params(script::Type::cref(make_type<T>(e)));
 }
 
 template<typename T, typename... Args>
-script::ConstructorBuilder constructor(script::Class& c)
+script::FunctionBuilder constructor(script::Class& c)
 {
   script::Engine* e = c.engine();
-  return script::ConstructorBuilder(c).setCallback(constructor_binder<T>::template generic_ctor<Args...>)
+  return script::FunctionBuilder::Constructor(c).setCallback(constructor_binder<T>::template generic_ctor<Args...>)
     .params(make_type<Args>(e)...);
 }
 
 template<typename T, typename... Args>
-script::ConstructorBuilder custom_constructor(script::Class& c, script::NativeFunctionSignature func)
+script::FunctionBuilder custom_constructor(script::Class& c, script::NativeFunctionSignature func)
 {
   script::Engine* e = c.engine();
-  return script::ConstructorBuilder(c).setCallback(func)
+  return script::FunctionBuilder::Constructor(c).setCallback(func)
     .params(make_type<Args>(e)...);
 }
 
