@@ -13,4 +13,4 @@ build-job:
     - cmake ..
     - make
     - cd tests
-    - ctest
+    - ctest --rerun-failed --output-on-failure

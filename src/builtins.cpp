@@ -14,6 +14,7 @@
 #include <script/typesystem.h>
 
 #include <script/interpreter/executioncontext.h>
+#include <script/program/statements.h>
 
 #include <iostream>
 
@@ -51,8 +52,18 @@ script::Value print_string(script::FunctionCall* c)
 
 script::Value gnk_assert(script::FunctionCall* c)
 {
-  if(!c->arg(0).toBool())
-    throw script::RuntimeError{ "Assertion failure!" };
+  if (!c->arg(0).toBool())
+  {
+    std::string message = "Assertion failure!";
+
+    c = c->caller();
+
+    if (c && c->last_breakpoint)
+      message += " (line " + std::to_string(c->last_breakpoint->line + 1) + ")";
+
+    throw script::RuntimeError(message);
+  }
+
   return script::Value::Void;
 }
 

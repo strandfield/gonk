@@ -35,6 +35,7 @@ public:
   bool interactive = false;
   bool list_modules = false;
   bool debug = false;
+  bool debugbuild = false;
   std::optional<std::string> script;
   std::vector<std::string> extras;
 

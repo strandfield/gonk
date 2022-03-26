@@ -35,7 +35,7 @@ int ScriptRunner::run()
 
 int ScriptRunner::runScript()
 {
-  if (m_gonk.cli().debug)
+  if (m_gonk.cli().debug || m_gonk.cli().debugbuild)
   {
     m_mode = script::CompileMode::Debug;
   }
@@ -72,7 +72,7 @@ int ScriptRunner::runScript()
     return -1;
   }
 
-  if (m_mode == script::CompileMode::Debug)
+  if (m_gonk.cli().debug)
   {
     script::Module debugger_module = m_gonk.moduleManager().getModule("gonk.debugger");
 

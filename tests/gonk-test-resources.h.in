@@ -1,0 +1,10 @@
+
+inline const char* gonk_test_resources_path()
+{
+  return "${CMAKE_CURRENT_SOURCE_DIR}/";
+}
+
+inline const char* gonk_build_path()
+{
+  return "${CMAKE_BINARY_DIR}/";
+}

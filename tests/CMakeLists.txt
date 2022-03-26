@@ -22,9 +22,17 @@ endif()
 
 add_test(NAME "TEST_gonk_unit_tests" COMMAND TEST_gonk_unit_tests)
 
+## Test suite
+
+configure_file("gonk-test-resources.h.in" "gonk-test-resources.h")
+
+add_executable(TEST_gonk_test_suite testsuite.cpp "${CMAKE_CURRENT_BINARY_DIR}/gonk-test-resources.h")
+target_include_directories(TEST_gonk_test_suite PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+target_link_libraries(TEST_gonk_test_suite gonkbase)
+
 if (WIN32)
-  set_target_properties(TEST_gonk_binding_utils PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-  set_target_properties(TEST_gonk_binding_utils PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+  set_target_properties(TEST_gonk_test_suite PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+  set_target_properties(TEST_gonk_test_suite PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 endif()
 
-add_test(NAME "TEST_gonk_binding_utils" COMMAND TEST_gonk_binding_utils)
+add_test(NAME "TEST_gonk_test_suite" COMMAND TEST_gonk_test_suite)
