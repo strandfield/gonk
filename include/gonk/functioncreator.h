@@ -43,16 +43,23 @@ public:
   template<typename R, typename... Args>
   void addCreator();
 
+  template<typename R, typename... Args>
+  void addCtorCreator();
+
   FunctionCreator& operator=(const FunctionCreator&) = delete;
 
 protected:
   std::string stringify(const script::Prototype& proto);
   void addCreator(const std::string& key, std::unique_ptr<CFunctionCreator> creator);
+  void addCCreator(const std::string& key, std::unique_ptr<CFunctionCreator> creator);
+  script::Function create_function(script::FunctionBlueprint& blueprint, const std::shared_ptr<script::ast::FunctionDecl>& fdecl, std::vector<script::Attribute>& attrs);
+  script::Function create_ctor(script::FunctionBlueprint& blueprint, const std::shared_ptr<script::ast::FunctionDecl>& fdecl, std::vector<script::Attribute>& attrs);
 
 private:
   script::Engine* m_engine;
   dynlib::Library& m_library;
-  std::map<std::string, std::unique_ptr<CFunctionCreator>> m_creators;
+  std::map<std::string, std::unique_ptr<CFunctionCreator>> m_function_creators;
+  std::map<std::string, std::unique_ptr<CFunctionCreator>> m_ctor_creators;
 };
 
 template<typename T, typename... Args>
@@ -135,6 +142,69 @@ public:
   };
 };
 
+template<typename T, typename... Args>
+class CConstructor : public script::ConstructorImpl
+{
+public:
+  script::Name m_name;
+
+public:
+  explicit CConstructor(script::FunctionBlueprint& blueprint)
+    : ConstructorImpl(blueprint.prototype_, blueprint.engine()),
+      m_name(blueprint.name())
+  {
+    enclosing_symbol = blueprint.parent().impl();
+    //m_proto.setReturnType(gonk::make_type<T>(e));
+    //m_proto.set({ gonk::make_type<Args>(e)... });
+    flags = blueprint.flags();
+  }
+
+  const std::string& name() const override
+  {
+    return m_name.string();
+  }
+
+  script::Name get_name() const override
+  {
+    return m_name;
+  }
+
+  bool is_native() const override
+  {
+    return true;
+  }
+
+  void set_body(std::shared_ptr<script::program::Statement>) override
+  {
+
+  }
+
+  template<std::size_t... Is>
+  script::Value do_invoke(script::FunctionCall* c, std::index_sequence<Is...>)
+  {
+    using Tuple = std::tuple<Args...>;
+    c->thisObject().init<T>(gonk::value_cast<typename std::tuple_element<Is, Tuple>::type>(c->arg(Is + 1))...);
+    return c->arg(0);
+  }
+
+  script::Value invoke(script::FunctionCall* c) override
+  {
+    return do_invoke(c, std::index_sequence_for<Args...>{});
+  }
+};
+
+template<typename T, typename...Args>
+class CConstructorCreatorImpl : public CFunctionCreator
+{
+public:
+  ~CConstructorCreatorImpl() = default;
+
+  script::Function create(void (*proc)(), script::FunctionBlueprint& blueprint) override
+  {
+    return script::Function(std::make_shared<CConstructor<T, Args...>>(blueprint));
+  };
+};
+
 template<typename R, typename... Args>
 inline void FunctionCreator::addCreator()
 {
@@ -148,6 +218,21 @@ inline void FunctionCreator::addCreator()
 
   addCreator(key, std::move(creator));
 }
+
+template<typename R, typename... Args>
+inline void FunctionCreator::addCtorCreator()
+{
+  script::DynamicPrototype proto;
+  proto.setReturnType(script::Type::Void);
+  proto.set({ gonk::make_type<R&>(m_engine), gonk::make_type<Args>(m_engine)... });
+
+  std::string key = stringify(proto);
+
+  auto creator = std::make_unique<CConstructorCreatorImpl<R, Args...>>();
+
+  addCCreator(key, std::move(creator));
+}
+
 
 } // namespace gonk
 

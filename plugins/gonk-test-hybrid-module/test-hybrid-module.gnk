@@ -5,3 +5,13 @@ int give_me_a_six()
 {
   return add(give_me_a_five(), 1);
 }
+
+
+class [[id("Integer")]] Integer
+{
+public:
+  [[native]] Integer(int v) = default;
+  ~Integer() = default;
+  
+  [[native("Integer_value")]] int value() const = default;
+};
