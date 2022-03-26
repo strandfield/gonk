@@ -5,3 +5,4 @@ tools/gonkdbg/icon.ico
 tools/gonkdbg/icon.png
 src/icon.ico
 release/*
+tests/catch.hpp

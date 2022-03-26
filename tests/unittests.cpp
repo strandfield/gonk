@@ -1,6 +1,9 @@
-// Copyright (C) 2020 Vincent Chambrin
+// Copyright (C) 2020-2022 Vincent Chambrin
 // This file is part of the 'gonk' project
 // For conditions of distribution and use, see copyright notice in LICENSE
+
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 
 #include "gonk/common/binding/chainable-memfn.h"
 #include "gonk/common/binding/constructor.h"
@@ -28,19 +31,6 @@
 #include <cassert>
 #include <iostream>
 #include <type_traits>
-
-void Assert(const char* expr, bool val, int line)
-{
-  if (val)
-    return;
-
-  std::string file = __FILE__;
-  std::string message = file + ":" + std::to_string(line) + ": " + std::string(expr);
-  throw std::runtime_error{ message.c_str() };
-}
-
-#define ASSERT(x) Assert(#x, (x), __LINE__)
-#define ASSERT_EQ(a, b) Assert(#a "=" #b, ((a) == (b)), __LINE__)
 
 int guaranteed_random()
 {
@@ -109,17 +99,22 @@ int point_y(const Point & pt)
   return pt.y();
 }
 
-void test_simple_bindind(script::Engine& e)
+TEST_CASE("Test simple binding", "[binding]")
 {
   using namespace script;
+
+  script::Engine e;
+  e.setup();
+
+  gonk::register_pointer_template(e.rootNamespace());
 
   Namespace ns = e.rootNamespace();
 
   {
     Function f = gonk::bind::function(ns, "guaranteed_random", &guaranteed_random);
     script::Value x = f.invoke({});
-    ASSERT(x.isInt());
-    ASSERT_EQ(x.toInt(), 6);
+    REQUIRE(x.isInt());
+    REQUIRE(x.toInt() == 6);
   }
 
   {
@@ -127,14 +122,14 @@ void test_simple_bindind(script::Engine& e)
     int x = 0;
     script::Value xx = e.expose(x);
     f.invoke({ xx });
-    ASSERT_EQ(x, 6);
+    REQUIRE(x == 6);
   }
   
   Function add_func = gonk::bind::free_function<int, int, int, &add>(ns, "add").get();
-  ASSERT(add_func.returnType() == Type::Int);
-  ASSERT(add_func.prototype().size() == 2);
-  ASSERT(add_func.parameter(0) == Type::Int);
-  ASSERT(add_func.parameter(1) == Type::Int);
+  REQUIRE(add_func.returnType() == Type::Int);
+  REQUIRE(add_func.prototype().size() == 2);
+  REQUIRE(add_func.parameter(0) == Type::Int);
+  REQUIRE(add_func.parameter(1) == Type::Int);
 
   {
     script::Locals locals;
@@ -144,38 +139,38 @@ void test_simple_bindind(script::Engine& e)
     script::Value val = add_func.invoke(locals.data());
     locals.push(val);
 
-    ASSERT(val.type() == Type::Int);
-    ASSERT(val.toInt() == 13);
+    REQUIRE(val.type() == Type::Int);
+    REQUIRE(val.toInt() == 13);
   }
 
   Class pt = ns.newClass("Point").setId(e.registerType<Point>().data()).get();
   gonk::bind::pointer<Point>(&e);
 
   Function ctor = gonk::bind::default_constructor<Point>(pt).get();
-  ASSERT(ctor.isConstructor());
-  ASSERT(ctor.memberOf() == pt);
-  ASSERT(ctor.prototype().size() == 1);
+  REQUIRE(ctor.isConstructor());
+  REQUIRE(ctor.memberOf() == pt);
+  REQUIRE(ctor.prototype().size() == 1);
 
   ctor = gonk::bind::constructor<Point, int, int>(pt).get();
-  ASSERT(ctor.isConstructor());
-  ASSERT(ctor.memberOf() == pt);
-  ASSERT(ctor.prototype().size() == 3);
-  ASSERT(ctor.parameter(1) == Type::Int);
-  ASSERT(ctor.parameter(2) == Type::Int);
+  REQUIRE(ctor.isConstructor());
+  REQUIRE(ctor.memberOf() == pt);
+  REQUIRE(ctor.prototype().size() == 3);
+  REQUIRE(ctor.parameter(1) == Type::Int);
+  REQUIRE(ctor.parameter(2) == Type::Int);
 
   Function dtor = gonk::bind::destructor<Point>(pt).get();
-  ASSERT(!dtor.isNull());
-  ASSERT(dtor.isDestructor());
-  ASSERT(dtor.memberOf() == pt);
+  REQUIRE(!dtor.isNull());
+  REQUIRE(dtor.isDestructor());
+  REQUIRE(dtor.memberOf() == pt);
 
 
   Function x = gonk::bind::member_function<Point, int, &Point::x>(pt, "x").get();
-  ASSERT(x.isMemberFunction());
-  ASSERT(x.memberOf() == pt);
-  ASSERT(x.name() == "x");
-  ASSERT(x.returnType() == Type::Int);
-  ASSERT(x.prototype().size() == 1);
-  ASSERT(x.isConst());
+  REQUIRE(x.isMemberFunction());
+  REQUIRE(x.memberOf() == pt);
+  REQUIRE(x.name() == "x");
+  REQUIRE(x.returnType() == Type::Int);
+  REQUIRE(x.prototype().size() == 1);
+  REQUIRE(x.isConst());
 
   {
     Point pt{ 4, 8 };
@@ -183,25 +178,25 @@ void test_simple_bindind(script::Engine& e)
 
     script::Value val_x = x.invoke({ val });
 
-    ASSERT(val_x.type() == Type::Int);
-    ASSERT(val_x.toInt() == 4);
+    REQUIRE(val_x.type() == Type::Int);
+    REQUIRE(val_x.toInt() == 4);
   }
 
   Function y = gonk::bind::fn_as_memfn<Point, int, point_y>(pt, "y").get();
-  ASSERT(y.isMemberFunction());
-  ASSERT(y.memberOf() == pt);
-  ASSERT(y.name() == "y");
-  ASSERT(y.returnType() == Type::Int);
-  ASSERT(y.prototype().size() == 1);
-  ASSERT(y.isConst());
+  REQUIRE(y.isMemberFunction());
+  REQUIRE(y.memberOf() == pt);
+  REQUIRE(y.name() == "y");
+  REQUIRE(y.returnType() == Type::Int);
+  REQUIRE(y.prototype().size() == 1);
+  REQUIRE(y.isConst());
 
   Function address_if_true = gonk::bind::member_function<Point, Point*, bool, &Point::address_if_true>(pt, "address_if_true").get();
-  ASSERT(address_if_true.isMemberFunction());
-  ASSERT(address_if_true.memberOf() == pt);
-  ASSERT(address_if_true.name() == "address_if_true");
-  ASSERT(address_if_true.returnType() == e.makeType<Point*>());
-  ASSERT(address_if_true.prototype().size() == 2);
-  ASSERT(!address_if_true.isConst());
+  REQUIRE(address_if_true.isMemberFunction());
+  REQUIRE(address_if_true.memberOf() == pt);
+  REQUIRE(address_if_true.name() == "address_if_true");
+  REQUIRE(address_if_true.returnType() == e.makeType<Point*>());
+  REQUIRE(address_if_true.prototype().size() == 2);
+  REQUIRE(!address_if_true.isConst());
 
   {
     Point pt{ 6, 6 };
@@ -213,39 +208,39 @@ void test_simple_bindind(script::Engine& e)
 
     script::Value result = address_if_true.invoke(locals.data());
 
-    ASSERT(result.type() == e.makeType<Point*>());
-    ASSERT(script::get<gonk::Pointer<Point>>(result) == nullptr);
+    REQUIRE(result.type() == e.makeType<Point*>());
+    REQUIRE(script::get<gonk::Pointer<Point>>(result) == nullptr);
     e.destroy(result);
 
     script::get<bool>(locals.at(1)) = true;
 
     result = address_if_true.invoke(locals.data());
-    ASSERT(script::get<gonk::Pointer<Point>>(result) == &pt);
+    REQUIRE(script::get<gonk::Pointer<Point>>(result) == &pt);
     e.destroy(result);
   }
 
   {
     Function mem = gonk::bind::method(pt, "get2X", &Point::get2X);
-    ASSERT(mem.isMemberFunction());
-    ASSERT_EQ(mem.memberOf(), pt);
-    ASSERT_EQ(mem.name(), "get2X");
-    ASSERT(mem.isConst());
+    REQUIRE(mem.isMemberFunction());
+    REQUIRE(mem.memberOf() == pt);
+    REQUIRE(mem.name() == "get2X");
+    REQUIRE(mem.isConst());
 
     Point pt{ 6, 6 };
     script::Value self = e.expose(pt);
     script::Value x = mem.invoke({ self });
-    ASSERT(x.type() == Type::Int);
-    ASSERT(x.toInt() == 12);
+    REQUIRE(x.type() == Type::Int);
+    REQUIRE(x.toInt() == 12);
   }
 
   Function incr_x = gonk::bind::chainable_memfn<Point, int, &Point::incrX>(pt, "incrX").get();
-  ASSERT(incr_x.isMemberFunction());
-  ASSERT_EQ(incr_x.memberOf(), pt);
-  ASSERT_EQ(incr_x.name(), "incrX");
-  ASSERT_EQ(incr_x.returnType(), Type::ref(pt.id()));
-  ASSERT_EQ(incr_x.prototype().size(), 2);
-  ASSERT_EQ(incr_x.parameter(1), Type::Int);
-  ASSERT(!incr_x.isConst());
+  REQUIRE(incr_x.isMemberFunction());
+  REQUIRE(incr_x.memberOf() == pt);
+  REQUIRE(incr_x.name() == "incrX");
+  REQUIRE(incr_x.returnType() == Type::ref(pt.id()));
+  REQUIRE(incr_x.prototype().size() == 2);
+  REQUIRE(incr_x.parameter(1) == Type::Int);
+  REQUIRE(!incr_x.isConst());
 
   {
     Point pt{ 4, 8 };
@@ -256,25 +251,25 @@ void test_simple_bindind(script::Engine& e)
     locals.push(e.newInt(6));
 
     script::Value other_self = incr_x.invoke(locals.data());
-    ASSERT(other_self.type() == e.makeType<Point>());
-    ASSERT(std::addressof(pt) == std::addressof(script::get<Point>(other_self)));
+    REQUIRE(other_self.type() == e.makeType<Point>());
+    REQUIRE(std::addressof(pt) == std::addressof(script::get<Point>(other_self)));
   }
 
   Function invert = gonk::bind::void_member_function<Point, &Point::invert>(pt, "invert").get();
-  ASSERT(invert.isMemberFunction());
-  ASSERT_EQ(invert.memberOf(), pt);
-  ASSERT_EQ(invert.name(), "invert");
-  ASSERT_EQ(invert.returnType(), Type::Void);
-  ASSERT_EQ(invert.prototype().size(), 1);
-  ASSERT(!invert.isConst());
+  REQUIRE(invert.isMemberFunction());
+  REQUIRE(invert.memberOf() == pt);
+  REQUIRE(invert.name() == "invert");
+  REQUIRE(invert.returnType() == Type::Void);
+  REQUIRE(invert.prototype().size() == 1);
+  REQUIRE(!invert.isConst());
 
   Function rx = gonk::bind::member_function<Point, int&, &Point::rx>(pt, "rx").get();
-  ASSERT(rx.isMemberFunction());
-  ASSERT_EQ(rx.memberOf(), pt);
-  ASSERT_EQ(rx.name(), "rx");
-  ASSERT_EQ(rx.returnType(), Type::ref(Type::Int));
-  ASSERT_EQ(rx.prototype().size(), 1);
-  ASSERT(!rx.isConst());
+  REQUIRE(rx.isMemberFunction());
+  REQUIRE(rx.memberOf() == pt);
+  REQUIRE(rx.name() == "rx");
+  REQUIRE(rx.returnType() == Type::ref(Type::Int));
+  REQUIRE(rx.prototype().size() == 1);
+  REQUIRE(!rx.isConst());
 
   {
     Point pt{ 7, 13 };
@@ -284,49 +279,52 @@ void test_simple_bindind(script::Engine& e)
     locals.push(self);
     
     script::Value x = rx.invoke(locals.data());
-    ASSERT(x.type() == Type::Int);
-    ASSERT(x.isReference());
-    ASSERT(script::get<int>(x) == 7);
+    REQUIRE(x.type() == Type::Int);
+    REQUIRE(x.isReference());
+    REQUIRE(script::get<int>(x) == 7);
 
     script::get<int>(x) = 11;
-    ASSERT(pt.x() == 11);
+    REQUIRE(pt.x() == 11);
   }
 
   Function max = gonk::bind::static_member_function<Point, Point, const Point &, const Point &, &Point::max>(pt, "max").get();
-  ASSERT(max.isMemberFunction());
-  ASSERT(max.isStatic());
-  ASSERT_EQ(max.memberOf(), pt);
-  ASSERT_EQ(max.name(), "max");
-  ASSERT_EQ(max.returnType(), pt.id());
-  ASSERT_EQ(max.prototype().size(), 2);
-  ASSERT_EQ(max.parameter(0), Type::cref(pt.id()));
-  ASSERT(!max.isConst());
+  REQUIRE(max.isMemberFunction());
+  REQUIRE(max.isStatic());
+  REQUIRE(max.memberOf() == pt);
+  REQUIRE(max.name() == "max");
+  REQUIRE(max.returnType() == pt.id());
+  REQUIRE(max.prototype().size() == 2);
+  REQUIRE(max.parameter(0) == Type::cref(pt.id()));
+  REQUIRE(!max.isConst());
 
   Function print = gonk::bind::static_void_member_function<Point, const Point &, &Point::print>(pt, "print").get();
-  ASSERT(print.isMemberFunction());
-  ASSERT(print.isStatic());
-  ASSERT_EQ(print.memberOf(), pt);
-  ASSERT_EQ(print.name(), "print");
-  ASSERT_EQ(print.returnType(), Type::Void);
-  ASSERT_EQ(print.prototype().size(), 1);
-  ASSERT_EQ(print.parameter(0), Type::cref(pt.id()));
-  ASSERT(!print.isConst());
+  REQUIRE(print.isMemberFunction());
+  REQUIRE(print.isStatic());
+  REQUIRE(print.memberOf() == pt);
+  REQUIRE(print.name() == "print");
+  REQUIRE(print.returnType() == Type::Void);
+  REQUIRE(print.prototype().size() == 1);
+  REQUIRE(print.parameter(0) == Type::cref(pt.id()));
+  REQUIRE(!print.isConst());
 
   Function assign = gonk::bind::memop_assign<Point, const Point &>(pt);
-  ASSERT(assign.isOperator());
-  ASSERT_EQ(assign.toOperator().operatorId(), AssignmentOperator);
-  ASSERT_EQ(assign.returnType(), Type::ref(pt.id()));
-  ASSERT_EQ(assign.parameter(0), Type::ref(pt.id()));
-  ASSERT_EQ(assign.parameter(1), Type::cref(pt.id()));
-  ASSERT(assign.isMemberFunction());
-  ASSERT(!assign.isStatic());
-  ASSERT(!assign.isConst());
-  ASSERT_EQ(assign.memberOf(), pt);
+  REQUIRE(assign.isOperator());
+  REQUIRE(assign.toOperator().operatorId() == AssignmentOperator);
+  REQUIRE(assign.returnType() == Type::ref(pt.id()));
+  REQUIRE(assign.parameter(0) == Type::ref(pt.id()));
+  REQUIRE(assign.parameter(1) == Type::cref(pt.id()));
+  REQUIRE(assign.isMemberFunction());
+  REQUIRE(!assign.isStatic());
+  REQUIRE(!assign.isConst());
+  REQUIRE(assign.memberOf() == pt);
 }
 
-void test_enum_binding(script::Engine& e)
+TEST_CASE("Test enum binding", "[binding]")
 {
   using namespace script;
+
+  script::Engine e;
+  e.setup();
 
   Namespace ns = e.rootNamespace();
 
@@ -336,28 +334,14 @@ void test_enum_binding(script::Engine& e)
 
   script::Value val = gonk::make_value<CoordinateSystem>(Polar, &e);
 
-  ASSERT(val.type() == e.makeType<CoordinateSystem>());
-  ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
+  REQUIRE(val.type() == e.makeType<CoordinateSystem>());
+  REQUIRE(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Polar);
 
   gonk::value_cast<CoordinateSystem&>(val) = Cartesian;
-  ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
+  REQUIRE(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
 
   script::Function favcoord = gonk::bind::free_function<CoordinateSystem, &favoriteCoordinateSystem>(ns, "favoriteCoordinateSystem").get();
 
   val = favcoord.invoke({});
-  ASSERT(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
-}
-
-int main(int argc, char* argv[])
-{
-  script::Engine engine;
-  engine.setup();
-
-  gonk::register_pointer_template(engine.rootNamespace());
-
-  test_simple_bindind(engine);
-
-  test_enum_binding(engine);
-
-  return 0;
+  REQUIRE(gonk::value_cast<CoordinateSystem>(val) == CoordinateSystem::Cartesian);
 }
