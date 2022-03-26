@@ -9,9 +9,12 @@
 
 #include "gonk/common/values.h"
 
+#include <script/interpreter/executioncontext.h>
 #include <script/function-blueprint.h>
 #include <script/function-impl.h>
 #include <script/functioncreator.h>
+
+#include <dynlib/dynlib.h>
 
 #include <map>
 #include <memory>
@@ -31,7 +34,7 @@ public:
 class GONK_API FunctionCreator : public script::FunctionCreator
 {
 public:
-  explicit FunctionCreator(script::Engine* e);
+  explicit FunctionCreator(script::Engine* e, dynlib::Library& lib);
   FunctionCreator(const FunctionCreator&) = delete;
   ~FunctionCreator();
 
@@ -48,6 +51,7 @@ protected:
 
 private:
   script::Engine* m_engine;
+  dynlib::Library& m_library;
   std::map<std::string, std::unique_ptr<CFunctionCreator>> m_creators;
 };
 
@@ -60,12 +64,11 @@ public:
   script::DynamicPrototype m_proto;
 
 public:
-  explicit CFunction(script::FunctionBlueprint& blueprint, script::Name name, T(*fun)(Args...))
+  explicit CFunction(script::FunctionBlueprint& blueprint, T(*fun)(Args...))
     : FunctionImpl(blueprint.engine()),
       proc(fun),
       m_name(blueprint.name())
   {
-    script::Engine* e = sym.engine();
     enclosing_symbol = blueprint.parent().impl();
     //m_proto.setReturnType(gonk::make_type<T>(e));
     //m_proto.set({ gonk::make_type<Args>(e)... });
@@ -128,7 +131,7 @@ public:
 
   script::Function create(void (*proc)(), script::FunctionBlueprint& blueprint) override
   {
-    return std::make_shared<CFunction<T, Args>>(blueprint, reinterpret_cast<T(*)(Args...)>(proc));
+    return script::Function(std::make_shared<CFunction<T, Args...>>(blueprint, reinterpret_cast<T(*)(Args...)>(proc)));
   };
 };
 
@@ -136,12 +139,12 @@ template<typename R, typename... Args>
 inline void FunctionCreator::addCreator()
 {
   script::DynamicPrototype proto;
-  proto.setReturnType(gonk::make_type<T>(m_engine));
+  proto.setReturnType(gonk::make_type<R>(m_engine));
   proto.set({ gonk::make_type<Args>(m_engine)... });
 
   std::string key = stringify(proto);
 
-  auto creator = std::make_unique<CFunctionCreatorImpl<T, Args...>>();
+  auto creator = std::make_unique<CFunctionCreatorImpl<R, Args...>>();
 
   addCreator(key, std::move(creator));
 }

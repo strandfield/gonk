@@ -261,14 +261,14 @@ void GonkModuleInterface::loadPlugin()
       c = '-';
   }
 
-  dynlib::Library library{ info.path + "/" + lib_name };
+  auto library = std::make_shared<dynlib::Library>(info.path + "/" + lib_name);
 
-  if (!library.load())
+  if (!library->load())
   {
-    throw script::ModuleLoadingError("Could not load module library: " + info.path + "/" + lib_name + "\n" + library.errorString());
+    throw script::ModuleLoadingError("Could not load module library: " + info.path + "/" + lib_name + "\n" + library->errorString());
   }
 
-  void (*funpointer)() = library.resolve(info.entry_point.c_str());
+  void (*funpointer)() = library->resolve(info.entry_point.c_str());
 
   if (!funpointer)
   {
@@ -283,6 +283,8 @@ void GonkModuleInterface::loadPlugin()
   {
     throw script::ModuleLoadingError{ "Module library returned a null plugin" };
   }
+
+  p->library = library;
 
   plugin.reset(p);
 }

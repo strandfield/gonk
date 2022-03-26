@@ -17,8 +17,9 @@ CFunctionCreator::~CFunctionCreator()
 
 }
 
-FunctionCreator::FunctionCreator(script::Engine* e)
-  : m_engine(e)
+FunctionCreator::FunctionCreator(script::Engine* e, dynlib::Library& lib)
+  : m_engine(e),
+    m_library(lib)
 {
 
 }
@@ -51,8 +52,12 @@ script::Function FunctionCreator::create(script::FunctionBlueprint& blueprint, c
 
   if (get_callback_name(attrs, callback_name))
   {
+    void(*proc)() = m_library.resolve(callback_name.c_str());
 
-    void(*proc)() = nullptr;
+    if (!proc)
+    {
+      std::cerr << "Unknown procedure: " << callback_name << std::endl;
+    }
 
     std::string key = stringify(blueprint.prototype_);
 

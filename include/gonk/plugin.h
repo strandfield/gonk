@@ -9,6 +9,8 @@
 
 #include <script/module.h>
 
+#include <dynlib/dynlib.h>
+
 #include <memory>
 
 namespace gonk
@@ -16,6 +18,9 @@ namespace gonk
 
 class GONK_API Plugin
 {
+public:
+  std::shared_ptr<dynlib::Library> library;
+
 public:
   Plugin();
   virtual ~Plugin();
