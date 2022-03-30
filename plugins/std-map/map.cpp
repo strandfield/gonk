@@ -458,7 +458,7 @@ void register_map_template(script::Namespace ns)
 {
   using namespace script;
 
-  script::ClassTemplate map_template = script::Symbol{ ns }.newClassTemplate("map")
+  script::ClassTemplate map_template = script::ClassTemplateBuilder(script::Symbol(ns), "map")
     .params(script::TemplateParameter(script::TemplateParameter::TypeParameter{}, "Key"), script::TemplateParameter(script::TemplateParameter::TypeParameter{}, "T"))
     .setScope(script::Scope(ns))
     .withBackend<gonk::MapTemplate>()

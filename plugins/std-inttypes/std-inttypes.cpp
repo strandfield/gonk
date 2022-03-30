@@ -481,13 +481,13 @@ static void register_inttypes(script::Namespace& ns)
 {
   if constexpr (std::is_same<std::int32_t, int>::value)
   {
-    script::Symbol{ ns }.newTypedef(script::Type::Int, "int32_t").create();
+    ns.addTypedef(script::Typedef("int32_t", script::Type::Int));
     register_int_type<int64_t>(ns, "int64_t");
   }
   else
   {
     register_int_type<int32_t>(ns, "int32_t");
-    script::Symbol{ ns }.newTypedef(script::Type::Int, "int64_t").create();
+    ns.addTypedef(script::Typedef("int64_t", script::Type::Int));
   }
 
   register_int_type<uint32_t>(ns, "uint32_t");
@@ -510,17 +510,17 @@ public:
 
     if constexpr (std::is_same<std::int32_t, int>::value)
     {
-      script::Symbol{ ns }.newTypedef(script::Type::Int, "int32_t").create();
-      script::Symbol{ ns }.newTypedef(gonk::make_type<int64_t>(e), "int64_t").create();
+      ns.addTypedef(script::Typedef("int32_t", script::Type::Int));
+      ns.addTypedef(script::Typedef("int64_t", gonk::make_type<int64_t>(e)));
     }
     else
     {
-      script::Symbol{ ns }.newTypedef(gonk::make_type<int32_t>(e), "int32_t").create();
-      script::Symbol{ ns }.newTypedef(script::Type::Int, "int64_t").create();
+      ns.addTypedef(script::Typedef("int32_t", gonk::make_type<int32_t>(e)));
+      ns.addTypedef(script::Typedef("int64_t", script::Type::Int));
     }
 
-    script::Symbol{ ns }.newTypedef(gonk::make_type<uint32_t>(e), "uint32_t").create();
-    script::Symbol{ ns }.newTypedef(gonk::make_type<uint64_t>(e), "uint64_t").create();
+    ns.addTypedef(script::Typedef("uint32_t", gonk::make_type<uint32_t>(e)));
+    ns.addTypedef(script::Typedef("uint64_t", gonk::make_type<uint64_t>(e)));
   }
 
   void unload(script::Module m) override

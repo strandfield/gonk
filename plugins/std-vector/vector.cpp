@@ -398,7 +398,7 @@ void register_vector_file(script::Namespace ns)
 
   script::Engine* e = ns.engine();
 
-  script::ClassTemplate vector_template = script::Symbol{ ns }.newClassTemplate("vector")
+  script::ClassTemplate vector_template = script::ClassTemplateBuilder(script::Symbol(ns), "vector")
     .params(script::TemplateParameter(script::TemplateParameter::TypeParameter{}, "T"))
     .setScope(script::Scope(ns))
     .withBackend<gonk::VectorTemplate>()
