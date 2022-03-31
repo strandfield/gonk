@@ -83,6 +83,11 @@ public:
     flags = blueprint.flags();
   }
 
+  script::SymbolKind get_kind() const override
+  {
+    return m_name.kind();
+  }
+
   const std::string& name() const override
   {
     return m_name.string();
@@ -157,6 +162,11 @@ public:
     //m_proto.setReturnType(gonk::make_type<T>(e));
     //m_proto.set({ gonk::make_type<Args>(e)... });
     flags = blueprint.flags();
+  }
+
+  script::SymbolKind get_kind() const override
+  {
+    return script::SymbolKind::Constructor;
   }
 
   const std::string& name() const override
