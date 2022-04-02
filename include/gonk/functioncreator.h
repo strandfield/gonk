@@ -68,18 +68,18 @@ class CFunction : public script::FunctionImpl
 public:
   T(*proc)(Args...);
   script::Name m_name;
-  script::DynamicPrototype m_proto;
+  script::FixedSizePrototype<sizeof...(Args)> m_proto;
 
 public:
   explicit CFunction(script::FunctionBlueprint& blueprint, T(*fun)(Args...))
     : FunctionImpl(blueprint.engine()),
       proc(fun),
-      m_name(blueprint.name())
+      m_name(blueprint.name()),
+      m_proto(blueprint.prototype_)
   {
     enclosing_symbol = blueprint.parent().impl();
     //m_proto.setReturnType(gonk::make_type<T>(e));
     //m_proto.set({ gonk::make_type<Args>(e)... });
-    m_proto = blueprint.prototype_;
     flags = blueprint.flags();
   }
 
@@ -152,7 +152,7 @@ class CConstructor : public script::FunctionImpl
 {
 public:
   script::Name m_name;
-  script::DynamicPrototype m_proto;
+  script::FixedSizePrototype<sizeof...(Args) + 1> m_proto;
 
 public:
   explicit CConstructor(script::FunctionBlueprint& blueprint)
