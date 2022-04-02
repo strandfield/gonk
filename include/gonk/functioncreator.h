@@ -148,20 +148,19 @@ public:
 };
 
 template<typename T, typename... Args>
-class CConstructor : public script::ConstructorImpl
+class CConstructor : public script::FunctionImpl
 {
 public:
   script::Name m_name;
+  script::DynamicPrototype m_proto;
 
 public:
   explicit CConstructor(script::FunctionBlueprint& blueprint)
-    : ConstructorImpl(blueprint.prototype_, blueprint.engine()),
-      m_name(blueprint.name())
+    : script::FunctionImpl(blueprint.engine(), blueprint.flags()),
+      m_name(blueprint.name()),
+      m_proto(blueprint.prototype_)
   {
     enclosing_symbol = blueprint.parent().impl();
-    //m_proto.setReturnType(gonk::make_type<T>(e));
-    //m_proto.set({ gonk::make_type<Args>(e)... });
-    flags = blueprint.flags();
   }
 
   script::SymbolKind get_kind() const override
@@ -187,6 +186,11 @@ public:
   void set_body(std::shared_ptr<script::program::Statement>) override
   {
 
+  }
+
+  const script::Prototype& prototype() const override
+  {
+    return m_proto;
   }
 
   template<std::size_t... Is>
