@@ -27,7 +27,6 @@ public:
 
   virtual void load(script::Module m) = 0;
   virtual void unload(script::Module m);
-
 };
 
 } // namespace gonk
