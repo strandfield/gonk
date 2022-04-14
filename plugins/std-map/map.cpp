@@ -133,65 +133,65 @@ static script::Value neq(script::FunctionCall* c)
 void fill_instance(script::Class& c, script::Type key_type, script::Type element_type)
 {
   // std::map();
-  script::ConstructorBuilder(c).setCallback(callbacks::default_ctor).create();
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::default_ctor).create();
   // std::map(const std::map<Key, T>& other);
-  script::ConstructorBuilder(c).setCallback(callbacks::copy_ctor)
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::copy_ctor)
     .params(script::Type::cref(c.id())).create();
   // ~std::map();
-  script::DestructorBuilder(c).setCallback(callbacks::dtor).create();
+  script::FunctionBuilder::Destructor(c).setCallback(callbacks::dtor).create();
 
   // std::map<Key, T>& operator=(const std::map<Key, T>& other);
-  script::OperatorBuilder(script::Symbol(c), script::AssignmentOperator).setCallback(callbacks::op_assign)
+  script::FunctionBuilder::Op(c, script::AssignmentOperator).setCallback(callbacks::op_assign)
     .returns(script::Type::ref(c.id()))
     .params(script::Type::cref(c.id()))
     .create();
 
   // T& operator[](const Key& key);
-  script::OperatorBuilder(script::Symbol(c), script::SubscriptOperator).setCallback(callbacks::op_subscript)
+  script::FunctionBuilder::Op(c, script::SubscriptOperator).setCallback(callbacks::op_subscript)
     .returns(script::Type::ref(element_type))
     .params(script::Type::cref(key_type))
     .create();
   // const T& at(const Key& key) const;
-  script::FunctionBuilder(c, "at").setCallback(callbacks::at)
+  script::FunctionBuilder::Fun(c, "at").setCallback(callbacks::at)
     .returns(script::Type::cref(element_type))
     .params(script::Type::cref(key_type))
     .setConst()
     .create();
 
   // bool empty() const;
-  script::FunctionBuilder(c, "empty").setCallback(callbacks::empty)
+  script::FunctionBuilder::Fun(c, "empty").setCallback(callbacks::empty)
     .returns(script::Type::Boolean)
     .setConst()
     .create();
   // int size() const;
-  script::FunctionBuilder(c, "size").setCallback(callbacks::size)
+  script::FunctionBuilder::Fun(c, "size").setCallback(callbacks::size)
     .returns(script::Type::Int)
     .setConst()
     .create();
 
   // void clear();
-  script::FunctionBuilder(c, "clear").setCallback(callbacks::clear)
+  script::FunctionBuilder::Fun(c, "clear").setCallback(callbacks::clear)
     .create();
   // void erase(const Key& key);
-  script::FunctionBuilder(c, "erase").setCallback(callbacks::erase_int)
+  script::FunctionBuilder::Fun(c, "erase").setCallback(callbacks::erase_int)
     .params(script::Type::cref(key_type))
     .create();
 
   // int count(const Key& key) const;
-  script::FunctionBuilder(c, "count").setCallback(callbacks::count)
+  script::FunctionBuilder::Fun(c, "count").setCallback(callbacks::count)
     .returns(script::Type::Int)
     .params(script::Type::cref(key_type))
     .setConst()
     .create();
 
   // bool operator==(const std::map<Key, T>& other) const;
-  script::OperatorBuilder(script::Symbol(c), script::EqualOperator).setCallback(callbacks::eq)
+  script::FunctionBuilder::Op(c, script::EqualOperator).setCallback(callbacks::eq)
     .params(script::Type::cref(c.id()))
     .setConst()
     .create();
 
   // bool operator!=(const std::map<Key, T>& other) const;
-  script::OperatorBuilder(script::Symbol(c), script::InequalOperator).setCallback(callbacks::neq)
+  script::FunctionBuilder::Op(c, script::InequalOperator).setCallback(callbacks::neq)
     .params(script::Type::cref(c.id()))
     .setConst()
     .create();
@@ -458,7 +458,7 @@ void register_map_template(script::Namespace ns)
 {
   using namespace script;
 
-  script::ClassTemplate map_template = script::Symbol{ ns }.newClassTemplate("map")
+  script::ClassTemplate map_template = script::ClassTemplateBuilder(script::Symbol(ns), "map")
     .params(script::TemplateParameter(script::TemplateParameter::TypeParameter{}, "Key"), script::TemplateParameter(script::TemplateParameter::TypeParameter{}, "T"))
     .setScope(script::Scope(ns))
     .withBackend<gonk::MapTemplate>()

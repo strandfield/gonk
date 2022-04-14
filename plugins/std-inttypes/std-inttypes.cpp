@@ -273,205 +273,205 @@ static void register_int_type(script::Namespace& ns, std::string name)
   script::Type t = e->registerType<T>(typeid(T).name(), script::Type::ObjectFlag);
   script::Class c = ns.newClass(name).setId(t.data()).get();
 
-  script::ConstructorBuilder(c).setCallback(callbacks::ctor_default<T>).create();
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::ctor_default<T>).create();
 
-  script::ConstructorBuilder(c).setCallback(callbacks::ctor_int<T>)
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::ctor_int<T>)
     .setExplicit()
     .params(gonk::make_type<const int&>(e)).create();
 
   gonk::bind::constructor<T, const T&>(c).create();
   gonk::bind::destructor<T>(c).create();
 
-  script::OperatorBuilder(script::Symbol(c), script::AssignmentOperator).setCallback(callbacks::assign<T>)
+  script::FunctionBuilder::Op(c, script::AssignmentOperator).setCallback(callbacks::assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::AdditionOperator).setCallback(callbacks::add<T>)
+  script::FunctionBuilder::Op(c, script::AdditionOperator).setCallback(callbacks::add<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::SubstractionOperator).setCallback(callbacks::sub<T>)
+  script::FunctionBuilder::Op(c, script::SubstractionOperator).setCallback(callbacks::sub<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::MultiplicationOperator).setCallback(callbacks::mul<T>)
+  script::FunctionBuilder::Op(c, script::MultiplicationOperator).setCallback(callbacks::mul<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::DivisionOperator).setCallback(callbacks::div<T>)
+  script::FunctionBuilder::Op(c, script::DivisionOperator).setCallback(callbacks::div<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::RemainderOperator).setCallback(callbacks::mod<T>)
+  script::FunctionBuilder::Op(c, script::RemainderOperator).setCallback(callbacks::mod<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::AdditionAssignmentOperator).setCallback(callbacks::add_assign<T>)
+  script::FunctionBuilder::Op(c, script::AdditionAssignmentOperator).setCallback(callbacks::add_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::SubstractionAssignmentOperator).setCallback(callbacks::sub_assign<T>)
+  script::FunctionBuilder::Op(c, script::SubstractionAssignmentOperator).setCallback(callbacks::sub_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::MultiplicationAssignmentOperator).setCallback(callbacks::mul_assign<T>)
+  script::FunctionBuilder::Op(c, script::MultiplicationAssignmentOperator).setCallback(callbacks::mul_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::DivisionAssignmentOperator).setCallback(callbacks::div_assign<T>)
+  script::FunctionBuilder::Op(c, script::DivisionAssignmentOperator).setCallback(callbacks::div_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::RemainderAssignmentOperator).setCallback(callbacks::mod_assign<T>)
+  script::FunctionBuilder::Op(c, script::RemainderAssignmentOperator).setCallback(callbacks::mod_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::LeftShiftOperator).setCallback(callbacks::lshift<T>)
+  script::FunctionBuilder::Op(c, script::LeftShiftOperator).setCallback(callbacks::lshift<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::RightShiftOperator).setCallback(callbacks::rshift<T>)
+  script::FunctionBuilder::Op(c, script::RightShiftOperator).setCallback(callbacks::rshift<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::LeftShiftAssignmentOperator).setCallback(callbacks::lshift_assign<T>)
+  script::FunctionBuilder::Op(c, script::LeftShiftAssignmentOperator).setCallback(callbacks::lshift_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::RightShiftAssignmentOperator).setCallback(callbacks::rshift_assign<T>)
+  script::FunctionBuilder::Op(c, script::RightShiftAssignmentOperator).setCallback(callbacks::rshift_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::EqualOperator).setCallback(callbacks::equal<T>)
+  script::FunctionBuilder::Op(c, script::EqualOperator).setCallback(callbacks::equal<T>)
     .setConst()
     .returns(gonk::make_type<bool>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::InequalOperator).setCallback(callbacks::inequal<T>)
+  script::FunctionBuilder::Op(c, script::InequalOperator).setCallback(callbacks::inequal<T>)
     .setConst()
     .returns(gonk::make_type<bool>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::LessOperator).setCallback(callbacks::less<T>)
+  script::FunctionBuilder::Op(c, script::LessOperator).setCallback(callbacks::less<T>)
     .setConst()
     .returns(gonk::make_type<bool>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::GreaterOperator).setCallback(callbacks::greater<T>)
+  script::FunctionBuilder::Op(c, script::GreaterOperator).setCallback(callbacks::greater<T>)
     .setConst()
     .returns(gonk::make_type<bool>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::LessEqualOperator).setCallback(callbacks::leq<T>)
+  script::FunctionBuilder::Op(c, script::LessEqualOperator).setCallback(callbacks::leq<T>)
     .setConst()
     .returns(gonk::make_type<bool>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::GreaterEqualOperator).setCallback(callbacks::geq<T>)
+  script::FunctionBuilder::Op(c, script::GreaterEqualOperator).setCallback(callbacks::geq<T>)
     .setConst()
     .returns(gonk::make_type<bool>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::UnaryPlusOperator).setCallback(callbacks::unaryplus<T>)
+  script::FunctionBuilder::Op(c, script::UnaryPlusOperator).setCallback(callbacks::unaryplus<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::UnaryMinusOperator).setCallback(callbacks::unaryminus<T>)
+  script::FunctionBuilder::Op(c, script::UnaryMinusOperator).setCallback(callbacks::unaryminus<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::BitwiseOrOperator).setCallback(callbacks::bitwise_or<T>)
-    .setConst()
-    .returns(gonk::make_type<T>(e))
-    .params(gonk::make_type<const T&>(e))
-    .create();
-
-  script::OperatorBuilder(script::Symbol(c), script::BitwiseAndOperator).setCallback(callbacks::bitwise_and<T>)
+  script::FunctionBuilder::Op(c, script::BitwiseOrOperator).setCallback(callbacks::bitwise_or<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::BitwiseXorOperator).setCallback(callbacks::bitxor<T>)
+  script::FunctionBuilder::Op(c, script::BitwiseAndOperator).setCallback(callbacks::bitwise_and<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::BitwiseAndAssignmentOperator).setCallback(callbacks::bitand_assign<T>)
+  script::FunctionBuilder::Op(c, script::BitwiseXorOperator).setCallback(callbacks::bitxor<T>)
+    .setConst()
+    .returns(gonk::make_type<T>(e))
+    .params(gonk::make_type<const T&>(e))
+    .create();
+
+  script::FunctionBuilder::Op(c, script::BitwiseAndAssignmentOperator).setCallback(callbacks::bitand_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::BitwiseOrAssignmentOperator).setCallback(callbacks::bitor_assign<T>)
+  script::FunctionBuilder::Op(c, script::BitwiseOrAssignmentOperator).setCallback(callbacks::bitor_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::BitwiseXorAssignmentOperator).setCallback(callbacks::bitxor_assign<T>)
+  script::FunctionBuilder::Op(c, script::BitwiseXorAssignmentOperator).setCallback(callbacks::bitxor_assign<T>)
     .returns(gonk::make_type<T&>(e))
     .params(gonk::make_type<const T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::BitwiseNot).setCallback(callbacks::bitnot<T>)
+  script::FunctionBuilder::Op(c, script::BitwiseNot).setCallback(callbacks::bitnot<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::PostDecrementOperator).setCallback(callbacks::postdecr<T>)
+  script::FunctionBuilder::Op(c, script::PostDecrementOperator).setCallback(callbacks::postdecr<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::PostIncrementOperator).setCallback(callbacks::postincr<T>)
+  script::FunctionBuilder::Op(c, script::PostIncrementOperator).setCallback(callbacks::postincr<T>)
     .setConst()
     .returns(gonk::make_type<T>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::PreDecrementOperator).setCallback(callbacks::predecr<T>)
+  script::FunctionBuilder::Op(c, script::PreDecrementOperator).setCallback(callbacks::predecr<T>)
     .returns(gonk::make_type<T&>(e))
     .create();
 
-  script::OperatorBuilder(script::Symbol(c), script::PreIncrementOperator).setCallback(callbacks::preincr<T>)
+  script::FunctionBuilder::Op(c, script::PreIncrementOperator).setCallback(callbacks::preincr<T>)
     .returns(gonk::make_type<T&>(e))
     .create();
 
-  script::CastBuilder(c).setCallback(callbacks::operator_int<T>)
+  script::FunctionBuilder::Cast(c).setCallback(callbacks::operator_int<T>)
     .setReturnType(script::Type::Int)
     .setConst()
     .create();
 
-  script::FunctionBuilder(c, "__gonk_repr__").setCallback(callbacks::to_string<T>)
+  script::FunctionBuilder::Fun(c, "__gonk_repr__").setCallback(callbacks::to_string<T>)
     .setConst()
     .returns(script::Type::String)
     .create();
@@ -481,13 +481,13 @@ static void register_inttypes(script::Namespace& ns)
 {
   if constexpr (std::is_same<std::int32_t, int>::value)
   {
-    script::Symbol{ ns }.newTypedef(script::Type::Int, "int32_t").create();
+    ns.addTypedef(script::Typedef("int32_t", script::Type::Int));
     register_int_type<int64_t>(ns, "int64_t");
   }
   else
   {
     register_int_type<int32_t>(ns, "int32_t");
-    script::Symbol{ ns }.newTypedef(script::Type::Int, "int64_t").create();
+    ns.addTypedef(script::Typedef("int64_t", script::Type::Int));
   }
 
   register_int_type<uint32_t>(ns, "uint32_t");
@@ -510,17 +510,17 @@ public:
 
     if constexpr (std::is_same<std::int32_t, int>::value)
     {
-      script::Symbol{ ns }.newTypedef(script::Type::Int, "int32_t").create();
-      script::Symbol{ ns }.newTypedef(gonk::make_type<int64_t>(e), "int64_t").create();
+      ns.addTypedef(script::Typedef("int32_t", script::Type::Int));
+      ns.addTypedef(script::Typedef("int64_t", gonk::make_type<int64_t>(e)));
     }
     else
     {
-      script::Symbol{ ns }.newTypedef(gonk::make_type<int32_t>(e), "int32_t").create();
-      script::Symbol{ ns }.newTypedef(script::Type::Int, "int64_t").create();
+      ns.addTypedef(script::Typedef("int32_t", gonk::make_type<int32_t>(e)));
+      ns.addTypedef(script::Typedef("int64_t", script::Type::Int));
     }
 
-    script::Symbol{ ns }.newTypedef(gonk::make_type<uint32_t>(e), "uint32_t").create();
-    script::Symbol{ ns }.newTypedef(gonk::make_type<uint64_t>(e), "uint64_t").create();
+    ns.addTypedef(script::Typedef("uint32_t", gonk::make_type<uint32_t>(e)));
+    ns.addTypedef(script::Typedef("uint64_t", gonk::make_type<uint64_t>(e)));
   }
 
   void unload(script::Module m) override

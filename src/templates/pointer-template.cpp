@@ -21,7 +21,7 @@ void register_pointer_template(script::Namespace ns)
   std::vector<TemplateParameter> params;
   params.push_back(TemplateParameter{ TemplateParameter::TypeParameter{}, "T" });
 
-  ClassTemplate ref = Symbol{ ns }.newClassTemplate("Pointer")
+  ClassTemplate ref = script::ClassTemplateBuilder(script::Symbol(ns), "Pointer")
     .setParams(std::move(params))
     .setScope(Scope{ ns })
     .withBackend<gonk::PointerTemplate>()

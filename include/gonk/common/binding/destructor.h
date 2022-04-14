@@ -10,7 +10,7 @@
 #include "gonk/common/binding/destructor_binder.h"
 
 #include <script/class.h>
-#include <script/destructorbuilder.h>
+#include <script/functionbuilder.h>
 
 namespace gonk
 {
@@ -19,9 +19,9 @@ namespace bind
 {
 
 template<typename T>
-script::DestructorBuilder destructor(script::Class& c)
+script::FunctionBuilder destructor(script::Class& c)
 {
-  return script::DestructorBuilder(c).setCallback(destructor_binder<T>::destructor);
+  return script::FunctionBuilder::Destructor(c).setCallback(destructor_binder<T>::destructor);
 }
 
 } // namespace bind

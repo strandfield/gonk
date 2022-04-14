@@ -11,7 +11,7 @@
 
 #include <script/class.h>
 #include <script/cast.h>
-#include <script/castbuilder.h>
+#include <script/functionbuilder.h>
 
 namespace gonk
 {
@@ -22,7 +22,7 @@ namespace bind
 template<typename T, typename Dst>
 void conversion(script::Class& cla)
 {
-  auto builder = script::CastBuilder(cla).setCallback(gonk::wrapper::conversion<T&, Dst>)
+  auto builder = script::FunctionBuilder::Cast(cla).setCallback(gonk::wrapper::conversion<T&, Dst>)
     .returns(make_type<Dst>(cla.engine()));
 
   if constexpr (std::is_const<T>::value)

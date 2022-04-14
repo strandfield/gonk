@@ -25,7 +25,7 @@ template<typename R, R(*F)()>
 script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(), F>::wrap)
     .returns(make_type<R>(e));
 }
 
@@ -33,7 +33,7 @@ template<typename R, typename A1, R(*F)(A1)>
 script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1), F>::wrap)
     .returns(make_type<R>(e))
     .params(make_type<A1>(e));
 }
@@ -42,7 +42,7 @@ template<typename R, typename A1, typename A2, R(*F)(A1, A2)>
 script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2), F>::wrap)
     .returns(make_type<R>(e))
     .params(make_type<A1>(e), make_type<A2>(e));
 }
@@ -51,7 +51,7 @@ template<typename R, typename A1, typename A2, typename A3, R(*F)(A1, A2, A3)>
 script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2, A3), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2, A3), F>::wrap)
     .returns(make_type<R>(e))
     .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e));
 }
@@ -60,7 +60,7 @@ template<typename R, typename A1, typename A2, typename A3, typename A4, R(*F)(A
 script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2, A3, A4), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2, A3, A4), F>::wrap)
     .returns(make_type<R>(e))
     .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e));
 }
@@ -69,7 +69,7 @@ template<typename R, typename A1, typename A2, typename A3, typename A4, typenam
 script::FunctionBuilder free_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2, A3, A4, A5), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::function_wrapper_t<R(*)(A1, A2, A3, A4, A5), F>::wrap)
     .returns(make_type<R>(e))
     .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e));
 }
@@ -80,14 +80,14 @@ script::FunctionBuilder free_function(script::Namespace & ns, std::string && nam
 template<void(*F)()>
 script::FunctionBuilder void_function(script::Namespace & ns, std::string && name)
 {
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap);
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap);
 }
 
 template<typename A1, void(*F)(A1)>
 script::FunctionBuilder void_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(e));
 }
 
@@ -95,7 +95,7 @@ template<typename A1, typename A2, void(*F)(A1, A2)>
 script::FunctionBuilder void_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(e), make_type<A2>(e));
 }
 
@@ -103,7 +103,7 @@ template<typename A1, typename A2, typename A3, void(*F)(A1, A2, A3)>
 script::FunctionBuilder void_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e));
 }
 
@@ -111,7 +111,7 @@ template<typename A1, typename A2, typename A3, typename A4, void(*F)(A1, A2, A3
 script::FunctionBuilder void_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e));
 }
 
@@ -119,7 +119,7 @@ template<typename A1, typename A2, typename A3, typename A4, typename A5, void(*
 script::FunctionBuilder void_function(script::Namespace & ns, std::string && name)
 {
   auto* e = ns.engine();
-  return script::FunctionBuilder(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
+  return script::FunctionBuilder::Fun(ns, std::move(name)).setCallback(wrapper::void_function_wrapper_t<decltype(F), F>::wrap)
     .params(make_type<A1>(e), make_type<A2>(e), make_type<A3>(e), make_type<A4>(e), make_type<A5>(e));
 }
 

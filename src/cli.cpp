@@ -59,6 +59,10 @@ public:
       {
         cli.debug = true;
       }
+      else if (arg == "--debug-build")
+      {
+        cli.debugbuild = true;
+      }
       else
       {
         if (isOption(arg))

@@ -14,6 +14,7 @@
 #include <script/typesystem.h>
 
 #include <script/interpreter/executioncontext.h>
+#include <script/program/statements.h>
 
 #include <iostream>
 
@@ -51,8 +52,18 @@ script::Value print_string(script::FunctionCall* c)
 
 script::Value gnk_assert(script::FunctionCall* c)
 {
-  if(!c->arg(0).toBool())
-    throw script::RuntimeError{ "Assertion failure!" };
+  if (!c->arg(0).toBool())
+  {
+    std::string message = "Assertion failure!";
+
+    c = c->caller();
+
+    if (c && c->last_breakpoint)
+      message += " (line " + std::to_string(c->last_breakpoint->line + 1) + ")";
+
+    throw script::RuntimeError(message);
+  }
+
   return script::Value::Void;
 }
 
@@ -65,22 +76,22 @@ script::Value raise(script::FunctionCall* c)
 
 void register_builtins(script::Namespace& ns)
 {
-  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_int)
+  script::FunctionBuilder::Fun(ns, "print").setCallback(callbacks::print_int)
     .params(script::Type::Int).create();
 
-  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_bool)
+  script::FunctionBuilder::Fun(ns, "print").setCallback(callbacks::print_bool)
     .params(script::Type::Boolean).create();
 
-  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_double)
+  script::FunctionBuilder::Fun(ns, "print").setCallback(callbacks::print_double)
     .params(script::Type::Double).create();
 
-  script::FunctionBuilder(ns, "print").setCallback(callbacks::print_string)
+  script::FunctionBuilder::Fun(ns, "print").setCallback(callbacks::print_string)
     .params(script::Type::cref(script::Type::String)).create();
 
-  script::FunctionBuilder(ns, "assert").setCallback(callbacks::gnk_assert)
+  script::FunctionBuilder::Fun(ns, "assert").setCallback(callbacks::gnk_assert)
     .params(script::Type::Boolean).create();
 
-  script::FunctionBuilder(ns, "raise").setCallback(callbacks::raise)
+  script::FunctionBuilder::Fun(ns, "raise").setCallback(callbacks::raise)
     .params(script::Type::cref(script::Type::String)).create();
 
   gonk::register_pointer_template(ns);

@@ -367,6 +367,10 @@ public:
     proto.set({ make_type<const T&>(e).withFlag(script::Type::ThisFlag), make_type<Args>(e)... });
   }
 
+  script::SymbolKind get_kind() const override
+  {
+    return script::SymbolKind::Function;
+  }
 
   const std::string& name() const override
   {

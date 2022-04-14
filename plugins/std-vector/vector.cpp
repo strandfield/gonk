@@ -247,121 +247,121 @@ static script::Value neq(script::FunctionCall* c)
 void fill_instance(script::Class& c, script::Type t)
 {
   // std::vector();
-  script::ConstructorBuilder(c).setCallback(callbacks::default_ctor).create();
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::default_ctor).create();
   // std::vector(const std::vector<T>& other);
-  script::ConstructorBuilder(c).setCallback(callbacks::copy_ctor)
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::copy_ctor)
     .params(script::Type::cref(c.id())).create();
   // ~std::vector();
-  script::DestructorBuilder(c).setCallback(callbacks::dtor).create();
+  script::FunctionBuilder::Destructor(c).setCallback(callbacks::dtor).create();
 
   // std::vector(int count);
-  script::ConstructorBuilder(c).setCallback(callbacks::ctor_int)
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::ctor_int)
     .params(script::Type::Int)
     .create();
   // std::vector(int size, const T& value);
-  script::ConstructorBuilder(c).setCallback(callbacks::ctor_int_T)
+  script::FunctionBuilder::Constructor(c).setCallback(callbacks::ctor_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
 
   // std::vector<T> operator=(const std::vector<T>& other);
-  script::OperatorBuilder(script::Symbol(c), script::AssignmentOperator).setCallback(callbacks::op_assign)
+  script::FunctionBuilder::Op(c, script::AssignmentOperator).setCallback(callbacks::op_assign)
     .returns(script::Type::ref(c.id()))
     .params(script::Type::cref(c.id()))
     .create();
 
   // void assign(int count, const T& value);
-  script::FunctionBuilder(c, "assign").setCallback(callbacks::assign_int_T)
+  script::FunctionBuilder::Fun(c, "assign").setCallback(callbacks::assign_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
 
   // T at(int index) const;
-  script::FunctionBuilder(c, "at").setCallback(callbacks::at_int)
+  script::FunctionBuilder::Fun(c, "at").setCallback(callbacks::at_int)
     .returns(t)
     .params(script::Type::Int)
     .setConst()
     .create();
   // T& operator[](int index);
-  script::OperatorBuilder(script::Symbol(c), script::SubscriptOperator).setCallback(callbacks::op_subscript)
+  script::FunctionBuilder::Op(c, script::SubscriptOperator).setCallback(callbacks::op_subscript)
     .returns(script::Type::ref(t))
     .params(script::Type::Int)
     .create();
   // T front() const;
-  script::FunctionBuilder(c, "front").setCallback(callbacks::front_const)
+  script::FunctionBuilder::Fun(c, "front").setCallback(callbacks::front_const)
     .returns(t)
     .setConst()
     .create();
   // T& front();
-  script::FunctionBuilder(c, "front").setCallback(callbacks::front)
+  script::FunctionBuilder::Fun(c, "front").setCallback(callbacks::front)
     .returns(script::Type::ref(t))
     .create();
   // T back() const;
-  script::FunctionBuilder(c, "back").setCallback(callbacks::back_const)
+  script::FunctionBuilder::Fun(c, "back").setCallback(callbacks::back_const)
     .returns(t)
     .setConst()
     .create();
   // T& back();
-  script::FunctionBuilder(c, "back").setCallback(callbacks::back)
+  script::FunctionBuilder::Fun(c, "back").setCallback(callbacks::back)
     .returns(script::Type::ref(t))
     .create();
 
   // bool empty() const;
-  script::FunctionBuilder(c, "empty").setCallback(callbacks::empty)
+  script::FunctionBuilder::Fun(c, "empty").setCallback(callbacks::empty)
     .returns(script::Type::Boolean)
     .setConst()
     .create();
   // int size() const;
-  script::FunctionBuilder(c, "size").setCallback(callbacks::size)
+  script::FunctionBuilder::Fun(c, "size").setCallback(callbacks::size)
     .returns(script::Type::Int)
     .setConst()
     .create();
   // void reserve(int capacity);
-  script::FunctionBuilder(c, "reserve").setCallback(callbacks::reserve)
+  script::FunctionBuilder::Fun(c, "reserve").setCallback(callbacks::reserve)
     .params(script::Type::Int)
     .create();
   // int capacity() const;
-  script::FunctionBuilder(c, "capacity").setCallback(callbacks::capacity)
+  script::FunctionBuilder::Fun(c, "capacity").setCallback(callbacks::capacity)
     .returns(script::Type::Int)
     .setConst()
     .create();
   // void shrink_to_fit();
-  script::FunctionBuilder(c, "shrink_to_fit").setCallback(callbacks::shrink_to_fit)
+  script::FunctionBuilder::Fun(c, "shrink_to_fit").setCallback(callbacks::shrink_to_fit)
     .create();
 
   // void clear();
-  script::FunctionBuilder(c, "clear").setCallback(callbacks::clear)
+  script::FunctionBuilder::Fun(c, "clear").setCallback(callbacks::clear)
     .create();
   // void insert(int index, const T& value);
-  script::FunctionBuilder(c, "insert").setCallback(callbacks::insert_int_T)
+  script::FunctionBuilder::Fun(c, "insert").setCallback(callbacks::insert_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
   // void erase(int index);
-  script::FunctionBuilder(c, "erase").setCallback(callbacks::erase_int)
+  script::FunctionBuilder::Fun(c, "erase").setCallback(callbacks::erase_int)
     .params(script::Type::Int)
     .create();
   // void push_back(const T& value);
-  script::FunctionBuilder(c, "push_back").setCallback(callbacks::push_back)
+  script::FunctionBuilder::Fun(c, "push_back").setCallback(callbacks::push_back)
     .params(script::Type::cref(t))
     .create();
   // void pop_back();
-  script::FunctionBuilder(c, "pop_back").setCallback(callbacks::pop_back)
+  script::FunctionBuilder::Fun(c, "pop_back").setCallback(callbacks::pop_back)
     .create();
   // void resize(int size);
-  script::FunctionBuilder(c, "resize").setCallback(callbacks::resize_int)
+  script::FunctionBuilder::Fun(c, "resize").setCallback(callbacks::resize_int)
     .params(script::Type::Int)
     .create();
   // void resize(int size, const T& value);
-  script::FunctionBuilder(c, "resize").setCallback(callbacks::resize_int_T)
+  script::FunctionBuilder::Fun(c, "resize").setCallback(callbacks::resize_int_T)
     .params(script::Type::Int, script::Type::cref(t))
     .create();
 
   // bool operator==(const std::vector<T>& other) const;
-  script::OperatorBuilder(script::Symbol(c), script::EqualOperator).setCallback(callbacks::eq)
+  script::FunctionBuilder::Op(c, script::EqualOperator).setCallback(callbacks::eq)
     .params(script::Type::cref(c.id()))
     .setConst()
     .create();
 
   // bool operator!=(const std::vector<T>& other) const;
-  script::OperatorBuilder(script::Symbol(c), script::InequalOperator).setCallback(callbacks::neq)
+  script::FunctionBuilder::Op(c, script::InequalOperator).setCallback(callbacks::neq)
     .params(script::Type::cref(c.id()))
     .setConst()
     .create();
@@ -398,7 +398,7 @@ void register_vector_file(script::Namespace ns)
 
   script::Engine* e = ns.engine();
 
-  script::ClassTemplate vector_template = script::Symbol{ ns }.newClassTemplate("vector")
+  script::ClassTemplate vector_template = script::ClassTemplateBuilder(script::Symbol(ns), "vector")
     .params(script::TemplateParameter(script::TemplateParameter::TypeParameter{}, "T"))
     .setScope(script::Scope(ns))
     .withBackend<gonk::VectorTemplate>()

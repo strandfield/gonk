@@ -70,6 +70,8 @@ Gonk::Gonk(int & argc, char **argv)
 Gonk::~Gonk()
 {
   m_engine.tearDown();
+
+  m_instance = nullptr;
 }
 
 int Gonk::argc() const

@@ -3,3 +3,4 @@ import gonk.test.hybrid.module;
 
 print(give_me_a_five());
 print(give_me_a_six());
+print(Integer(7).value());

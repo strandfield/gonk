@@ -173,6 +173,11 @@ public:
       proto[0] = proto[0].withFlag(script::Type::ThisFlag);
   }
 
+  script::SymbolKind get_kind() const override
+  {
+    return script::SymbolKind::Function;
+  }
+
   const std::string& name() const override
   {
     return m_name;
